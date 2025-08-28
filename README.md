@@ -1,6 +1,6 @@
 # ZRDDS SDK
 
-ZRDDS（零拷贝实时数据分发服务）的 Rust SDK，为高性能 DDS 通信提供安全的 Rust 绑定。
+ZRDDS 的 Rust SDK，为高性能 DDS 通信提供安全的 Rust 绑定。
 
 ## 安装
 

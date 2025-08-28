@@ -1,1 +1,31 @@
+# Rust 构建产物
 /target
+
+# Cargo 锁文件（对于库项目通常忽略）
+# Cargo.lock
+
+# 调试信息
+*.pdb
+
+# 日志文件
+*.log
+*.ddslog
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+
+# 备份文件
+*.bak
+*.orig

@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use crate::{bindings::*, DomainParticipant};
+use crate::{DomainParticipant, bindings::*};
 
 pub struct DomainParticipantFactory {
     pub(crate) raw: *mut DDS_DomainParticipantFactory,

@@ -1,7 +1,7 @@
 use bindgen;
 use glob::glob;
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 
 fn main() {
     let include_dir = PathBuf::from(r"include");
@@ -34,9 +34,7 @@ fn main() {
     }
 
     // 生成绑定
-    let bindings = builder
-        .generate()
-        .expect("Unable to generate bindings");
+    let bindings = builder.generate().expect("Unable to generate bindings");
 
     let out_file = "src/bindings.rs";
     bindings
@@ -48,11 +46,11 @@ fn main() {
 
     // 在文件开头加上 #![allow(warnings)]
     let mut new_content = String::from("#![allow(warnings)]\n");
-    
+
     // 替换 extern "C" 部分
     let replaced_content = content.replace(
         "unsafe extern \"C\" {",
-        "#[link(name = \"ZRDDSC_VS2019\")]\nunsafe extern \"C\" {"
+        "#[link(name = \"ZRDDSC_VS2019\")]\nunsafe extern \"C\" {",
     );
 
     new_content.push_str(&replaced_content);

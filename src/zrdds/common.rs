@@ -1,4 +1,3 @@
-use super::domain_participant::DomainParticipant;
 use super::domain_participant_factory::DomainParticipantFactory;
 use crate::bindings::*;
 use std::ffi::CString;
@@ -7,7 +6,7 @@ pub fn init(xml: &str, profile: &str) -> DomainParticipantFactory {
     let xml = CString::new(xml).unwrap();
     let profile = CString::new(profile).unwrap();
     let factory = unsafe { DDS_Init(xml.as_ptr(), profile.as_ptr()) };
-    if factory == std::ptr::null_mut() {
+    if factory.is_null() {
         panic!("DDS 初始化失败，请检查 XML 配置文件和 profile 名称");
     }
 

@@ -1,4 +1,3 @@
-use bindgen;
 use glob::glob;
 use std::fs;
 use std::path::PathBuf;
@@ -16,21 +15,17 @@ fn main() {
         .generate_comments(false);
 
     // 遍历 CInterface 下所有 .h
-    for entry in glob(&format!("{}/CInterface/*.h", include_dir.display()))
-        .expect("Failed to read glob pattern")
+    for path in glob(&format!("{}/CInterface/*.h", include_dir.display()))
+        .expect("Failed to read glob pattern").flatten()
     {
-        if let Ok(path) = entry {
-            builder = builder.header(path.to_string_lossy());
-        }
+        builder = builder.header(path.to_string_lossy());
     }
 
     // 遍历 ZRDDSCoreInterface 下所有 .h
-    for entry in glob(&format!("{}/ZRDDSCoreInterface/*.h", include_dir.display()))
-        .expect("Failed to read glob pattern")
+    for path in glob(&format!("{}/ZRDDSCoreInterface/*.h", include_dir.display()))
+        .expect("Failed to read glob pattern").flatten()
     {
-        if let Ok(path) = entry {
-            builder = builder.header(path.to_string_lossy());
-        }
+        builder = builder.header(path.to_string_lossy());
     }
 
     // 生成绑定

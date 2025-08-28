@@ -21,6 +21,6 @@ pub fn bytes_write(domain_id: u32, topic_name: &str, data: &[u8]) -> u32 {
             topic_name.as_ptr() as *mut DDS_Char,
             data.as_ptr() as *const DDS_Char,
             data.len() as DDS_Long,
-        )
+        ).try_into().unwrap()
     }
 }

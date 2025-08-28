@@ -16,14 +16,16 @@ fn main() {
 
     // 遍历 CInterface 下所有 .h
     for path in glob(&format!("{}/CInterface/*.h", include_dir.display()))
-        .expect("Failed to read glob pattern").flatten()
+        .expect("Failed to read glob pattern")
+        .flatten()
     {
         builder = builder.header(path.to_string_lossy());
     }
 
     // 遍历 ZRDDSCoreInterface 下所有 .h
     for path in glob(&format!("{}/ZRDDSCoreInterface/*.h", include_dir.display()))
-        .expect("Failed to read glob pattern").flatten()
+        .expect("Failed to read glob pattern")
+        .flatten()
     {
         builder = builder.header(path.to_string_lossy());
     }

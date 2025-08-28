@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::{ffi::CString, thread, time::Duration};
 use zrdds;
 use zrdds::bindings::*;
 
@@ -15,10 +15,17 @@ fn main() {
         "non_zerocopy_reliable",
     );
 
-    // 写普通 Bytes
-    let data = b"Hello DDS";
-    let ret = zrdds::bytes_write(150, "MyTopic", data);
-    if ret != 0 {
-        panic!("写普通 Bytes 失败");
+    loop {
+        let data = b"Hello DDS";
+
+        let ret = zrdds::bytes_write(150, "MyTopic", data);
+        if ret != 0 {
+            eprintln!("❌ 发送数据失败: {}", ret);
+        } else {
+            println!("✅ 发送数据: ");
+        }
+
+        // 每隔 1 秒发送一次
+        thread::sleep(Duration::from_secs(1));
     }
 }

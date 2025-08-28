@@ -1,12 +1,14 @@
 use super::writer::DataWriter;
 use crate::bindings::*;
 use std::ffi::CString;
+use std::marker::PhantomData;
 
-pub struct DomainParticipant {
+pub struct DomainParticipant<'a> {
     pub(crate) raw: *mut DDS_DomainParticipant,
+    pub(crate) _phantom: PhantomData<&'a ()>,
 }
 
-impl DomainParticipant {
+impl<'a> DomainParticipant<'a> {
     pub fn publish(
         &self,
         topic_name: &str,

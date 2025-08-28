@@ -7,6 +7,8 @@ fn main() {
 
     let dp = _dp_factory.create_domain_participant(150, "udp_dp");
 
+    drop(_dp_factory);
+
     // 创建写者
     let topic = CString::new("MyTopic").unwrap();
     let writer = dp.publish(

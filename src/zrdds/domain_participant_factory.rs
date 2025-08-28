@@ -1,4 +1,5 @@
 use std::ffi::CString;
+use std::marker::PhantomData;
 
 use crate::{DomainParticipant, bindings::*};
 
@@ -11,13 +12,16 @@ impl DomainParticipantFactory {
         &self,
         domain_id: u32,
         participant_name: &str,
-    ) -> DomainParticipant {
+    ) -> DomainParticipant<'_> {
         let participant_name = CString::new(participant_name).unwrap();
         let dp = unsafe { DDS_CreateDP(domain_id, participant_name.as_ptr()) };
         if dp.is_null() {
             panic!("创建域参与者失败");
         }
-        DomainParticipant { raw: dp }
+        DomainParticipant { 
+            raw: dp,
+            _phantom: PhantomData,
+        }
     }
 }
 

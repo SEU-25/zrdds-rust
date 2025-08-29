@@ -1,8 +1,6 @@
 use crate::bindings::*;
 use crate::zrdds_interface::dp_domain_participant::DPDomainParticipant;
 
-/** 域参与者工厂接口的核心功能在于是创建以及销毁域参与者实体，即作为域参与者实体的工厂。
-*/
 pub struct DPFactory {
     pub(crate) raw: *mut DDS_DomainParticipantFactory,
 }

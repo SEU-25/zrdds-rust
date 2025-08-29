@@ -11,7 +11,7 @@ pub struct Publisher<'a> {
     pub(crate) _marker: PhantomData<&'a DPDomainParticipant>,
 }
 
-impl<'a> Publisher<'a> {
+impl Publisher<'_> {
     /** 获取默认qos
      */
     pub fn default_qos() -> DDS_PublisherQos {
@@ -22,7 +22,7 @@ impl<'a> Publisher<'a> {
 
     成功返回Some()，失败返回None
     */
-    pub fn create_writer(
+    pub fn create_writer<'a>(
         publisher: Publisher,
         topic: Topic,
         writerQos: *const DDS_DataWriterQos,

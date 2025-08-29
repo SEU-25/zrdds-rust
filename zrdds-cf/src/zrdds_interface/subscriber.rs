@@ -9,7 +9,7 @@ pub struct Subscriber<'a> {
     pub(crate) _marker: PhantomData<&'a DPDomainParticipant>,
 }
 
-impl<'a> Subscriber<'a> {
+impl Subscriber<'_> {
     /** 获取默认qos
      */
     pub fn default_qos() -> DDS_SubscriberQos {
@@ -45,7 +45,7 @@ impl<'a> Subscriber<'a> {
 
     返回None表示没有满足条件的数据读者，否则返回相应的数据读者。
     */
-    pub fn lookup_reader(self_: Subscriber<'a>, topic_name: &str) -> Option<Reader<'a, 'a>> {
+    pub fn lookup_reader<'a>(self_: Subscriber, topic_name: &str) -> Option<Reader<'a, 'a>> {
         let topicName = CString::new(topic_name).unwrap();
 
         let reader = Reader {

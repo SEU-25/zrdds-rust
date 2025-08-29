@@ -3,5 +3,5 @@ pub mod subscriber;
 pub mod publisher;
 pub mod topic;
 pub mod dp_factory;
-mod reader;
-mod writer;
+pub mod reader;
+pub mod writer;

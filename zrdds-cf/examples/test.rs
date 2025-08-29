@@ -1,6 +1,5 @@
-use std::any::type_name;
-use std::ptr::{null, null_mut};
-use zrdds::bindings::{DDS_DomainParticipant, DDS_DomainParticipantListener, DDS_DomainParticipantQos, DDS_Listener, DDS_DOMAINPARTICIPANT_QOS_DEFAULT, DDS_STATUS_MASK_NONE};
+use std::ptr::{null_mut};
+use zrdds::bindings::{DDS_STATUS_MASK_NONE};
 use zrdds::zrdds_interface::*;
 
 fn main(){

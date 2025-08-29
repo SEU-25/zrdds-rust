@@ -1,0 +1,4 @@
+include dir: include
+Searching for header files...
+cargo:rustc-link-search=native=libs
+cargo:rustc-link-lib=dylib=ZRDDSC_VS2019

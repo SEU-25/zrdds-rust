@@ -1,0 +1,12 @@
+[package]
+name = "zrdds-cf"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "zrdds"
+path = "src/lib.rs"
+
+[[example]]
+name = "test"
+path = "examples/test.rs"

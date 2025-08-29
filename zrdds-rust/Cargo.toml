@@ -1,0 +1,26 @@
+[package]
+name = "zrdds"
+version = "0.1.0"
+edition = "2024"
+authors = ["Your Name <your.email@example.com>"]
+description = "Rust bindings for ZRDDS"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/zrdds"
+keywords = ["dds", "real-time", "messaging", "distributed"]
+categories = ["network-programming", "api-bindings"]
+readme = "README.md"
+
+[lib]
+name = "zrdds"
+path = "src/lib.rs"
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[dependencies]
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "0.72"
+glob = "0.3.3"

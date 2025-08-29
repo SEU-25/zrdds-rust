@@ -1,0 +1,2 @@
+clang diag: include\ZRDDSCoreInterface\ZRUserLog.h:415:67: warning: declaration of 'struct GUID_t' will not be visible outside of this function [-Wvisibility]
+clang diag: include\ZRDDSCoreInterface\ZRUserLog.h:418:111: warning: declaration of 'struct GUID_t' will not be visible outside of this function [-Wvisibility]

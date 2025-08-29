@@ -10,6 +10,6 @@ fn main(){
 
     let topic = dp.create_topic(&dp,"123","456",null_mut(),null_mut(),DDS_STATUS_MASK_NONE).unwrap();
 
-    drop(dp);
+    drop(dp); // 编译器报错
     drop(topic);
 }

@@ -19,6 +19,7 @@ name = "basic_usage"
 path = "examples/basic_usage.rs"
 
 [dependencies]
+paste = "1"
 
 [build-dependencies]
 cc = "1.0"

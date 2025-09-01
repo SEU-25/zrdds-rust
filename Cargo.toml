@@ -19,6 +19,10 @@ name = "basic_usage"
 path = "examples/basic_usage.rs"
 
 [dependencies]
+eframe = "0.26"
+egui = "0.26"
+libc = "0.2"
+serde_json = "1.0.143"
 
 [build-dependencies]
 cc = "1.0"

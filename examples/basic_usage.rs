@@ -7,6 +7,10 @@ use eframe::egui;
 use egui::Color32;
 use serde_json::Value;
 
+use std::collections::HashMap;
+
+use whoami::*;
+
 // 每个鼠标状态
 #[derive(Clone)]
 struct MouseState {
@@ -15,7 +19,7 @@ struct MouseState {
     x: f32,
     y: f32,
 }
-static mut RECEIVED: Option<Arc<Mutex<Vec<MouseState>>>> = None;
+static mut RECEIVED: Option<Arc<Mutex<HashMap<String, MouseState>>>> = None;
 
 fn color_from_json(value: &Value) -> Color32 {
     if let Value::Array(arr) = value {
@@ -31,13 +35,12 @@ fn color_from_json(value: &Value) -> Color32 {
 }
 fn main() {
     // 共享状态
-    let received: Arc<Mutex<Vec<MouseState>>> = Arc::new(Mutex::new(Vec::new()));
+    let received: Arc<Mutex<HashMap<String, MouseState>>> = Arc::new(Mutex::new(HashMap::new()));
 
 unsafe {
     RECEIVED = Some(received.clone());
 }
 
-    std::thread::spawn(move||
     unsafe {
         // DDS 初始化
         let factory = DDS_DomainParticipantFactory_get_instance();
@@ -61,7 +64,6 @@ unsafe {
             &raw const DDS_TOPIC_QOS_DEFAULT
         };
 
-        // 现在可以安全地传 &topic_qos
         let topic = unsafe {
             DDS_DomainParticipant_create_topic(
                 participant,
@@ -96,7 +98,10 @@ unsafe {
             DDS_STATUS_MASK_NONE,
         ) as *mut DDS_DataWriter;
 
-        // 创建 Subscriber
+        // 用 Arc<Mutex<>> 包装 writer，传给 UI
+        let writer = Arc::new(Mutex::new(writer));
+
+                // 创建 Subscriber
         let su_qos: *const DDS_SubscriberQos = unsafe {
             &raw const DDS_SUBSCRIBER_QOS_DEFAULT
         };
@@ -107,7 +112,7 @@ unsafe {
             DDS_STATUS_MASK_NONE,
         );
 
-        let received: Arc<Mutex<Vec<MouseState>>> = Arc::new(Mutex::new(Vec::new()));
+        //let received: Arc<Mutex<Vec<MouseState>>> = Arc::new(Mutex::new(Vec::new()));
 
         // 回调函数
         extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
@@ -148,11 +153,10 @@ unsafe {
 
                             // 可以反序列化成 serde_json::Value 或自定义结构
                             if let Ok(mouse_state) = serde_json::from_str::<serde_json::Value>(&s) {
-                                println!("mouse username: {}", mouse_state["username"]);
+                                //println!("mouse username: {}", mouse_state["username"]);
                                 if let Some(ref received_clone) = RECEIVED {
                                     let mut data = received_clone.lock().unwrap();
-                                    // push 数据
-                                    data.push(MouseState { username:mouse_state["username"].to_string(), color:color_from_json(&mouse_state["color"]),
+                                    data.insert(mouse_state["username"].to_string(),MouseState { username:mouse_state["username"].to_string(), color:color_from_json(&mouse_state["color"]),
                                      x: mouse_state["x"].as_f64().unwrap() as f32 , y: mouse_state["y"].as_f64().unwrap() as f32 });
                                 }
                             }
@@ -179,72 +183,108 @@ unsafe {
             DDS_STATUS_MASK_ALL,
         ) as *mut DDS_DataReader;
 
-        for i in 1..3{
-            //println!("666");
-            let mouse  = json!({
-                "username": "alice",
-                "color": [255, 0, 0,255],
-                "x": 100.0,
-                "y": 200.0
-            });
 
-            let json_str = mouse.to_string();  
-            let buffer = json_str.as_bytes(); 
+        let options = eframe::NativeOptions::default();
+        eframe::run_native(
+            "Shared Mouse Canvas",
+            options,
+            Box::new(move |cc| Box::new(MouseApp::new(received.clone(), writer.clone(), cc))),
+        );
+    }
 
-            let mut data: DDS_Bytes = mem::zeroed();
-            DDS_OctetSeq_initialize(&mut data.value as *mut DDS_OctetSeq);
-
-            DDS_OctetSeq_loan_contiguous(
-                &mut data.value as *mut DDS_OctetSeq,
-                buffer.as_ptr() as *mut DDS_Octet,
-                buffer.len() as DDS_ULong,
-                buffer.len() as DDS_ULong,
-            );
-
-            //DDS_BytesInitialize(&mut data);
-
-            
-            let handle = DDS_BytesDataWriter_register_instance(writer as *mut DDS_BytesDataWriter, &mut data);
-            DDS_BytesDataWriter_write(writer as *mut DDS_BytesDataWriter, &mut data, &handle);
-
-            thread::sleep(Duration::from_millis(50));
-        }
-    });
-
-    let options = eframe::NativeOptions::default();
-    eframe::run_native(
-        "Shared Mouse Canvas",
-        options,
-        Box::new(move |cc| Box::new(MouseApp::new(received.clone(), cc))),
-    );
 
     
 }
 
 struct MouseApp {
-    received: Arc<Mutex<Vec<MouseState>>>,
+    received: Arc<Mutex<HashMap<String, MouseState>>>,
+    writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    my_color: egui::Color32,
 }
 
 impl MouseApp {
-    fn new(received: Arc<Mutex<Vec<MouseState>>>, _cc: &eframe::CreationContext) -> Self {
-        Self { received }
+    fn new(
+        received: Arc<Mutex<HashMap<String, MouseState>>>,
+        writer: Arc<Mutex<*mut DDS_DataWriter>>,
+        _cc: &eframe::CreationContext,
+    ) -> Self {
+        Self {
+            received,
+            writer,
+            my_color: egui::Color32::from_rgba_unmultiplied(255, 0, 0, 255), // 默认红色
+        }
     }
 }
 
 impl eframe::App for MouseApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
-        // //获取鼠标位置
-        // if let Some(pos) = ctx.input(|i| i.pointer.hover_pos()) {
-        //     let (x, y) = (pos.x, pos.y);
-        // }
+        egui::CentralPanel::default().show(ctx, |ui| 
+        {
+            //颜色选择器
+            ui.horizontal(|ui| {
+                ui.color_edit_button_srgba(&mut self.my_color);
+            });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+            let painter = ui.painter();
             let data = self.received.lock().unwrap();
-            for mouse in data.iter() {
-                ui.label(format!("{} at ({}, {})", mouse.username, mouse.x, mouse.y));
+            for mouse in data.values() {
+                let pos = egui::pos2(mouse.x, mouse.y);
+                let color = egui::Color32::from_rgba_unmultiplied(
+                    mouse.color[0], mouse.color[1], mouse.color[2], mouse.color[3],
+                );
+
+                // 1. 画一个小圆点当作“鼠标”
+                painter.circle_filled(pos, 6.0, color);
+
+                // 2. 在圆点旁边显示坐标 (文字)
+                let text = format!("{} ({:.0}, {:.0})", mouse.username, mouse.x, mouse.y);
+                painter.text(
+                    pos + egui::vec2(10.0, -10.0),         // 偏移一点，不挡住圆点
+                    egui::Align2::LEFT_TOP,
+                    text,
+                    egui::FontId::proportional(14.0),
+                    egui::Color32::WHITE,
+                );
             }
         });
+
+        //获取系统用户名
+        let username = whoami::username();
+        // 使用界面选择的颜色
+        let c = self.my_color;
+        let color_arr = [c.r(), c.g(), c.b(), c.a()];
+
+        // 采集本地鼠标位置并发送
+        if let Some(pos) = ctx.input(|i| i.pointer.hover_pos()) {
+            let mouse = json!({
+                "username": username,              // 你可以改成本机用户名
+                "color": color_arr,        // 红色
+                "x": pos.x,
+                "y": pos.y
+            });
+
+            let json_str = mouse.to_string();
+            let buffer = json_str.as_bytes();
+
+            let mut data: DDS_Bytes = unsafe { mem::zeroed() };
+            unsafe { DDS_OctetSeq_initialize(&mut data.value as *mut DDS_OctetSeq) };
+
+            unsafe {
+                DDS_OctetSeq_loan_contiguous(
+                    &mut data.value as *mut DDS_OctetSeq,
+                    buffer.as_ptr() as *mut DDS_Octet,
+                    buffer.len() as DDS_ULong,
+                    buffer.len() as DDS_ULong,
+                );
+
+                let writer = *self.writer.lock().unwrap(); // 解锁拿到 writer
+                let handle = DDS_BytesDataWriter_register_instance(writer as *mut DDS_BytesDataWriter, &mut data);
+                DDS_BytesDataWriter_write(writer as *mut DDS_BytesDataWriter, &mut data, &handle);
+            }
+        }
+
         ctx.request_repaint();
+    
     }
 }

@@ -1,0 +1,36 @@
+use crate::bindings::*;
+use crate::core::publication::Publisher;
+use std::marker::PhantomData;
+
+/// 统一的Writer结构体，同时支持高级API和底层API
+pub struct Writer<'a, 'b> {
+    pub(crate) raw: *mut DDS_DataWriter,
+    pub(crate) _marker: PhantomData<&'b Publisher<'a>>,
+}
+
+
+
+/// 简化构造函数，用于高级API
+impl Writer<'static, 'static> {
+    pub fn new(raw: *mut DDS_DataWriter) -> Self {
+        Writer {
+            raw,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl Writer<'_, '_> {
+    /** 发布一个数据样本。
+     */
+    pub fn write(
+        &self,
+        self_: Writer,
+        sample: *const DDS_Bytes,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> u32 {
+        let _writer: *mut DDS_BytesDataWriter = self_.raw.cast();
+
+        unsafe { DDS_BytesDataWriter_write(_writer, sample, handle) }
+    }
+}

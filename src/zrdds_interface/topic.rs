@@ -1,5 +1,5 @@
 use crate::bindings::*;
-use crate::zrdds_interface::DPDomainParticipant;
+use crate::zrdds_interface::dp_domain_participant::DPDomainParticipant;
 
 pub struct Topic<'a>{
     pub(crate) raw: *mut DDS_Topic,

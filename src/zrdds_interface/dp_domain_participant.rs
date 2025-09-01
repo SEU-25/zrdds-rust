@@ -4,7 +4,6 @@ use crate::zrdds_interface::subscriber::Subscriber;
 use crate::zrdds_interface::topic::Topic;
 use std::ffi::CString;
 use std::marker::PhantomData;
-
 pub struct DPDomainParticipant {
     pub(crate) raw: *mut DDS_DomainParticipant,
 }
@@ -14,9 +13,9 @@ impl DPDomainParticipant {
 
     成功返回Some()，失败返回None
     */
-    fn create_topic(
+    pub fn create_topic(
         &self,
-        self_: DPDomainParticipant,
+        self_: &DPDomainParticipant,
         topic_name: &str,
         type_name: &str,
         qoslist: *const DDS_TopicQos,
@@ -51,9 +50,9 @@ impl DPDomainParticipant {
 
     成功返回Some()，失败返回None
     */
-    fn create_subscriber(
+    pub fn create_subscriber(
         &self,
-        self_: DPDomainParticipant,
+        self_: &DPDomainParticipant,
         qoslist: *const DDS_SubscriberQos,
         listener: *mut DDS_SubscriberListener,
         mask: u32,
@@ -64,7 +63,10 @@ impl DPDomainParticipant {
         if subscriber.is_null() {
             None
         } else {
-            Some(Subscriber { raw: subscriber })
+            Some(Subscriber {
+                raw: subscriber,
+                _marker: PhantomData,
+            })
         }
     }
 
@@ -72,9 +74,9 @@ impl DPDomainParticipant {
 
     成功返回Some()，失败返回None
     */
-    fn create_publisher(
+    pub fn create_publisher(
         &self,
-        self_: DPDomainParticipant,
+        self_: &DPDomainParticipant,
         qoslist: *const DDS_PublisherQos,
         listener: *mut DDS_PublisherListener,
         mask: u32,
@@ -85,7 +87,10 @@ impl DPDomainParticipant {
         if publisher.is_null() {
             None
         } else {
-            Some(Publisher { raw: publisher })
+            Some(Publisher {
+                raw: publisher,
+                _marker: PhantomData,
+            })
         }
     }
 
@@ -93,9 +98,10 @@ impl DPDomainParticipant {
 
     返回内置订阅者的指针，ZRDDS的实现中，只要域参与者未被删除，那么返回值一定有效。
     */
-    fn builtin_subscriber(self_: DPDomainParticipant) -> Subscriber {
+    pub fn builtin_subscriber(self_: &DPDomainParticipant) -> Subscriber {
         Subscriber {
             raw: unsafe { DDS_DomainParticipant_get_builtin_subscriber(self_.raw) },
+            _marker: PhantomData,
         }
     }
 }

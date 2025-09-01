@@ -1,10 +1,7 @@
-mod dp_factory;
-mod dp_domain_participant;
-mod subscriber;
-mod publisher;
-mod topic;
-
-pub use subscriber::Subscriber;
-pub use publisher::Publisher;
-pub use dp_domain_participant::DPDomainParticipant;
-pub use dp_factory::DPFactory;
+pub mod dp_domain_participant;
+pub mod dp_factory;
+pub mod publisher;
+pub mod reader;
+pub mod subscriber;
+pub mod topic;
+pub mod writer;

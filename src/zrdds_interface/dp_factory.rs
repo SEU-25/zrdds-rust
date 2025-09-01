@@ -1,8 +1,6 @@
 use crate::bindings::*;
 use crate::zrdds_interface::dp_domain_participant::DPDomainParticipant;
 
-/** 域参与者工厂接口的核心功能在于是创建以及销毁域参与者实体，即作为域参与者实体的工厂。
-*/
 pub struct DPFactory {
     pub(crate) raw: *mut DDS_DomainParticipantFactory,
 }
@@ -13,7 +11,7 @@ impl DPFactory {
 
     成功返回Some()，失败返回None
     */
-    pub fn instance(&self) -> Option<DPFactory> {
+    pub fn instance() -> Option<DPFactory> {
         let factory = unsafe { DDS_DomainParticipantFactory_get_instance() };
         if factory.is_null() {
             None
@@ -30,7 +28,7 @@ impl DPFactory {
     */
     pub fn create_dp(
         &self,
-        self_: DPFactory,
+        self_: &DPFactory,
         domain_id: u32,
         qos_list: *const DDS_DomainParticipantQos,
         listener: *mut DDS_DomainParticipantListener,
@@ -55,7 +53,7 @@ impl DPFactory {
 
     /** 析构单例，该方法同样是线程不安全的，多个线程同时调用该函数，可能会出问题。
      */
-    pub fn finalize() -> i32 {
+    pub fn finalize(&self) -> i32 {
         unsafe { DDS_DomainParticipantFactory_finalize_instance() }
     }
 }

@@ -30,39 +30,73 @@ impl Reader<'_, '_> {
     }
 }
 
+/// 生成 `NAME_on_process_sample` 与 `NAME_on_data_available` 两个导出符号。
 #[macro_export]
 macro_rules! dds_simple_data_reader_listener {
-    // A) 生成 on_data_available + on_process_sample（在宏中内联提供处理逻辑闭包）
-    // 用法：
-    // dds_simple_data_reader_listener!(Track, DDS_ZeroCopyBytes, take = DDS_ZeroCopyBytes_take_next_sample, |r,s,i| { /* ... */ });
-    ($name:ident, $Type:ty, take = $take_fn:path, $handler:expr) => {
-        paste! {
-            #[no_mangle]
-            pub unsafe extern "C" fn [<$name _on_data_available>](reader: *mut $crate::DDS_DataReader) {
-                let mut sample: core::mem::MaybeUninit<$Type> = core::mem::MaybeUninit::uninit();
-                let mut info: $crate::DDS_SampleInfo = core::mem::zeroed();
-
-                loop {
-                    let rc: $crate::DDS_ReturnCode_t =
-                        $take_fn(reader, sample.as_mut_ptr(), &mut info as *mut _);
-
-                    if rc == $crate::DDS_RETCODE_NO_DATA { break; }
-                    if rc != $crate::DDS_RETCODE_OK { break; } // 可按需扩展错误处理
-
-                    // 调用同名的样本处理函数（我们也会在下方生成它）
-                    [<$name _on_process_sample>](reader, sample.as_mut_ptr(), &mut info as *mut _);
-                }
+    ($name:ident, $Type:ident, $body:block) => {
+        ::paste::paste! {
+            // 允许用户在处理体里不使用参数时不报警告
+            #[allow(unused_variables)]
+            #[unsafe(no_mangle)]
+            pub unsafe extern "C" fn [<$name _on_process_sample>](
+                the_reader: *mut DDS_DataReader,
+                sample: *mut $Type,
+                info: *mut DDS_SampleInfo,
+            ) {
+                $body
             }
 
-            // 直接把用户提供的闭包/函数体变成一个导出 C ABI 的函数
-            #[no_mangle]
-            pub unsafe extern "C" fn [<$name _on_process_sample>](
-                reader: *mut $crate::DDS_DataReader,
-                sample: *mut $Type,
-                info:   *mut $crate::DDS_SampleInfo,
-            ) {
-                // $handler 要形如 |r, s, i| { ... }
-                ($handler)(reader, sample, info)
+            #[unsafe(no_mangle)]
+            pub unsafe extern "C" fn [<$name _on_data_available>](the_reader: *mut DDS_DataReader) {
+                // Rust 2024：即使本函数是 unsafe，也要显式包一层 unsafe 块
+                unsafe {
+                    // 1) 未初始化 -> C 的 *_initialize 负责初始化
+                    let mut data_values = ::core::mem::MaybeUninit::<[<$Type Seq>]>::uninit();
+                    let mut sample_infos = ::core::mem::MaybeUninit::<DDS_SampleInfoSeq>::uninit();
+
+                    [<$Type Seq_initialize>](data_values.as_mut_ptr());
+                    DDS_SampleInfoSeq_initialize(sample_infos.as_mut_ptr());
+
+                    // 初始化后再取可变引用
+                    let data_values: &mut [<$Type Seq>] = data_values.assume_init_mut();
+                    let sample_infos: &mut DDS_SampleInfoSeq = sample_infos.assume_init_mut();
+
+                    // 2) 转 reader
+                    let reader = the_reader as *mut [<$Type DataReader>];
+
+                    // 3) 抓取所有样本
+                    let ret = [<$Type DataReader_take>](
+                        reader,
+                        data_values,
+                        sample_infos,
+                        LENGTH_UNLIMITED,
+                        DDS_ANY_SAMPLE_STATE,
+                        DDS_ANY_VIEW_STATE,
+                        DDS_ANY_INSTANCE_STATE,
+                    );
+                    if ret != DDS_ReturnCode_t_DDS_RETCODE_OK {
+                        return;
+                    }
+
+                    // 4) 遍历
+                    let mut i: u32 = 0;
+                    let len: u32 = sample_infos._length as u32; // 若字段名不同，请改这里
+                    while i < len {
+                        let info = DDS_SampleInfoSeq_get_reference(sample_infos, i);
+                        if (*info).valid_data == 0 { // 若为 bool，请改为 `if !(*info).valid_data {`
+                            i += 1;
+                            continue;
+                        }
+                        let sample = [<$Type Seq_get_reference>](data_values, i);
+
+                        // 调用导出的处理函数本身也属不安全调用
+                        [<$name _on_process_sample>](the_reader, sample, info);
+                        i += 1;
+                    }
+
+                    // 5) 归还 loan
+                    let _ = [<$Type DataReader_return_loan>](reader, data_values, sample_infos);
+                }
             }
         }
     };

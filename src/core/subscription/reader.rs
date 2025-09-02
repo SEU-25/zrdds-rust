@@ -8,8 +8,6 @@ pub struct Reader<'a, 'b> {
     pub(crate) _marker: PhantomData<&'b Subscriber<'a>>,
 }
 
-
-
 /// 简化构造函数，用于高级API
 impl Reader<'static, 'static> {
     pub fn new(raw: *mut DDS_DataReader) -> Self {
@@ -25,7 +23,7 @@ impl Reader<'_, '_> {
 
     本方法将覆盖原有监听器，如果设置空对象表示清除原先设置的监听器。
     */
-    pub fn set_listener(self_: Reader, listener: *mut DDS_DataReaderListener, mask: u32) -> u32 {
+    pub fn set_listener(self_: Reader, listener: *mut DDS_DataReaderListener, mask: u32) -> i32 {
         unsafe { DDS_BytesDataReader_set_listener(self_.raw.cast(), listener, mask) }
     }
 }

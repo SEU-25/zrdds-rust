@@ -46,7 +46,7 @@ impl DPFactory {
         }
     }
 
-    pub fn default_qos(&self) -> Result<DDS_DomainParticipantQos, u32> {
+    pub fn default_qos(&self) -> Result<DDS_DomainParticipantQos, i32> {
         let mut qos = MaybeUninit::<DDS_DomainParticipantQos>::uninit();
 
         let ret = unsafe {
@@ -62,7 +62,7 @@ impl DPFactory {
 
     /** 析构单例，该方法同样是线程不安全的，多个线程同时调用该函数，可能会出问题。
      */
-    pub fn finalize(&self) -> u32 {
+    pub fn finalize(&self) -> i32 {
         unsafe { DDS_DomainParticipantFactory_finalize_instance() }
     }
 }

@@ -8,8 +8,6 @@ pub struct Writer<'a, 'b> {
     pub(crate) _marker: PhantomData<&'b Publisher<'a>>,
 }
 
-
-
 /// 简化构造函数，用于高级API
 impl Writer<'static, 'static> {
     pub fn new(raw: *mut DDS_DataWriter) -> Self {
@@ -23,11 +21,7 @@ impl Writer<'static, 'static> {
 impl Writer<'_, '_> {
     /** 发布一个数据样本。
      */
-    pub fn write(
-        &self,
-        sample: *const DDS_Bytes,
-        handle: *const DDS_InstanceHandle_t,
-    ) -> u32 {
+    pub fn write(&self, sample: *const DDS_Bytes, handle: *const DDS_InstanceHandle_t) -> i32 {
         let _writer: *mut DDS_BytesDataWriter = self.raw.cast();
 
         unsafe { DDS_BytesDataWriter_write(_writer, sample, handle) }

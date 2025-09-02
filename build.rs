@@ -1,4 +1,5 @@
 use glob::glob;
+use std::env;
 use std::fs;
 use std::path::PathBuf;
 
@@ -33,13 +34,14 @@ fn main() {
     // 生成绑定
     let bindings = builder.generate().expect("Unable to generate bindings");
 
-    let out_file = "src/bindings.rs";
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_file = format!("{}/bindings.rs", out_dir);
     bindings
-        .write_to_file(out_file)
+        .write_to_file(&out_file)
         .expect("Couldn't write bindings!");
 
     // 读取文件内容
-    let content = fs::read_to_string(out_file).expect("Failed to read bindings.rs");
+    let content = fs::read_to_string(&out_file).expect("Failed to read bindings.rs");
 
     // 在文件开头加上 #![allow(warnings)]
     let mut new_content = String::from("#![allow(warnings)]\n");
@@ -55,5 +57,5 @@ fn main() {
     println!("cargo:rustc-link-search=native=libs");
     println!("cargo:rustc-link-lib=dylib=ZRDDSC_VS2019");
 
-    fs::write(out_file, new_content).expect("Failed to write modified bindings.rs");
+    fs::write(&out_file, new_content).expect("Failed to write modified bindings.rs");
 }

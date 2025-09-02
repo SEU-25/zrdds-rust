@@ -18,5 +18,5 @@ pub use api::*;
 // Provide access to core functionality when needed
 pub use core as dds_core;
 
-pub mod interface_def;
-pub mod interface_impl;
+// pub mod interface_def;
+// pub mod interface_impl;

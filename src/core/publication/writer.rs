@@ -25,11 +25,10 @@ impl Writer<'_, '_> {
      */
     pub fn write(
         &self,
-        self_: Writer,
         sample: *const DDS_Bytes,
         handle: *const DDS_InstanceHandle_t,
     ) -> u32 {
-        let _writer: *mut DDS_BytesDataWriter = self_.raw.cast();
+        let _writer: *mut DDS_BytesDataWriter = self.raw.cast();
 
         unsafe { DDS_BytesDataWriter_write(_writer, sample, handle) }
     }

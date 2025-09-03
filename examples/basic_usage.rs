@@ -80,6 +80,18 @@ struct ChatMessage {
     timestamp: String, // 时间戳
 }
 
+// 弹幕数据结构
+#[derive(Clone)]
+struct DanmakuMessage {
+    username: String,
+    message: String,
+    x: f32,           // 当前x位置
+    y: f32,           // y位置
+    speed: f32,       // 移动速度
+    start_time: f64,  // 开始时间
+    color: egui::Color32, // 弹幕颜色
+}
+
 static mut RECEIVED: Option<Arc<Mutex<HashMap<String, MouseState>>>> = None;
 static mut RECEIVED_IMAGES: Option<Arc<Mutex<HashMap<String, ImageData>>>> = None;
 static mut RECEIVED_STROKES: Option<Arc<Mutex<Vec<DrawStroke>>>> = None;
@@ -808,6 +820,9 @@ struct MouseApp {
     last_draw_pos: Option<egui::Pos2>, // 上一个绘制位置
     local_strokes: Vec<DrawStroke>, // 本地笔迹存储
     chat_input: String, // 聊天输入框内容
+    danmaku_enabled: bool, // 弹幕开关
+    danmaku_messages: Vec<DanmakuMessage>, // 活跃的弹幕消息
+    last_message_count: usize, // 上次处理的消息数量
 }
 
 impl MouseApp {
@@ -868,7 +883,55 @@ impl MouseApp {
             last_draw_pos: None, // 初始化绘制位置
             local_strokes: Vec::new(), // 初始化本地笔迹
             chat_input: String::new(), // 初始化聊天输入框
+            danmaku_enabled: false, // 默认关闭弹幕
+            danmaku_messages: Vec::new(), // 初始化弹幕消息列表
+            last_message_count: 0, // 初始化消息计数
         }
+    }
+    
+    // 更新弹幕动画
+    fn update_danmaku(&mut self, ctx: &egui::Context) {
+        let current_time = ctx.input(|i| i.time);
+        let screen_width = ctx.screen_rect().width();
+        
+        // 更新弹幕位置
+        for danmaku in &mut self.danmaku_messages {
+            let elapsed = current_time - danmaku.start_time;
+            danmaku.x = screen_width - (elapsed as f32 * danmaku.speed);
+        }
+        
+        // 移除已经移出屏幕的弹幕
+        self.danmaku_messages.retain(|danmaku| danmaku.x > -200.0);
+    }
+    
+    // 添加新弹幕
+    fn add_danmaku(&mut self, message: &ChatMessage, ctx: &egui::Context) {
+        if !self.danmaku_enabled {
+            return;
+        }
+        
+        let current_time = ctx.input(|i| i.time);
+        let screen_height = ctx.screen_rect().height();
+        let screen_width = ctx.screen_rect().width();
+        
+        // 使用当前鼠标颜色作为弹幕颜色
+        
+        // 计算弹幕轨道（避免重叠）
+        let track_height = 30.0;
+        let max_tracks = ((screen_height - 100.0) / track_height) as usize;
+        let track = (self.danmaku_messages.len() % max_tracks.max(1)) as f32;
+        
+        let danmaku = DanmakuMessage {
+            username: message.username.clone(),
+            message: format!("{}: {}", message.username, message.message),
+            x: screen_width,
+            y: 50.0 + track * track_height,
+            speed: 80.0 + (message.message.len() as f32 * 2.0), // 根据消息长度调整速度
+            start_time: current_time,
+            color: self.my_color,
+        };
+        
+        self.danmaku_messages.push(danmaku);
     }
     
     fn send_chat_message(&mut self) {
@@ -914,6 +977,13 @@ impl eframe::App for MouseApp {
                 // 聊天区域
                 ui.heading("聊天室");
                 
+                // 弹幕开关
+                ui.horizontal(|ui| {
+                    ui.label("弹幕模式:");
+                    ui.checkbox(&mut self.danmaku_enabled, "开启弹幕");
+                });
+                ui.separator();
+                
                 // 聊天消息显示区域
                 egui::ScrollArea::vertical()
                     .max_height(400.0)
@@ -926,6 +996,30 @@ impl eframe::App for MouseApp {
                             }
                         }
                     });
+                
+                // 检查是否有新消息需要生成弹幕
+                let new_messages = {
+                    if let Ok(messages) = self.received_chat_messages.lock() {
+                        let current_count = messages.len();
+                        if current_count > self.last_message_count {
+                            // 克隆新消息
+                            let new_msgs: Vec<ChatMessage> = messages.iter().skip(self.last_message_count).cloned().collect();
+                            self.last_message_count = current_count;
+                            new_msgs
+                        } else {
+                            Vec::new()
+                        }
+                    } else {
+                        Vec::new()
+                    }
+                };
+                
+                // 为新消息生成弹幕
+                if self.danmaku_enabled {
+                    for message in &new_messages {
+                        self.add_danmaku(message, ctx);
+                    }
+                }
                 
                 // 聊天输入框和发送按钮
                 ui.separator();
@@ -1030,6 +1124,20 @@ impl eframe::App for MouseApp {
             });
 
             let painter = ui.painter();
+            
+            // 更新弹幕动画
+            self.update_danmaku(ctx);
+            
+            // 渲染弹幕
+            for danmaku in &self.danmaku_messages {
+                painter.text(
+                    egui::pos2(danmaku.x, danmaku.y),
+                    egui::Align2::LEFT_CENTER,
+                    &danmaku.message,
+                    egui::FontId::proportional(18.0),
+                    danmaku.color,
+                );
+            }
 
             // 显示接收到的图片
             let image_data = self.received_images.lock().unwrap();
@@ -1433,7 +1541,6 @@ impl eframe::App for MouseApp {
         
         // 清空已处理的图片删除操作
         self.received_image_deletes.lock().unwrap().clear();
-
         ctx.request_repaint();
     
     }

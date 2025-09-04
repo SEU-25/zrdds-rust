@@ -360,6 +360,7 @@ pub extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
 // 视频消息回调函数
 pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
     unsafe {
+        println!("1");
         if reader.is_null() { return; }
         let reader = reader as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
@@ -377,6 +378,8 @@ pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
             DDS_ANY_INSTANCE_STATE,
         );
 
+        println!("2");
+
         for i in 0..sample_infos._length {
             let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
             if !sample_ptr.is_null() {
@@ -391,11 +394,16 @@ pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
                     }
                 }
 
+
+                println!("3");
                 if let Ok(s) = String::from_utf8(vec) {
+                    println!("4");
                     if let Ok(video_msg) = serde_json::from_str::<serde_json::Value>(&s) {
+                        pritnln!("5");
                         if let Some(ref received_videos_clone) = RECEIVED_VIDEOS {
                             let video_data_base64 = video_msg["video_data"].as_str().unwrap_or("");
                             if let Ok(video_data) = general_purpose::STANDARD.decode(video_data_base64) {
+                                println!("6");
                                 let video = VideoData {
                                     username: video_msg["username"].as_str().unwrap_or("unknown").to_string(),
                                     video_data,
@@ -472,258 +480,3 @@ pub extern "C" fn on_video_delete_data_available(reader: *mut DDS_DataReader) {
     }
 }
 
-pub fn initialize_dds() -> Result<(
-    Arc<Mutex<*mut DDS_DataWriter>>,
-    Arc<Mutex<*mut DDS_DataWriter>>,
-    Arc<Mutex<*mut DDS_DataWriter>>,
-    Arc<Mutex<*mut DDS_DataWriter>>,
-    Arc<Mutex<*mut DDS_DataWriter>>,
-    Arc<Mutex<*mut DDS_DataWriter>>,
-), Box<dyn std::error::Error>> {
-    unsafe {
-        // DDS 初始化
-        let factory = DDS_DomainParticipantFactory_get_instance();
-
-        let dp_qos: *const DDS_DomainParticipantQos = unsafe {
-            &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT
-        };
-        let participant = DDS_DomainParticipantFactory_create_participant(
-            factory,
-            11,
-            dp_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        let type_name = DDS_BytesTypeSupport_get_type_name();
-        DDS_BytesTypeSupport_register_type(participant, type_name);
-        
-        let topic_qos: *const DDS_TopicQos = unsafe {
-            &raw const DDS_TOPIC_QOS_DEFAULT
-        };
-
-        // 创建各种topic
-        let topic_name = CString::new("mouse_topic").unwrap();
-        let topic = DDS_DomainParticipant_create_topic(
-            participant,
-            topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        let image_topic_name = CString::new("image_topic").unwrap();
-        let image_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            image_topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-        
-        let draw_topic_name = CString::new("draw_topic").unwrap();
-        let draw_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            draw_topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        let erase_topic_name = CString::new("erase_topic").unwrap();
-        let erase_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            erase_topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-        
-        let image_delete_topic_name = CString::new("image_delete_topic").unwrap();
-        let image_delete_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            image_delete_topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-        
-        let chat_topic_name = CString::new("chat_topic").unwrap();
-        let chat_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            chat_topic_name.as_ptr(),
-            type_name,
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        // 创建 Publisher
-        let pu_qos: *const DDS_PublisherQos = unsafe {
-            &raw const DDS_PUBLISHER_QOS_DEFAULT
-        };
-        let publisher = DDS_DomainParticipant_create_publisher(
-            participant,
-            pu_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        let mut datawriter_qos: DDS_DataWriterQos = mem::zeroed();
-        DDS_Publisher_get_default_datawriter_qos(publisher, &mut datawriter_qos);
-        datawriter_qos.history.depth = 5;
-
-        // 创建各种DataWriter
-        let writer = DDS_Publisher_create_datawriter(
-            publisher,
-            topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-
-        let image_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            image_topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-        
-        let draw_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            draw_topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-        
-        let erase_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            erase_topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-        
-        let image_delete_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            image_delete_topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-        
-        let chat_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            chat_topic,
-            &datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
-
-        // 用 Arc<Mutex<>> 包装 writer
-        let writer = Arc::new(Mutex::new(writer));
-        let image_writer = Arc::new(Mutex::new(image_writer));
-        let draw_writer = Arc::new(Mutex::new(draw_writer));
-        let erase_writer = Arc::new(Mutex::new(erase_writer));
-        let image_delete_writer = Arc::new(Mutex::new(image_delete_writer));
-        let chat_writer = Arc::new(Mutex::new(chat_writer));
-
-        // 创建 Subscriber
-        let su_qos: *const DDS_SubscriberQos = unsafe {
-            &raw const DDS_SUBSCRIBER_QOS_DEFAULT
-        };
-        let subscriber = DDS_DomainParticipant_create_subscriber(
-            participant,
-            su_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
-
-        let mut datareader_qos: DDS_DataReaderQos = mem::zeroed();
-        DDS_Subscriber_get_default_datareader_qos(subscriber, &mut datareader_qos);
-        datareader_qos.history.depth = 5;
-
-        // 创建各种DataReader和Listener
-        let mut listener: DDS_DataReaderListener = mem::zeroed();
-        listener.on_data_available = Some(on_data_available);
-
-        let _reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-
-        let mut image_listener: DDS_DataReaderListener = mem::zeroed();
-        image_listener.on_data_available = Some(on_image_data_available);
-
-        let _image_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            image_topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut image_listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-        
-        let mut draw_listener: DDS_DataReaderListener = mem::zeroed();
-        draw_listener.on_data_available = Some(on_draw_data_available);
-
-        let _draw_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            draw_topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut draw_listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-        
-        let mut erase_listener: DDS_DataReaderListener = mem::zeroed();
-        erase_listener.on_data_available = Some(on_erase_data_available);
-
-        let _erase_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            erase_topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut erase_listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-        
-        let mut image_delete_listener: DDS_DataReaderListener = mem::zeroed();
-        image_delete_listener.on_data_available = Some(on_image_delete_data_available);
-
-        let _image_delete_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            image_delete_topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut image_delete_listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-        
-        let mut chat_listener: DDS_DataReaderListener = mem::zeroed();
-        chat_listener.on_data_available = Some(on_chat_data_available);
-
-        let _chat_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            chat_topic as *mut DDS_TopicDescription,
-            &datareader_qos,
-            &mut chat_listener,
-            DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
-
-        Ok((
-            writer,
-            image_writer,
-            draw_writer,
-            erase_writer,
-            image_delete_writer,
-            chat_writer,
-        ))
-    }
-}

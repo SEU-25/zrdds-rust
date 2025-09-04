@@ -399,7 +399,7 @@ pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
                 if let Ok(s) = String::from_utf8(vec) {
                     println!("4");
                     if let Ok(video_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        pritnln!("5");
+                        println!("5");
                         if let Some(ref received_videos_clone) = RECEIVED_VIDEOS {
                             let video_data_base64 = video_msg["video_data"].as_str().unwrap_or("");
                             if let Ok(video_data) = general_purpose::STANDARD.decode(video_data_base64) {

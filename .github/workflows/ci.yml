@@ -90,14 +90,14 @@ jobs:
         run: cargo install cargo-deadlinks
 
       - name: 检查文档链接
-        run: cargo deadlinks --dir target/doc --check-extern
+        run: cargo deadlinks --dir target/doc --check-http
         continue-on-error: true
 
       - name: 部署到 Vercel
         uses: amondnet/vercel-action@v20
         with:
-          vercel_token: ${{ secrets.VERCEL_TOKEN }}
-          vercel_org_id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org_id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project_id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./target/doc
           vercel-args: '--prod --prebuilt'

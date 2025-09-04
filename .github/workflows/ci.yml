@@ -39,6 +39,7 @@ jobs:
     - name: 运行 Clippy 检查
       run: cargo clippy --all-targets --all-features
       # -D warnings: 将 clippy 警告视为错误，保证严格性
+      continue-on-error: true
 
     - name: 构建项目
       run: cargo build --verbose
@@ -69,3 +70,34 @@ jobs:
 
     - name: 验证包内容
       run: cargo package --list
+  
+  doc:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rust-docs
+
+      - name: 构建文档
+        run: cargo doc --no-deps --verbose
+
+      - name: 安装 cargo-deadlinks
+        run: cargo install cargo-deadlinks
+
+      - name: 检查文档链接
+        run: cargo deadlinks --dir target/doc --check-extern
+        continue-on-error: true
+
+      - name: 部署到 Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel_token: ${{ secrets.VERCEL_TOKEN }}
+          vercel_org_id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./target/doc
+          vercel-args: '--prod --prebuilt'

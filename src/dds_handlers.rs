@@ -402,8 +402,13 @@ pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
                                     file_name: video_msg["file_name"].as_str().unwrap_or("video.mp4").to_string(),
                                     file_size: video_msg["file_size"].as_u64().unwrap_or(0),
                                 };
+                                let file_name = video.file_name.clone();
+                                let file_size = video.file_size;
                                 let mut data = received_videos_clone.lock().unwrap();
                                 data.insert(video.username.clone(), video);
+                                println!("接收到视频: {} ({}字节)", file_name, file_size);
+                            } else {
+                                eprintln!("视频数据base64解码失败");
                             }
                         }
                     }

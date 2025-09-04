@@ -84,7 +84,7 @@ jobs:
           components: rust-docs
 
       - name: 构建文档
-        run: cargo doc --no-deps --verbose
+        run: cargo doc --verbose --no-deps
 
       - name: 安装 cargo-deadlinks
         run: cargo install cargo-deadlinks
@@ -99,5 +99,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./target/doc
+          working-directory: ./target/doc/zrdds
           vercel-args: '--prod'

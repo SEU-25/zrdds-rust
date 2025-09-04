@@ -12,8 +12,5 @@ pub mod bindings;
 pub mod api;
 pub mod core;
 
-// Re-export the high-level API by default for ease of use
 pub use api::*;
-
-// Provide access to core functionality when needed
-pub use core as dds_core;
+pub use core::*;

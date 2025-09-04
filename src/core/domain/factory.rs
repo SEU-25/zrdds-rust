@@ -1,7 +1,7 @@
 use std::mem::MaybeUninit;
 
-use crate::bindings::*;
 use crate::core::domain::DomainParticipant;
+use crate::{DomainParticipantListener, DomainParticipantQos, bindings::*, listen};
 
 pub struct DPFactory {
     pub(crate) raw: *mut DDS_DomainParticipantFactory,
@@ -27,15 +27,19 @@ impl DPFactory {
     */
     pub fn create_dp(
         &self,
-        self_: &DPFactory,
         domain_id: u32,
-        qos_list: *const DDS_DomainParticipantQos,
-        listener: *mut DDS_DomainParticipantListener,
+        qos_list: &DomainParticipantQos,
+        listener: &DomainParticipantListener,
         mask: DDS_StatusKindMask,
     ) -> Option<DomainParticipant> {
+        let mut listener_copy = *listener;
         let participant = unsafe {
             DDS_DomainParticipantFactory_create_participant(
-                self_.raw, domain_id, qos_list, listener, mask,
+                self.raw,
+                domain_id,
+                qos_list.raw,
+                &mut listener_copy as *mut _,
+                mask,
             )
         };
 
@@ -46,18 +50,15 @@ impl DPFactory {
         }
     }
 
-    pub fn default_qos(&self) -> Result<DDS_DomainParticipantQos, i32> {
-        let mut qos = MaybeUninit::<DDS_DomainParticipantQos>::uninit();
-
-        let ret = unsafe {
-            DDS_DomainParticipantFactory_get_default_participant_qos(self.raw, qos.as_mut_ptr())
+    pub fn default_qos(&self) -> Result<DomainParticipantQos, i32> {
+        let mut qos = DomainParticipantQos {
+            raw: MaybeUninit::uninit().as_mut_ptr(),
         };
 
-        if ret == 0 {
-            Ok(unsafe { qos.assume_init() })
-        } else {
-            Err(ret)
-        }
+        let ret =
+            unsafe { DDS_DomainParticipantFactory_get_default_participant_qos(self.raw, qos.raw) };
+
+        if ret == 0 { Ok(qos) } else { Err(ret) }
     }
 
     /** 析构单例，该方法同样是线程不安全的，多个线程同时调用该函数，可能会出问题。

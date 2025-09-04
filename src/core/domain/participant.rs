@@ -1,16 +1,19 @@
-use crate::bindings::*;
-use crate::core::return_code::{ReturnCode, DdsResult};
+use crate::{bindings::*,TopicListener, PublisherListener, SubscriberListener};
 use crate::core::publication::Publisher;
+use crate::core::return_code::{DdsResult, ReturnCode};
 use crate::core::subscription::Subscriber;
 use crate::core::topic::Topic;
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
+use std::ptr::null_mut;
 
 /// 统一的DomainParticipant结构体，同时支持高级API和底层API
 pub struct DomainParticipant {
     pub(crate) raw: *mut DDS_DomainParticipant,
 }
+
+pub type DomainParticipantListener = DDS_DomainParticipantListener;
 
 impl DomainParticipant {
     /// 高级API：简化的发布方法
@@ -102,13 +105,12 @@ impl DomainParticipant {
     */
     pub fn create_publisher(
         &self,
-        self_: &DomainParticipant,
         qoslist: *const DDS_PublisherQos,
         listener: *mut DDS_PublisherListener,
         mask: u32,
     ) -> Option<Publisher> {
         let publisher =
-            unsafe { DDS_DomainParticipant_create_publisher(self_.raw, qoslist, listener, mask) };
+            unsafe { DDS_DomainParticipant_create_publisher(self.raw, qoslist, listener, mask) };
 
         if publisher.is_null() {
             None
@@ -120,9 +122,14 @@ impl DomainParticipant {
         }
     }
 
+    pub fn default_publisher_qos(&self) -> DdsResult<PublisherQos> {
+
+    }
+
     pub fn default_subscriber_qos(&self) -> DdsResult<DDS_SubscriberQos> {
         let mut qos = MaybeUninit::<DDS_SubscriberQos>::uninit();
-        let ret = unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.as_mut_ptr()) };
+        let ret =
+            unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.as_mut_ptr()) };
         let return_code = ReturnCode::from(ret);
         if return_code.is_ok() {
             Ok(unsafe { qos.assume_init() })
@@ -139,6 +146,16 @@ impl DomainParticipant {
         Subscriber {
             raw: unsafe { DDS_DomainParticipant_get_builtin_subscriber(self_.raw) },
             _marker: PhantomData,
+        }
+    }
+}
+
+impl Default for DomainParticipantListener {
+    fn default() -> Self {
+        Self {
+            topiclistener: TopicListener::default(),
+            publisherlistener: PublisherListener::default(),
+            subscriberlistener: SubscriberListener::default(),
         }
     }
 }

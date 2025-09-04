@@ -1,16 +1,16 @@
 use std::ptr::null_mut;
 use zrdds::bindings::{DDS_DomainParticipantQos, DDS_STATUS_MASK_NONE};
 use zrdds::core::domain::DPFactory;
+use zrdds::DomainParticipantListener;
 
 fn main() {
     let dpf = DPFactory::instance().unwrap();
 
     let dp = dpf
         .create_dp(
-            &dpf,
             1,
             &dpf.default_qos().unwrap(),
-            null_mut(),
+            &DomainParticipantListener::default(),
             DDS_STATUS_MASK_NONE,
         )
         .unwrap();

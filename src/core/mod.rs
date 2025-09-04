@@ -8,6 +8,7 @@ pub mod publication;
 pub mod subscription;
 pub mod topic;
 pub mod return_code;
+pub mod listen;
 
 // Re-export all public items from submodules
 pub use domain::*;
@@ -15,3 +16,4 @@ pub use publication::*;
 pub use subscription::*;
 pub use topic::*;
 pub use return_code::*;
+pub use listen::*;

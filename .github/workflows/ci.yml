@@ -34,10 +34,10 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: 检查代码格式
-      run: cargo fmt -- --check --skip src/bindings.rs
+      run: cargo fmt --all --check
 
     - name: 运行 Clippy 检查
-      run: cargo clippy --all-targets --all-features -- -Aclippy::all src/bindings.rs
+      run: cargo clippy --all-targets --all-features
       # -D warnings: 将 clippy 警告视为错误，保证严格性
 
     - name: 构建项目

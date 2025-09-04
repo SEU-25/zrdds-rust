@@ -64,6 +64,17 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
+      
+    - name: 缓存 Cargo 依赖
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: 检查包发布准备
       run: cargo package --verbose
@@ -83,8 +94,19 @@ jobs:
           toolchain: stable
           components: rust-docs
 
+      - name: 缓存 Cargo 依赖
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: 构建文档
-        run: cargo doc --verbose --no-deps
+        run: cargo doc --no-deps --verbose
 
       - name: 安装 cargo-deadlinks
         run: cargo install cargo-deadlinks
@@ -99,5 +121,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./target/doc/zrdds
+          working-directory: ./target/doc
           vercel-args: '--prod'

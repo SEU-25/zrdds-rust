@@ -5,13 +5,13 @@
 
 pub mod domain;
 pub mod publication;
+pub mod return_code;
 pub mod subscription;
 pub mod topic;
-pub mod return_code;
 
 // Re-export all public items from submodules
 pub use domain::*;
 pub use publication::*;
+pub use return_code::*;
 pub use subscription::*;
 pub use topic::*;
-pub use return_code::*;

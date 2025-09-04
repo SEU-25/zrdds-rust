@@ -1,6 +1,6 @@
 use crate::bindings::*;
-use crate::core::return_code::{ReturnCode, DdsResult};
 use crate::core::publication::Publisher;
+use crate::core::return_code::{DdsResult, ReturnCode};
 use crate::core::subscription::Subscriber;
 use crate::core::topic::Topic;
 use std::ffi::CString;
@@ -122,7 +122,8 @@ impl DomainParticipant {
 
     pub fn default_subscriber_qos(&self) -> DdsResult<DDS_SubscriberQos> {
         let mut qos = MaybeUninit::<DDS_SubscriberQos>::uninit();
-        let ret = unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.as_mut_ptr()) };
+        let ret =
+            unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.as_mut_ptr()) };
         let return_code = ReturnCode::from(ret);
         if return_code.is_ok() {
             Ok(unsafe { qos.assume_init() })

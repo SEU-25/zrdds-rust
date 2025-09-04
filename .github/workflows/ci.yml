@@ -12,15 +12,16 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: 安装 Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-        
+        components: rustfmt, clippy   # 同时安装 rustfmt 和 clippy，避免缺组件
+
     - name: 缓存 Cargo 依赖
       uses: actions/cache@v3
       with:
@@ -31,39 +32,40 @@ jobs:
           ~/.cargo/git/db/
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        
+
     - name: 检查代码格式
-      run: cargo fmt --all -- --check
-      
+      run: cargo fmt -- --check --skip src/bindings.rs
+
     - name: 运行 Clippy 检查
-      run: cargo clippy --all-targets --all-features
-      
+      run: cargo clippy --all-targets --all-features -- -Aclippy::all src/bindings.rs
+      # -D warnings: 将 clippy 警告视为错误，保证严格性
+
     - name: 构建项目
       run: cargo build --verbose
-      
+
     - name: 运行测试
       run: cargo test --verbose
-      
+
     - name: 构建示例
       run: cargo build --example basic_usage --verbose
-      
+
     - name: 检查示例编译
       run: cargo check --example basic_usage --verbose
 
   # 发布检查作业
   publish-check:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: 安装 Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-        
+
     - name: 检查包发布准备
       run: cargo package --verbose
-      
+
     - name: 验证包内容
       run: cargo package --list

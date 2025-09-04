@@ -1,8 +1,8 @@
 use crate::bindings::*;
 use crate::core::domain::DomainParticipant;
 
-use crate::core::topic::Topic;
 use crate::core::publication::Writer;
+use crate::core::topic::Topic;
 use std::marker::PhantomData;
 
 pub struct Publisher<'a> {
@@ -41,9 +41,9 @@ impl Publisher<'_> {
             _marker: PhantomData,
         };
 
-        if writer.raw.is_null(){
+        if writer.raw.is_null() {
             None
-        }else{
+        } else {
             Some(writer)
         }
     }

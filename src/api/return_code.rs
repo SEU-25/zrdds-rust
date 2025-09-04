@@ -7,7 +7,7 @@ use crate::bindings::DDS_ReturnCode_t;
 use std::fmt;
 
 /// Rust representation of DDS_ReturnCode_t
-/// 
+///
 /// This enum provides a type-safe, Rust-idiomatic way to handle DDS return codes.
 /// It can be converted to/from the raw C DDS_ReturnCode_t values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -48,12 +48,12 @@ impl ReturnCode {
     pub fn is_ok(&self) -> bool {
         matches!(self, ReturnCode::Ok)
     }
-    
+
     /// Check if the return code indicates an error
     pub fn is_err(&self) -> bool {
         !self.is_ok()
     }
-    
+
     /// Get a human-readable description of the return code
     pub fn description(&self) -> &'static str {
         match self {
@@ -112,16 +112,16 @@ impl fmt::Display for ReturnCode {
 impl std::error::Error for ReturnCode {}
 
 /// Result type alias for DDS operations
-/// 
+///
 /// This provides a convenient way to return either a success value or a DDS error code.
 pub type DdsResult<T> = Result<T, ReturnCode>;
 
 /// Utility function to convert a raw DDS_ReturnCode_t to a Rust Result
-/// 
+///
 /// # Arguments
 /// * `code` - The raw DDS return code
 /// * `value` - The value to return on success
-/// 
+///
 /// # Returns
 /// * `Ok(value)` if code indicates success
 /// * `Err(ReturnCode)` if code indicates an error
@@ -135,10 +135,10 @@ pub fn dds_result<T>(code: DDS_ReturnCode_t, value: T) -> DdsResult<T> {
 }
 
 /// Utility function to convert a raw DDS_ReturnCode_t to a Rust Result for unit operations
-/// 
+///
 /// # Arguments
 /// * `code` - The raw DDS return code
-/// 
+///
 /// # Returns
 /// * `Ok(())` if code indicates success
 /// * `Err(ReturnCode)` if code indicates an error
@@ -149,47 +149,47 @@ pub fn dds_result_unit(code: DDS_ReturnCode_t) -> DdsResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_return_code_conversion() {
         // Test conversion from DDS_ReturnCode_t to ReturnCode
         assert_eq!(ReturnCode::from(0), ReturnCode::Ok);
         assert_eq!(ReturnCode::from(1), ReturnCode::Error);
         assert_eq!(ReturnCode::from(13), ReturnCode::NotAllowedBySec);
-        
+
         // Test conversion from ReturnCode to DDS_ReturnCode_t
         assert_eq!(DDS_ReturnCode_t::from(ReturnCode::Ok), 0);
         assert_eq!(DDS_ReturnCode_t::from(ReturnCode::Error), 1);
         assert_eq!(DDS_ReturnCode_t::from(ReturnCode::NotAllowedBySec), 13);
     }
-    
+
     #[test]
     fn test_is_ok_is_err() {
         assert!(ReturnCode::Ok.is_ok());
         assert!(!ReturnCode::Ok.is_err());
-        
+
         assert!(!ReturnCode::Error.is_ok());
         assert!(ReturnCode::Error.is_err());
     }
-    
+
     #[test]
     fn test_dds_result() {
         let result = dds_result(0, "success");
         assert_eq!(result, Ok("success"));
-        
+
         let result = dds_result(1, "error");
         assert_eq!(result, Err(ReturnCode::Error));
     }
-    
+
     #[test]
     fn test_dds_result_unit() {
         let result = dds_result_unit(0);
         assert_eq!(result, Ok(()));
-        
+
         let result = dds_result_unit(1);
         assert_eq!(result, Err(ReturnCode::Error));
     }
-    
+
     #[test]
     fn test_display() {
         let code = ReturnCode::BadParameter;

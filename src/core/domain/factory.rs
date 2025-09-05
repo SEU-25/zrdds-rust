@@ -1,7 +1,7 @@
 use std::mem::MaybeUninit;
 
 use crate::core::domain::DomainParticipant;
-use crate::{DomainParticipantListener, DomainParticipantQos, bindings::*, listen};
+use crate::{DomainParticipantListener, DomainParticipantQos, bindings::*};
 
 pub struct DPFactory {
     pub(crate) raw: *mut DDS_DomainParticipantFactory,

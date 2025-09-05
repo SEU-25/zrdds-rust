@@ -1,8 +1,10 @@
-use crate::{bindings::*,TopicListener, PublisherListener, SubscriberListener};
 use crate::core::publication::Publisher;
 use crate::core::return_code::{DdsResult, ReturnCode};
 use crate::core::subscription::Subscriber;
 use crate::core::topic::Topic;
+use crate::{
+    PublisherListener, PublisherQos, SubscriberListener, SubscriberQos, TopicListener, bindings::*,
+};
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
@@ -44,7 +46,6 @@ impl DomainParticipant {
     */
     pub fn create_topic(
         &self,
-        self_: &DomainParticipant,
         topic_name: &str,
         type_name: &str,
         qoslist: *const DDS_TopicQos,
@@ -57,7 +58,7 @@ impl DomainParticipant {
         let topic = Topic {
             raw: unsafe {
                 DDS_DomainParticipant_create_topic(
-                    self_.raw,
+                    self.raw,
                     topicName.as_ptr(),
                     typeName.as_ptr(),
                     qoslist,
@@ -81,13 +82,12 @@ impl DomainParticipant {
     */
     pub fn create_subscriber(
         &self,
-        self_: &DomainParticipant,
         qoslist: *const DDS_SubscriberQos,
         listener: *mut DDS_SubscriberListener,
         mask: u32,
     ) -> Option<Subscriber> {
         let subscriber =
-            unsafe { DDS_DomainParticipant_create_subscriber(self_.raw, qoslist, listener, mask) };
+            unsafe { DDS_DomainParticipant_create_subscriber(self.raw, qoslist, listener, mask) };
 
         if subscriber.is_null() {
             None
@@ -105,12 +105,19 @@ impl DomainParticipant {
     */
     pub fn create_publisher(
         &self,
-        qoslist: *const DDS_PublisherQos,
-        listener: *mut DDS_PublisherListener,
+        qoslist: &PublisherQos,
+        listener: &PublisherListener,
         mask: u32,
     ) -> Option<Publisher> {
-        let publisher =
-            unsafe { DDS_DomainParticipant_create_publisher(self.raw, qoslist, listener, mask) };
+        let mut listener_copy = listener.clone();
+        let publisher = unsafe {
+            DDS_DomainParticipant_create_publisher(
+                self.raw,
+                qoslist.raw,
+                &mut listener_copy as *mut DDS_PublisherListener,
+                mask,
+            )
+        };
 
         if publisher.is_null() {
             None
@@ -123,16 +130,22 @@ impl DomainParticipant {
     }
 
     pub fn default_publisher_qos(&self) -> DdsResult<PublisherQos> {
-
-    }
-
-    pub fn default_subscriber_qos(&self) -> DdsResult<DDS_SubscriberQos> {
-        let mut qos = MaybeUninit::<DDS_SubscriberQos>::uninit();
-        let ret =
-            unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.as_mut_ptr()) };
+        let qos = PublisherQos { raw: null_mut() };
+        let ret = unsafe { DDS_DomainParticipant_get_default_publisher_qos(self.raw, qos.raw) };
         let return_code = ReturnCode::from(ret);
         if return_code.is_ok() {
-            Ok(unsafe { qos.assume_init() })
+            Ok(qos)
+        } else {
+            Err(return_code)
+        }
+    }
+
+    pub fn default_subscriber_qos(&self) -> DdsResult<SubscriberQos> {
+        let qos = SubscriberQos { raw: null_mut() };
+        let ret = unsafe { DDS_DomainParticipant_get_default_subscriber_qos(self.raw, qos.raw) };
+        let return_code = ReturnCode::from(ret);
+        if return_code.is_ok() {
+            Ok(qos)
         } else {
             Err(return_code)
         }

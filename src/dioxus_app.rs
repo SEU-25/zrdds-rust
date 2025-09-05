@@ -68,6 +68,7 @@ pub struct DioxusAppProps {
     pub received_image_deletes: Arc<Mutex<Vec<ImageDeleteOperation>>>,
     pub received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>>,
     pub received_chat_messages: Arc<Mutex<Vec<ChatMessage>>>,
+    pub received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>>,
     pub writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub image_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
@@ -76,6 +77,7 @@ pub struct DioxusAppProps {
     pub image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    pub danmaku_writer: Arc<Mutex<*mut DDS_DataWriter>>,
 }
 
 impl PartialEq for DioxusAppProps {
@@ -113,6 +115,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         received_image_deletes,
         received_video_deletes,
         received_chat_messages,
+        received_danmaku_messages,
         writer,
         image_writer,
         video_writer,
@@ -121,6 +124,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         image_delete_writer,
         video_delete_writer,
         chat_writer,
+        danmaku_writer,
     } = props;
 
     // 应用状态
@@ -143,6 +147,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_strokes = received_strokes.clone();
         let received_erases = received_erases.clone();
         let received_chat_messages = received_chat_messages.clone();
+        let received_danmaku_messages = received_danmaku_messages.clone();
         
         async move {
             loop {
@@ -251,12 +256,38 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 username: message.username.clone(),
                                 message: message.message.clone(),
                                 timestamp: message.timestamp.clone(),
+                                color: message.color,
                             };
                             chat_messages.write().push(chat_msg);
                             
-                            // 如果启用弹幕，添加弹幕消息
-                            if app_state.read().danmaku_enabled {
-                                add_danmaku_message(message.message.clone(), &mut danmaku_messages);
+                            // 弹幕消息已由DDS处理器自动创建，无需在此处重复添加
+                        }
+                    }
+                }
+                
+                // 更新弹幕消息
+                {
+                    let received_data = received_danmaku_messages.lock().unwrap();
+                    let current_count = received_data.len();
+                    let danmaku_count = danmaku_messages.read().len();
+                    
+                    if current_count > danmaku_count {
+                        let new_messages = &received_data[danmaku_count..];
+                        for message in new_messages {
+                            // 检查是否已存在相同ID的弹幕，避免重复添加
+                            let existing_ids: Vec<String> = danmaku_messages.read().iter().map(|m| m.id.clone()).collect();
+                            if !existing_ids.contains(&message.id) {
+                                let danmaku_msg = DioxusDanmakuMessage {
+                                    username: message.username.clone(),
+                                    message: message.message.clone(),
+                                    x: message.x,
+                                    y: message.y,
+                                    color: message.color,
+                                    speed: message.speed,
+                                    start_time: message.start_time,
+                                    id: message.id.clone(),
+                                };
+                                danmaku_messages.write().push(danmaku_msg);
                             }
                         }
                     }
@@ -712,16 +743,7 @@ fn Canvas(props: CanvasProps) -> Element {
                 }
             }
             
-            // 弹幕层
-            for danmaku in danmaku_messages.read().iter() {
-                div {
-                    "style": format!(
-                        "position: absolute; left: {}px; top: {}px; color: rgb({},{},{}); font-size: 14px; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); pointer-events: none; white-space: nowrap;",
-                        danmaku.x, danmaku.y, danmaku.color.r(), danmaku.color.g(), danmaku.color.b()
-                    ),
-                    "{danmaku.message}"
-                }
-            }
+            // 弹幕层已移至DanmakuOverlay组件，避免重复显示
             
             // 鼠标事件处理层
             div {
@@ -866,7 +888,8 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                     let message = app_state.read().chat_input.clone();
                                     if !message.trim().is_empty() {
                                         let mut danmaku_clone = danmaku_messages.clone();
-                                        send_chat_message(message, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
+                                        let current_color = app_state.read().current_color;
+                                        send_chat_message(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
                                         app_state.write().chat_input.clear();
                                     }
                                 }
@@ -882,7 +905,8 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                 let message = app_state.read().chat_input.clone();
                                 if !message.trim().is_empty() {
                                     let mut danmaku_clone = danmaku_messages.clone();
-                                    send_chat_message(message, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
+                                    let current_color = app_state.read().current_color;
+                                    send_chat_message(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
                                     app_state.write().chat_input.clear();
                                 }
                             }
@@ -936,16 +960,17 @@ fn update_danmaku_positions(danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessa
     // 更新弹幕位置
     for message in messages.iter_mut() {
         let elapsed = now - message.start_time;
+        // 从屏幕最右侧开始向左移动
         message.x = 1200.0 - (elapsed as f32 * message.speed);
     }
     
     // 移除超出屏幕或过期的弹幕
     messages.retain(|msg| {
-        msg.x > -200.0 && (now - msg.start_time) < 10.0
+        msg.x > 0.0 && (now - msg.start_time) < 10.0
     });
 }
 
-fn add_danmaku_message(text: String, danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>) {
+fn add_danmaku_message(text: String, color: egui::Color32, danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>) {
     use rand::Rng;
     let mut rng = rand::thread_rng();
     
@@ -957,11 +982,7 @@ fn add_danmaku_message(text: String, danmaku_messages: &mut Signal<Vec<DioxusDan
         message: text,
         x: 1200.0, // 从右侧开始
         y: rng.gen_range(50.0..600.0), // 随机Y位置
-        color: egui::Color32::from_rgb(
-            rng.gen_range(100..255),
-            rng.gen_range(100..255), 
-            rng.gen_range(100..255)
-        ),
+        color: color, // 使用传入的颜色
         speed: rng.gen_range(80.0..120.0),
         start_time: current_time,
         id: danmaku_id,
@@ -972,6 +993,7 @@ fn add_danmaku_message(text: String, danmaku_messages: &mut Signal<Vec<DioxusDan
 
 fn send_chat_message(
     message: String,
+    color: egui::Color32,
     chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>,
     danmaku_enabled: bool
@@ -984,21 +1006,26 @@ fn send_chat_message(
         username: get_username(),
         message: message.clone(),
         timestamp: get_current_timestamp(),
+        color: color,
     };
     
     let json_message = json!({
         "type": "Chat",
         "username": chat_message.username,
         "message": chat_message.message,
-        "timestamp": chat_message.timestamp
+        "timestamp": chat_message.timestamp,
+        "color": {
+            "r": color.r(),
+            "g": color.g(),
+            "b": color.b(),
+            "a": color.a()
+        }
     });
     
     send_dds_message(&json_message.to_string(), &chat_writer);
     
-    // 如果启用弹幕，添加弹幕消息
-    if danmaku_enabled {
-        add_danmaku_message(message, danmaku_messages);
-    }
+    // 不在这里添加弹幕，让DDS接收处理统一处理
+    // 这样可以避免重复添加弹幕的问题
 }
 
 fn handle_mouse_move(
@@ -1252,7 +1279,7 @@ fn send_dds_message(
 }
 
 fn get_username() -> String {
-    "User".to_string()
+    whoami::username()
 }
 
 fn get_current_timestamp() -> String {

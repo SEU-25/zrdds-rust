@@ -82,6 +82,7 @@ pub struct ChatMessage {
     pub username: String,
     pub message: String,
     pub timestamp: String, // 时间戳
+    pub color: egui::Color32, // 用户选择的颜色
 }
 
 // 弹幕数据结构
@@ -94,6 +95,7 @@ pub struct DanmakuMessage {
     pub speed: f32,       // 移动速度
     pub start_time: f64,  // 开始时间
     pub color: egui::Color32, // 弹幕颜色
+    pub id: String,       // 弹幕唯一标识符
 }
 
 // 全局共享状态
@@ -105,3 +107,4 @@ pub static mut RECEIVED_ERASES: Option<Arc<Mutex<Vec<EraseOperation>>>> = None;
 pub static mut RECEIVED_IMAGE_DELETES: Option<Arc<Mutex<Vec<ImageDeleteOperation>>>> = None;
 pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation>>>> = None;
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
+pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;

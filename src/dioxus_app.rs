@@ -141,6 +141,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_images = received_images.clone();
         let received_videos = received_videos.clone();
         let received_strokes = received_strokes.clone();
+        let received_erases = received_erases.clone();
         let received_chat_messages = received_chat_messages.clone();
         
         async move {
@@ -209,6 +210,30 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             end_x: stroke.end_x,
                             end_y: stroke.end_y,
                             stroke_width: stroke.stroke_width,
+                            timestamp: stroke.timestamp,
+                        });
+                    }
+                }
+                
+                // 处理擦除操作
+                {
+                    let received_data = received_erases.lock().unwrap();
+                    for erase_op in received_data.iter() {
+                        // 对本地笔迹和接收到的笔迹都应用擦除操作（只擦除擦除时刻之前的笔迹）
+                        local_strokes.write().retain(|stroke| {
+                            !(stroke.timestamp < erase_op.timestamp && line_intersects_circle(
+                                stroke.start_x, stroke.start_y,
+                                stroke.end_x, stroke.end_y,
+                                erase_op.x, erase_op.y, erase_op.radius
+                            ))
+                        });
+                        
+                        strokes.write().retain(|stroke| {
+                            !(stroke.timestamp < erase_op.timestamp && line_intersects_circle(
+                                stroke.start_x, stroke.start_y,
+                                stroke.end_x, stroke.end_y,
+                                erase_op.x, erase_op.y, erase_op.radius
+                            ))
                         });
                     }
                 }
@@ -545,7 +570,7 @@ fn Canvas(props: CanvasProps) -> Element {
         mouse_positions,
         images,
         videos,
-        strokes,
+        mut strokes,
         mut local_strokes,
         danmaku_messages,
         mut is_drawing,
@@ -599,11 +624,11 @@ fn Canvas(props: CanvasProps) -> Element {
                 // 渲染其他用户的鼠标位置
                 for (username, mouse_state) in mouse_positions.read().iter() {
                     circle {
-                        "style":"width:12px;height:12px;background-color:rgb({mouse_state.color.r()},{mouse_state.color.g()},{mouse_state.color.b()})",
                         cx: "{mouse_state.x}",
                         cy: "{mouse_state.y}",
                         r: "5",
-                        fill: format!("#{:02x}{:02x}{:02x}", mouse_state.color.r(), mouse_state.color.g(), mouse_state.color.b())
+                        fill: format!("rgb({},{},{})", mouse_state.color.r(), mouse_state.color.g(), mouse_state.color.b())
+                        //fill:"rgb({mouse_state.color.r()},{mouse_state.color.g()},{mouse_state.color.b()})"
                     }
                     text {
                         x: "{mouse_state.x + 10.0}",
@@ -701,30 +726,41 @@ fn Canvas(props: CanvasProps) -> Element {
             // 鼠标事件处理层
             div {
                 "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;",
-                onmousemove: move |evt| {
-                    let rect = evt.element_coordinates();
-                    handle_mouse_move(
-                        rect.x as f32, 
-                        rect.y as f32, 
-                        &app_state, 
-                        &mut is_drawing, 
-                        &mut last_mouse_pos, 
-                        &mut local_strokes,
-                        writer.clone(),
-                        draw_writer.clone()
-                    );
+                onmousemove: {
+                    let writer_clone = writer.clone();
+                    let draw_writer_clone = draw_writer.clone();
+                    let erase_writer_clone = erase_writer.clone();
+                    move |evt: MouseEvent| {
+                        let rect = evt.element_coordinates();
+                        handle_mouse_move(
+                            rect.x as f32, 
+                            rect.y as f32, 
+                            &app_state, 
+                            &mut is_drawing, 
+                            &mut last_mouse_pos, 
+                            &mut local_strokes,
+                            &mut strokes,
+                            writer_clone.clone(),
+                            draw_writer_clone.clone(),
+                            erase_writer_clone.clone()
+                        );
+                    }
                 },
-                onmousedown: move |evt| {
-                    let rect = evt.element_coordinates();
-                    handle_mouse_down(
-                        rect.x as f32, 
-                        rect.y as f32, 
-                        &app_state, 
-                        &mut is_drawing, 
-                        &mut last_mouse_pos,
-                        &mut local_strokes,
-                        erase_writer.clone()
-                    );
+                onmousedown: {
+                    let erase_writer_clone = erase_writer.clone();
+                    move |evt: MouseEvent| {
+                        let rect = evt.element_coordinates();
+                        handle_mouse_down(
+                            rect.x as f32, 
+                            rect.y as f32, 
+                            &app_state, 
+                            &mut is_drawing, 
+                            &mut last_mouse_pos,
+                            &mut local_strokes,
+                            &mut strokes,
+                            erase_writer_clone.clone()
+                        );
+                    }
                 },
                 onmouseup: move |_| {
                     handle_mouse_up(&mut is_drawing);
@@ -972,8 +1008,10 @@ fn handle_mouse_move(
     is_drawing: &mut Signal<bool>, 
     last_mouse_pos: &mut Signal<(f32, f32)>, 
     local_strokes: &mut Signal<Vec<DrawStroke>>,
+    strokes: &mut Signal<Vec<DrawStroke>>,
     writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    draw_writer: Arc<Mutex<*mut DDS_DataWriter>>
+    draw_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>
 ) {
     let state = app_state.read();
     let (last_x, last_y) = last_mouse_pos.read().clone();
@@ -981,20 +1019,30 @@ fn handle_mouse_move(
     // 发送鼠标位置
     send_mouse_position(x, y, state.current_color, writer);
     
-    if *is_drawing.read() && state.draw_mode == DrawMode::Draw {
-        // 创建新的笔迹
-        let stroke = DrawStroke {
-            username: get_username(),
-            color: state.current_color,
-            start_x: last_x,
-            start_y: last_y,
-            end_x: x,
-            end_y: y,
-            stroke_width: state.stroke_width,
-        };
-        
-        local_strokes.write().push(stroke.clone());
-        send_draw_stroke(&stroke, draw_writer);
+    if *is_drawing.read() {
+        match state.draw_mode {
+            DrawMode::Draw => {
+                // 创建新的笔迹
+                let stroke = DrawStroke {
+                    username: get_username(),
+                    color: state.current_color,
+                    start_x: last_x,
+                    start_y: last_y,
+                    end_x: x,
+                    end_y: y,
+                    stroke_width: state.stroke_width,
+                    timestamp: get_current_timestamp_millis(),
+                };
+                
+                local_strokes.write().push(stroke.clone());
+                send_draw_stroke(&stroke, draw_writer);
+            },
+            DrawMode::Erase => {
+                // 拖动擦除
+                handle_erase(x, y, local_strokes, strokes, erase_writer);
+            },
+            _ => {}
+        }
     }
     
     last_mouse_pos.set((x, y));
@@ -1007,6 +1055,7 @@ fn handle_mouse_down(
     is_drawing: &mut Signal<bool>, 
     last_mouse_pos: &mut Signal<(f32, f32)>,
     local_strokes: &mut Signal<Vec<DrawStroke>>,
+    strokes: &mut Signal<Vec<DrawStroke>>,
     erase_writer: Arc<Mutex<*mut DDS_DataWriter>>
 ) {
     let state = app_state.read();
@@ -1017,7 +1066,8 @@ fn handle_mouse_down(
             last_mouse_pos.set((x, y));
         },
         DrawMode::Erase => {
-            handle_erase(x, y, local_strokes, erase_writer);
+            is_drawing.set(true);
+            handle_erase(x, y, local_strokes, strokes, erase_writer);
         },
         DrawMode::Mouse => {
             // 鼠标模式不做特殊处理
@@ -1033,17 +1083,28 @@ fn handle_erase(
     x: f32, 
     y: f32, 
     local_strokes: &mut Signal<Vec<DrawStroke>>,
+    strokes: &mut Signal<Vec<DrawStroke>>,
     erase_writer: Arc<Mutex<*mut DDS_DataWriter>>
 ) {
-    let erase_radius = 20.0;
+    let erase_radius = 30.0;
+    let erase_timestamp = get_current_timestamp_millis();
     
-    // 删除本地笔迹
+    // 删除本地笔迹（只删除擦除时刻之前的笔迹）
     local_strokes.write().retain(|stroke| {
-        !line_intersects_circle(
+        !(stroke.timestamp < erase_timestamp && line_intersects_circle(
             stroke.start_x, stroke.start_y,
             stroke.end_x, stroke.end_y,
             x, y, erase_radius
-        )
+        ))
+    });
+    
+    // 删除远程笔迹（只删除擦除时刻之前的笔迹）
+    strokes.write().retain(|stroke| {
+        !(stroke.timestamp < erase_timestamp && line_intersects_circle(
+            stroke.start_x, stroke.start_y,
+            stroke.end_x, stroke.end_y,
+            x, y, erase_radius
+        ))
     });
     
     // 发送擦除操作
@@ -1052,6 +1113,7 @@ fn handle_erase(
         x,
         y,
         radius: erase_radius,
+        timestamp: erase_timestamp,
     };
     
     let json_message = json!({
@@ -1059,7 +1121,8 @@ fn handle_erase(
         "username": erase_operation.username,
         "x": erase_operation.x,
         "y": erase_operation.y,
-        "radius": erase_operation.radius
+        "radius": erase_operation.radius,
+        "timestamp": erase_operation.timestamp
     });
     
     send_dds_message(&json_message.to_string(), &erase_writer);
@@ -1101,6 +1164,7 @@ fn send_draw_stroke(
         end_x: stroke.end_x,
         end_y: stroke.end_y,
         stroke_width: stroke.stroke_width,
+        timestamp: stroke.timestamp,
     };
     
     let json_message = json!({
@@ -1111,7 +1175,8 @@ fn send_draw_stroke(
         "start_y": draw_stroke.start_y,
         "end_x": draw_stroke.end_x,
         "end_y": draw_stroke.end_y,
-        "stroke_width": draw_stroke.stroke_width
+        "stroke_width": draw_stroke.stroke_width,
+        "timestamp": draw_stroke.timestamp
     });
     
     send_dds_message(&json_message.to_string(), &draw_writer);
@@ -1200,4 +1265,8 @@ fn get_current_timestamp() -> String {
         (timestamp / 60) % 60, 
         timestamp % 60
     )
+}
+
+fn get_current_timestamp_millis() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
 }

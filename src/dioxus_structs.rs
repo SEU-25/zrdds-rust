@@ -40,6 +40,7 @@ pub struct DrawStroke {
     pub end_x: f32,
     pub end_y: f32,
     pub stroke_width: f32,
+    pub timestamp: u64, // 笔迹创建时间戳（毫秒）
 }
 
 // 擦除操作数据结构
@@ -49,6 +50,7 @@ pub struct EraseOperation {
     pub x: f32,
     pub y: f32,
     pub radius: f32, // 擦除半径
+    pub timestamp: u64, // 擦除操作时间戳（毫秒）
 }
 
 // 图片删除操作数据结构

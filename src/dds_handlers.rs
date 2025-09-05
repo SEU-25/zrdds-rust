@@ -70,6 +70,7 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
                                     end_x: draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
                                     end_y: draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
                                     stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
+                                    timestamp: draw_msg["timestamp"].as_u64().unwrap_or(0),
                                 };
                                 
                                 let mut data = received_strokes_clone.lock().unwrap();
@@ -191,6 +192,7 @@ pub extern "C" fn on_erase_data_available(reader: *mut DDS_DataReader) {
                                 x: erase_msg["x"].as_f64().unwrap_or(0.0) as f32,
                                 y: erase_msg["y"].as_f64().unwrap_or(0.0) as f32,
                                 radius: erase_msg["radius"].as_f64().unwrap_or(20.0) as f32,
+                                timestamp: erase_msg["timestamp"].as_u64().unwrap_or(0),
                             });
                         }
                     }

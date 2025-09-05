@@ -108,3 +108,4 @@ pub static mut RECEIVED_IMAGE_DELETES: Option<Arc<Mutex<Vec<ImageDeleteOperation
 pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation>>>> = None;
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
 pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;
+pub static mut DANMAKU_ENABLED: Option<Arc<Mutex<bool>>> = None;

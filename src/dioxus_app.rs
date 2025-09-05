@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation};
+use crate::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation, DANMAKU_ENABLED};
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use std::time::{SystemTime, UNIX_EPOCH};
 use base64::{Engine as _, engine::general_purpose};
@@ -298,7 +298,9 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     
     rsx! {
         div {
-            "style": "display: flex; height: 100vh; font-family: Arial, sans-serif;",
+            "style": "display: flex; height: 100vh; font-family: Arial, sans-serif; position: relative;",
+            
+            // 移除全局鼠标事件监听层，改为在各个组件内部处理鼠标事件
             
             // 主要内容区域
             div {
@@ -330,6 +332,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                 chat_messages,
                 app_state,
                 chat_writer: chat_writer.clone(),
+                writer: writer.clone(),
                 danmaku_messages,
             }
         }
@@ -337,6 +340,12 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         // 弹幕层
         DanmakuOverlay {
             danmaku_messages: danmaku_messages
+        }
+        
+        // 全局鼠标位置显示层
+        GlobalMouseOverlay {
+            mouse_positions: mouse_positions,
+            app_state: app_state
         }
     }
 }
@@ -413,6 +422,14 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
     rsx! {
         div {
             "style": "flex: 1; padding: 20px; background: white; display: flex; flex-direction: column;",
+            onmousemove: {
+                let writer_clone = writer.clone();
+                move |evt: MouseEvent| {
+                    let rect = evt.page_coordinates();
+                    let state = app_state.read();
+                    send_mouse_position(rect.x as f32, rect.y as f32, state.current_color, writer_clone.clone());
+                }
+            },
             
             // 工具栏
             div {
@@ -542,7 +559,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                 danmaku_messages,
                 is_drawing,
                 last_mouse_pos,
-                writer,
+                writer: writer.clone(),
                 draw_writer,
                 erase_writer,
                 image_delete_writer,
@@ -652,23 +669,7 @@ fn Canvas(props: CanvasProps) -> Element {
                     }
                 }
                 
-                // 渲染其他用户的鼠标位置
-                for (username, mouse_state) in mouse_positions.read().iter() {
-                    circle {
-                        cx: "{mouse_state.x}",
-                        cy: "{mouse_state.y}",
-                        r: "5",
-                        fill: format!("rgb({},{},{})", mouse_state.color.r(), mouse_state.color.g(), mouse_state.color.b())
-                        //fill:"rgb({mouse_state.color.r()},{mouse_state.color.g()},{mouse_state.color.b()})"
-                    }
-                    text {
-                        x: "{mouse_state.x + 10.0}",
-                        y: "{mouse_state.y - 10.0}",
-                        font_size: "12",
-                        fill: "black",
-                        "{username}"
-                    }
-                }
+                // 鼠标位置渲染已移至GlobalMouseOverlay组件，在整个应用区域显示
             }
             
             // 图片显示
@@ -753,10 +754,13 @@ fn Canvas(props: CanvasProps) -> Element {
                     let draw_writer_clone = draw_writer.clone();
                     let erase_writer_clone = erase_writer.clone();
                     move |evt: MouseEvent| {
-                        let rect = evt.element_coordinates();
+                        let canvas_rect = evt.element_coordinates();
+                        let page_rect = evt.page_coordinates();
                         handle_mouse_move(
-                            rect.x as f32, 
-                            rect.y as f32, 
+                            canvas_rect.x as f32, 
+                            canvas_rect.y as f32, 
+                            page_rect.x as f32,
+                            page_rect.y as f32,
                             &app_state, 
                             &mut is_drawing, 
                             &mut last_mouse_pos, 
@@ -771,10 +775,10 @@ fn Canvas(props: CanvasProps) -> Element {
                 onmousedown: {
                     let erase_writer_clone = erase_writer.clone();
                     move |evt: MouseEvent| {
-                        let rect = evt.element_coordinates();
+                        let canvas_rect = evt.element_coordinates();
                         handle_mouse_down(
-                            rect.x as f32, 
-                            rect.y as f32, 
+                            canvas_rect.x as f32, 
+                            canvas_rect.y as f32, 
                             &app_state, 
                             &mut is_drawing, 
                             &mut last_mouse_pos,
@@ -798,6 +802,7 @@ struct ChatPanelProps {
     chat_messages: Signal<Vec<ChatMessage>>,
     app_state: Signal<DioxusAppState>,
     chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    writer: Arc<Mutex<*mut DDS_DataWriter>>,
     danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>,
 }
 
@@ -808,7 +813,8 @@ impl PartialEq for ChatPanelProps {
         self.app_state == other.app_state &&
         self.danmaku_messages == other.danmaku_messages &&
         // 对于Arc指针，我们比较地址
-        Arc::ptr_eq(&self.chat_writer, &other.chat_writer)
+        Arc::ptr_eq(&self.chat_writer, &other.chat_writer) &&
+        Arc::ptr_eq(&self.writer, &other.writer)
     }
 }
 
@@ -820,11 +826,20 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
         chat_messages,
         mut app_state,
         chat_writer,
+        writer,
         danmaku_messages,
     } = props;
     rsx! {
         div {
             "style": "width: 300px; display: flex; flex-direction: column; border-left: 1px solid #ccc; background-color: #f9f9f9;",
+            onmousemove: {
+                let writer_clone = writer.clone();
+                move |evt: MouseEvent| {
+                    let rect = evt.page_coordinates();
+                    let state = app_state.read();
+                    send_mouse_position(rect.x as f32, rect.y as f32, state.current_color, writer_clone.clone());
+                }
+            },
             
             // 聊天标题和弹幕开关
             div {
@@ -836,7 +851,16 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                         r#type: "checkbox",
                         checked: app_state.read().danmaku_enabled,
                         onchange: move |evt| {
-                            app_state.write().danmaku_enabled = evt.checked();
+                            let enabled = evt.checked();
+                            app_state.write().danmaku_enabled = enabled;
+                            // 同步更新全局弹幕开关状态
+                            unsafe {
+                                if let Some(ref global_enabled) = DANMAKU_ENABLED {
+                                    if let Ok(mut enabled_guard) = global_enabled.lock() {
+                                        *enabled_guard = enabled;
+                                    }
+                                }
+                            }
                         }
                     }
                     "启用弹幕"
@@ -940,6 +964,40 @@ fn DanmakuOverlay(danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>) -> Elemen
     }
 }
 
+// 全局鼠标位置显示组件
+#[component]
+fn GlobalMouseOverlay(mouse_positions: Signal<HashMap<String, MouseState>>, app_state: Signal<DioxusAppState>) -> Element {
+    rsx! {
+        div {
+            "style": "position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; overflow: hidden;",
+            
+            for (username, mouse_state) in mouse_positions.read().iter() {
+                div {
+                    key: "{username}",
+                    "style": format!(
+                        "position: absolute; left: {}px; top: {}px; transform: translate(-50%, -50%);",
+                        mouse_state.x, mouse_state.y
+                    ),
+                    
+                    // 鼠标圆点
+                    div {
+                        "style": format!(
+                            "width: 10px; height: 10px; border-radius: 50%; background-color: rgb({},{},{}); border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);",
+                            app_state.read().current_color.r(), app_state.read().current_color.g(), app_state.read().current_color.b()
+                        )
+                    }
+                    
+                    // 用户名标签
+                    div {
+                        "style": "position: absolute; left: 15px; top: -15px; background-color: rgba(0,0,0,0.8); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; white-space: nowrap;",
+                        "{username}"
+                    }
+                }
+            }
+        }
+    }
+}
+
 // 辅助函数
 fn parse_color(hex: &str) -> Result<egui::Color32, ()> {
     if hex.len() != 7 || !hex.starts_with('#') {
@@ -1029,8 +1087,10 @@ fn send_chat_message(
 }
 
 fn handle_mouse_move(
-    x: f32, 
-    y: f32, 
+    canvas_x: f32, 
+    canvas_y: f32, 
+    page_x: f32,
+    page_y: f32,
     app_state: &Signal<DioxusAppState>, 
     is_drawing: &mut Signal<bool>, 
     last_mouse_pos: &mut Signal<(f32, f32)>, 
@@ -1043,8 +1103,8 @@ fn handle_mouse_move(
     let state = app_state.read();
     let (last_x, last_y) = last_mouse_pos.read().clone();
     
-    // 发送鼠标位置
-    send_mouse_position(x, y, state.current_color, writer);
+    // 发送全局鼠标位置
+    send_mouse_position(page_x, page_y, state.current_color, writer);
     
     if *is_drawing.read() {
         match state.draw_mode {
@@ -1055,8 +1115,8 @@ fn handle_mouse_move(
                     color: state.current_color,
                     start_x: last_x,
                     start_y: last_y,
-                    end_x: x,
-                    end_y: y,
+                    end_x: canvas_x,
+                    end_y: canvas_y,
                     stroke_width: state.stroke_width,
                     timestamp: get_current_timestamp_millis(),
                 };
@@ -1066,13 +1126,13 @@ fn handle_mouse_move(
             },
             DrawMode::Erase => {
                 // 拖动擦除
-                handle_erase(x, y, local_strokes, strokes, erase_writer);
+                handle_erase(canvas_x, canvas_y, local_strokes, strokes, erase_writer);
             },
             _ => {}
         }
     }
     
-    last_mouse_pos.set((x, y));
+    last_mouse_pos.set((canvas_x, canvas_y));
 }
 
 fn handle_mouse_down(

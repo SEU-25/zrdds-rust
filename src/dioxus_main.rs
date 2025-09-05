@@ -6,7 +6,7 @@ use std::{ffi::CString, ptr, mem};
 use zrdds::bindings::*;
 use zrdds::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation, DanmakuMessage};
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
-use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES};
+use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES, DANMAKU_ENABLED};
 use zrdds::dioxus_app::*;
 use zrdds::utils::*;
 use zrdds::dds_handlers::*;
@@ -39,6 +39,7 @@ fn main() {
     let received_danmaku_messages: Arc<Mutex<Vec<DanmakuMessage>>> = Arc::new(Mutex::new(Vec::new()));
     let received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>> = Arc::new(Mutex::new(HashMap::new()));
     let received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>> = Arc::new(Mutex::new(Vec::new()));
+    let danmaku_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
 
     unsafe {
         // 设置全局静态变量
@@ -51,6 +52,7 @@ fn main() {
         RECEIVED_DANMAKU_MESSAGES = Some(received_danmaku_messages.clone());
         RECEIVED_VIDEOS = Some(received_videos.clone());
         RECEIVED_VIDEO_DELETES = Some(received_video_deletes.clone());
+        DANMAKU_ENABLED = Some(danmaku_enabled.clone());
     }
 
     unsafe {

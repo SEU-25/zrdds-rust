@@ -398,25 +398,32 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
                             });
                         }
                         
-                        // 同时添加到弹幕消息
-                        if let Some(ref received_danmaku_messages_clone) = RECEIVED_DANMAKU_MESSAGES {
-                            let mut data = received_danmaku_messages_clone.lock().unwrap();
-                            let current_time = std::time::SystemTime::now()
-                                .duration_since(std::time::UNIX_EPOCH)
-                                .unwrap_or_default()
-                                .as_secs_f64();
-                            let y_position = (data.len() % 10) as f32 * 50.0 + 50.0;
-                            let danmaku_id = format!("{}-{}-{}", username, message.len(), (current_time * 1000.0) as u64);
-                            data.push(DanmakuMessage {
-                                username: username,
-                                message: message,
-                                start_time: current_time,
-                                x: 1200.0, // 从屏幕最右侧开始
-                                y: y_position, // 分层显示
-                                color: color,
-                                speed: 100.0,
-                                id: danmaku_id,
-                            });
+                        // 只有在弹幕开关启用时才添加到弹幕消息
+                        let danmaku_enabled = if let Some(ref enabled) = DANMAKU_ENABLED {
+                            enabled.lock().unwrap().clone()
+                        } else {
+                            true // 默认启用
+                        };
+                        if danmaku_enabled {
+                            if let Some(ref received_danmaku_messages_clone) = RECEIVED_DANMAKU_MESSAGES {
+                                let mut data = received_danmaku_messages_clone.lock().unwrap();
+                                let current_time = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_secs_f64();
+                                let y_position = (data.len() % 10) as f32 * 50.0 + 50.0;
+                                let danmaku_id = format!("{}-{}-{}", username, message.len(), (current_time * 1000.0) as u64);
+                                data.push(DanmakuMessage {
+                                    username: username,
+                                    message: message,
+                                    start_time: current_time,
+                                    x: 1200.0, // 从屏幕最右侧开始
+                                    y: y_position, // 分层显示
+                                    color: color,
+                                    speed: 100.0,
+                                    id: danmaku_id,
+                                });
+                            }
                         }
                     }
                 }

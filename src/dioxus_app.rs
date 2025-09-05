@@ -3,11 +3,13 @@ use crate::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation,
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use std::time::{SystemTime, UNIX_EPOCH};
 use base64::{Engine as _, engine::general_purpose};
+use serde_json::json;
 use std::{collections::HashMap, mem, sync::{Arc, Mutex}};
 use eframe::egui;
-use serde_json::json;
 use crate::bindings::*;
 use crate::utils::*;
+use std::fs;
+use tokio;
 
 
 // Dioxus应用状态结构
@@ -20,6 +22,7 @@ pub struct DioxusAppState {
     pub canvas_height: u32,
     pub chat_input: String,
     pub danmaku_enabled: bool,
+    pub current_image: Option<String>, // 当前显示的图片用户名（作为图片ID）
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -39,6 +42,7 @@ impl Default for DioxusAppState {
             canvas_height: 600,
             chat_input: String::new(),
             danmaku_enabled: true,
+            current_image: None,
         }
     }
 }
@@ -146,6 +150,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_videos = received_videos.clone();
         let received_strokes = received_strokes.clone();
         let received_erases = received_erases.clone();
+        let received_image_deletes = received_image_deletes.clone();
+        let received_video_deletes = received_video_deletes.clone();
         let received_chat_messages = received_chat_messages.clone();
         let received_danmaku_messages = received_danmaku_messages.clone();
         
@@ -240,6 +246,25 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 erase_op.x, erase_op.y, erase_op.radius
                             ))
                         });
+                    }
+                }
+                
+                // 处理图片删除操作
+                {
+                    let received_data = received_image_deletes.lock().unwrap();
+                    for delete_op in received_data.iter() {
+                        println!("接收到图片删除操作: username={}, image_id={}", delete_op.username, delete_op.image_id);
+                        println!("当前图片列表: {:?}", images.read().keys().collect::<Vec<_>>());
+                        let removed = images.write().remove(&delete_op.image_id);
+                        println!("删除结果: {:?}", removed.is_some());
+                    }
+                }
+                
+                // 处理视频删除操作
+                {
+                    let received_data = received_video_deletes.lock().unwrap();
+                    for delete_op in received_data.iter() {
+                        videos.write().remove(&delete_op.video_id);
                     }
                 }
                 
@@ -530,19 +555,41 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                     }
                     div {
                         "style": "display: flex; gap: 8px;",
-                        button {
-                            "style": "padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;",
-                            onclick: move |_| {
-                                upload_image(image_writer.clone());
-                            },
-                            "📷 上传图片"
-                        }
-                        button {
-                            "style": "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;",
-                            onclick: move |_| {
-                                upload_video(video_writer.clone());
-                            },
-                            "🎥 上传视频"
+                        {
+                            let has_media = !images.read().is_empty() || !videos.read().is_empty();
+                            let image_button_style = if has_media {
+                                "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                            } else {
+                                "padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                            };
+                            let video_button_style = if has_media {
+                                "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                            } else {
+                                "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                            };
+                            
+                            rsx! {
+                                button {
+                                    "style": image_button_style,
+                                    disabled: has_media,
+                                    onclick: move |_| {
+                                        if !has_media {
+                                            upload_image(image_writer.clone());
+                                        }
+                                    },
+                                    "📷 上传图片"
+                                }
+                                button {
+                                    "style": video_button_style,
+                                    disabled: has_media,
+                                    onclick: move |_| {
+                                        if !has_media {
+                                            upload_video(video_writer.clone());
+                                        }
+                                    },
+                                    "🎥 上传视频"
+                                }
+                            }
                         }
                     }
                 }
@@ -639,7 +686,7 @@ fn Canvas(props: CanvasProps) -> Element {
             
             // SVG画布用于绘制
             svg {
-                "style": "position: absolute; top: 0; left: 0; pointer-events: none;",
+                "style": "position: absolute; top: 0; left: 0; pointer-events: none; z-index: 2;",
                 width: "{state.canvas_width}",
                 height: "{state.canvas_height}",
                 
@@ -672,7 +719,7 @@ fn Canvas(props: CanvasProps) -> Element {
                 // 鼠标位置渲染已移至GlobalMouseOverlay组件，在整个应用区域显示
             }
             
-            // 图片显示
+            // 背景图片层
             {
                 let images_guard = images.read();
                 if let Some((image_id, image_data)) = images_guard.iter().last() {
@@ -680,23 +727,30 @@ fn Canvas(props: CanvasProps) -> Element {
                     let image_data_clone = image_data.clone();
                     rsx! {
                         div {
-                            "style": "position: absolute; top: 10px; left: 10px; max-width: 300px; max-height: 200px; background: white; border: 2px solid #333; padding: 5px;",
+                            "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;",
                             
-                            div {
-                                "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;",
-                                span { "用户: {image_data_clone.username}" }
-                                button {
-                                    "style": "background-color: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;",
-                                    onclick: move |_| {
-                                        delete_image(image_id_clone.clone(), image_delete_writer.clone());
-                                    },
-                                    "×"
-                                }
-                            }
-                            
+                            // 背景图片
                             img {
                                 src: format!("data:image/png;base64,{}", general_purpose::STANDARD.encode(&image_data_clone.image_data)),
-                                "style": "max-width: 100%; max-height: 100%; object-fit: contain;"
+                                "style": "width: 100%; height: 100%; object-fit: contain; opacity: 0.8;"
+                            }
+                            
+                            // 图片控制面板
+                            div {
+                                "style": "position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border: 1px solid #333; border-radius: 5px; padding: 8px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.3);",
+                                
+                                div {
+                                    "style": "display: flex; align-items: center; gap: 8px; font-size: 12px;",
+                                    span { "图片: {image_data_clone.username}" }
+                                    button {
+                                        "style": "background-color: #dc3545; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; z-index: 10000; position: relative; display: flex; align-items: center; justify-content: center; font-weight: bold;",
+                                        onclick: move |_| {
+                                            println!("删除按钮被点击!");
+                                            delete_image(image_id_clone.clone(), image_delete_writer.clone());
+                                        },
+                                        "×"
+                                    }
+                                }
                             }
                         }
                     }
@@ -748,7 +802,7 @@ fn Canvas(props: CanvasProps) -> Element {
             
             // 鼠标事件处理层
             div {
-                "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;",
+                "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 3;",
                 onmousemove: {
                     let writer_clone = writer.clone();
                     let draw_writer_clone = draw_writer.clone();
@@ -1273,9 +1327,11 @@ fn delete_image(
     image_id: String,
     image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>
 ) {
+    println!("删除图片请求: image_id = {}", image_id);
+    
     let delete_op = ImageDeleteOperation {
         username: get_username(),
-        image_id,
+        image_id: image_id.clone(),
     };
     
     let json_message = json!({
@@ -1284,6 +1340,7 @@ fn delete_image(
         "image_id": delete_op.image_id
     });
     
+    println!("发送删除消息: {}", json_message.to_string());
     send_dds_message(&json_message.to_string(), &image_delete_writer);
 }
 
@@ -1306,8 +1363,35 @@ fn delete_video(
 }
 
 fn upload_image(image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
-    // TODO: 实现文件选择和上传逻辑
-    println!("图片上传功能待实现");
+    // 使用spawn异步处理文件选择，避免阻塞UI线程
+    spawn(async move {
+        // 使用异步文件对话框
+        if let Some(file_path) = rfd::AsyncFileDialog::new()
+            .add_filter("图片文件", &["png", "jpg", "jpeg", "gif", "bmp", "webp"])
+            .set_title("选择图片文件")
+            .pick_file()
+            .await {
+            
+            // 异步读取文件数据
+            match tokio::fs::read(file_path.path()).await {
+                Ok(image_data) => {
+                    // 获取图片尺寸（可选）
+                    let (width, height) = match image::open(file_path.path()) {
+                        Ok(img) => (img.width(), img.height()),
+                        Err(_) => (0, 0),
+                    };
+                    
+                    // 发送图片数据通过DDS
+                    let data_len = image_data.len();
+                    send_image_data_with_dimensions(image_data, width, height, image_writer);
+                    println!("图片上传成功: {} bytes, {}x{}", data_len, width, height);
+                }
+                Err(e) => {
+                    println!("读取图片文件失败: {}", e);
+                }
+            }
+        }
+    });
 }
 
 fn upload_video(video_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
@@ -1356,4 +1440,25 @@ fn get_current_timestamp() -> String {
 
 fn get_current_timestamp_millis() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+}
+
+fn send_image_data(image_data: Vec<u8>, image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+    send_image_data_with_dimensions(image_data, 0, 0, image_writer);
+}
+
+fn send_image_data_with_dimensions(image_data: Vec<u8>, width: u32, height: u32, image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+    let username = get_username();
+    
+    // 将图片数据编码为base64字符串
+    let image_data_b64 = general_purpose::STANDARD.encode(&image_data);
+    
+    let json_message = json!({
+        "username": username,
+        "image_data": image_data_b64,
+        "width": width,
+        "height": height
+    });
+    
+    send_dds_message(&json_message.to_string(), &image_writer);
+    println!("图片上传成功: {} bytes, {}x{}", image_data.len(), width, height);
 }

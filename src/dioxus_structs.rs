@@ -22,7 +22,7 @@ pub struct MouseState {
 }
 
 // 图片数据结构
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct ImageData {
     pub username: String,
     pub image_data: Vec<u8>, // PNG图片的原始字节数据

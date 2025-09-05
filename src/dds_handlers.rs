@@ -1,10 +1,10 @@
 use std::{ffi::CString, ptr, mem};
-use zrdds::bindings::*;
+use crate::bindings::*;
 use std::sync::{Arc, Mutex};
 use egui::Color32;
 use base64::{Engine as _, engine::general_purpose};
 
-use crate::structs::*;
+use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
 
 // 画笔笔迹消息回调函数
@@ -47,12 +47,20 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
                         if draw_msg["type"] == "Draw" {
                             if let Some(ref received_strokes_clone) = RECEIVED_STROKES {
                                 let color_array = draw_msg["color"].as_array().unwrap();
-                                let color = Color32::from_rgba_unmultiplied(
-                                    color_array[0].as_u64().unwrap() as u8,
-                                    color_array[1].as_u64().unwrap() as u8,
-                                    color_array[2].as_u64().unwrap() as u8,
-                                    color_array[3].as_u64().unwrap() as u8,
-                                );
+                                let color = if color_array.len() >= 4 {
+                                    Color32::from_rgba_unmultiplied(
+                                        color_array[0].as_u64().unwrap() as u8,
+                                        color_array[1].as_u64().unwrap() as u8,
+                                        color_array[2].as_u64().unwrap() as u8,
+                                        color_array[3].as_u64().unwrap() as u8,
+                                    )
+                                } else {
+                                    Color32::from_rgb(
+                                        color_array[0].as_u64().unwrap() as u8,
+                                        color_array[1].as_u64().unwrap() as u8,
+                                        color_array[2].as_u64().unwrap() as u8,
+                                    )
+                                };
                                 
                                 let stroke = DrawStroke {
                                     username: draw_msg["username"].as_str().unwrap_or("unknown").to_string(),

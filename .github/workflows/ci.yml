@@ -103,17 +103,14 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-binaries
 
-      - name: 缓存文档输出
-        uses: actions/cache@v3
-        with:
-          path: doc-output
-          key: ${{ runner.os }}-cargo-doc
-
       - name: 构建文档
         run: cargo doc --no-deps --verbose
 
       - name: 安装 cargo-deadlinks
-        run: cargo install cargo-deadlinks
+        run: |
+          if (-not (Get-Command cargo-deadlinks -ErrorAction SilentlyContinue)) {
+            cargo install cargo-deadlinks --locked
+          }
 
       - name: 检查文档链接
         run: cargo deadlinks --dir target/doc/zrdds --check-http

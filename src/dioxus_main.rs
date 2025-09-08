@@ -6,7 +6,7 @@ use std::{ffi::CString, ptr, mem};
 use zrdds::bindings::*;
 use zrdds::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation, DanmakuMessage};
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
-use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES, DANMAKU_ENABLED};
+use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_USER_COLORS, DANMAKU_ENABLED};
 use zrdds::dioxus_app::*;
 use zrdds::utils::*;
 use zrdds::dds_handlers::*;
@@ -39,6 +39,7 @@ fn main() {
     let received_danmaku_messages: Arc<Mutex<Vec<DanmakuMessage>>> = Arc::new(Mutex::new(Vec::new()));
     let received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>> = Arc::new(Mutex::new(HashMap::new()));
     let received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>> = Arc::new(Mutex::new(Vec::new()));
+    let received_user_colors: Arc<Mutex<HashMap<String, zrdds::dioxus_structs::UserColor>>> = Arc::new(Mutex::new(HashMap::new()));
     let danmaku_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
 
     unsafe {
@@ -52,6 +53,7 @@ fn main() {
         RECEIVED_DANMAKU_MESSAGES = Some(received_danmaku_messages.clone());
         RECEIVED_VIDEOS = Some(received_videos.clone());
         RECEIVED_VIDEO_DELETES = Some(received_video_deletes.clone());
+        RECEIVED_USER_COLORS = Some(received_user_colors.clone());
         DANMAKU_ENABLED = Some(danmaku_enabled.clone());
     }
 
@@ -174,6 +176,17 @@ fn main() {
             DDS_STATUS_MASK_NONE,
         );
 
+        // 创建用户颜色topic
+        let user_color_topic_name = CString::new("user_color_topic").unwrap();
+        let user_color_topic = DDS_DomainParticipant_create_topic(
+            participant,
+            user_color_topic_name.as_ptr(),
+            type_name,
+            topic_qos,
+            ptr::null_mut(),
+            DDS_STATUS_MASK_NONE,
+        );
+
         // 创建publisher
         let publisher_qos: *const DDS_PublisherQos = unsafe {
             &raw const DDS_PUBLISHER_QOS_DEFAULT
@@ -261,6 +274,14 @@ fn main() {
             DDS_STATUS_MASK_NONE,
         ) as *mut DDS_DataWriter;
 
+        let user_color_writer = DDS_Publisher_create_datawriter(
+            publisher,
+            user_color_topic,
+            datawriter_qos,
+            ptr::null_mut(),
+            DDS_STATUS_MASK_NONE,
+        ) as *mut DDS_DataWriter;
+
         // 包装在Arc<Mutex<>>中
         let writer = Arc::new(Mutex::new(writer));
         let image_writer = Arc::new(Mutex::new(image_writer));
@@ -271,6 +292,7 @@ fn main() {
         let video_writer = Arc::new(Mutex::new(video_writer));
         let video_delete_writer = Arc::new(Mutex::new(video_delete_writer));
         let danmaku_writer = Arc::new(Mutex::new(danmaku_writer));
+        let user_color_writer = Arc::new(Mutex::new(user_color_writer));
 
         // 创建subscriber
         let subscriber_qos: *const DDS_SubscriberQos = unsafe {
@@ -384,6 +406,17 @@ fn main() {
             danmaku_topic as *mut DDS_TopicDescription,
             datareader_qos,
             &mut danmaku_listener,
+            DDS_STATUS_MASK_ALL,
+        ) as *mut DDS_DataReader;
+
+        let mut user_color_listener: DDS_DataReaderListener = mem::zeroed();
+        user_color_listener.on_data_available = Some(on_user_color_data_available);
+
+        let _user_color_reader = DDS_Subscriber_create_datareader(
+            subscriber,
+            user_color_topic as *mut DDS_TopicDescription,
+            datareader_qos,
+            &mut user_color_listener,
             DDS_STATUS_MASK_ALL,
         ) as *mut DDS_DataReader;
     
@@ -653,6 +686,7 @@ fn main() {
             received_video_deletes: received_video_deletes.clone(),
             received_chat_messages: received_chat_messages.clone(),
             received_danmaku_messages: received_danmaku_messages.clone(),
+            received_user_colors: received_user_colors.clone(),
             writer: writer.clone(),
             image_writer: image_writer.clone(),
             video_writer: video_writer.clone(),
@@ -662,6 +696,7 @@ fn main() {
             video_delete_writer: video_delete_writer.clone(),
             chat_writer: chat_writer.clone(),
             danmaku_writer: danmaku_writer.clone(),
+            color_writer: user_color_writer.clone(),
         });
     }
 

@@ -1,7 +1,7 @@
 use crate::bindings::*;
 use crate::dioxus_structs::{
     ChatMessage, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
-    VideoDeleteOperation,
+    VideoDeleteOperation, UserColor,
 };
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use crate::utils::*;
@@ -30,6 +30,8 @@ pub struct DioxusAppState {
     pub chat_input: String,
     pub danmaku_enabled: bool,
     pub current_image: Option<String>, // 当前显示的图片用户名（作为图片ID）
+    pub current_video: Option<String>, // 当前显示的视频用户名（作为视频ID）
+    pub user_colors: HashMap<String, egui::Color32>, // 用户颜色映射
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -50,6 +52,8 @@ impl Default for DioxusAppState {
             chat_input: String::new(),
             danmaku_enabled: true,
             current_image: None,
+            current_video: None,
+            user_colors: HashMap::new(),
         }
     }
 }
@@ -80,6 +84,7 @@ pub struct DioxusAppProps {
     pub received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>>,
     pub received_chat_messages: Arc<Mutex<Vec<ChatMessage>>>,
     pub received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>>,
+    pub received_user_colors: Arc<Mutex<HashMap<String, UserColor>>>,
     pub writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub image_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
@@ -89,6 +94,7 @@ pub struct DioxusAppProps {
     pub video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     pub danmaku_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    pub color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
 }
 
 impl PartialEq for DioxusAppProps {
@@ -127,6 +133,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         received_video_deletes,
         received_chat_messages,
         received_danmaku_messages,
+        received_user_colors,
         writer,
         image_writer,
         video_writer,
@@ -136,10 +143,17 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         video_delete_writer,
         chat_writer,
         danmaku_writer,
+        color_writer,
     } = props;
 
     // 应用状态
-    let mut app_state = use_signal(|| DioxusAppState::default());
+    let mut app_state = use_signal(|| {
+        let mut state = DioxusAppState::default();
+        // 初始化当前用户的颜色到user_colors映射中
+        let username = get_username();
+        state.user_colors.insert(username, state.current_color);
+        state
+    });
     let mut chat_messages = use_signal(|| Vec::<ChatMessage>::new());
     let mut danmaku_messages = use_signal(|| Vec::<DioxusDanmakuMessage>::new());
     let mut mouse_positions = use_signal(|| HashMap::<String, MouseState>::new());
@@ -161,6 +175,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_video_deletes = received_video_deletes.clone();
         let received_chat_messages = received_chat_messages.clone();
         let received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>> = received_danmaku_messages.clone();
+        let received_user_colors = received_user_colors.clone();
 
         async move {
             loop {
@@ -361,6 +376,17 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                         }
                     }
                 }
+
+                // 处理用户颜色更新
+                {
+                    let mut color_map = received_user_colors.lock().unwrap();
+                    for (username, user_color) in color_map.drain() {
+                        println!("接收到用户颜色更新: username={}, color={:?}", username, user_color.color);
+                        
+                        // 更新app_state中的用户颜色映射
+                        app_state.write().user_colors.insert(username, user_color.color);
+                    }
+                }
             }
         }
     });
@@ -393,6 +419,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                     erase_writer: erase_writer.clone(),
                     image_delete_writer: image_delete_writer.clone(),
                     video_delete_writer: video_delete_writer.clone(),
+                    color_writer: color_writer.clone(),
                 }
             }
 
@@ -438,6 +465,7 @@ struct CentralPanelProps {
     erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
     video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
 }
 
 impl PartialEq for CentralPanelProps {
@@ -459,7 +487,8 @@ impl PartialEq for CentralPanelProps {
         Arc::ptr_eq(&self.draw_writer, &other.draw_writer) &&
         Arc::ptr_eq(&self.erase_writer, &other.erase_writer) &&
         Arc::ptr_eq(&self.image_delete_writer, &other.image_delete_writer) &&
-        Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer)
+        Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer) &&
+        Arc::ptr_eq(&self.color_writer, &other.color_writer)
     }
 }
 
@@ -484,6 +513,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
         erase_writer,
         image_delete_writer,
         video_delete_writer,
+        color_writer,
     } = props;
 
     rsx! {
@@ -522,13 +552,24 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                 input {
                                     r#type: "color",
                                     value: cur_hex,
-                                    oninput: move |evt| {
-                                        let s = evt.value();
-                                        log::info!("color input -> {}", &s);
-                                        if let Ok(c) = parse_color(&s) {
-                                            app_state.write().current_color = c;
-                                        } else {
-                                            log::warn!("bad color: {}", s);
+                                    oninput: {
+                                        let color_writer_clone = color_writer.clone();
+                                        move |evt: FormEvent| {
+                                            let s = evt.value();
+                                            log::info!("color input -> {}", &s);
+                                            if let Ok(c) = parse_color(&s) {
+                                                // 更新当前用户的颜色
+                                                let username = get_username();
+                                                let mut state = app_state.write();
+                                                state.current_color = c;
+                                                // 同时更新用户颜色映射，确保本地鼠标指针颜色立即更新
+                                                state.user_colors.insert(username, c);
+                                                drop(state);
+                                                // 发送颜色更新的DDS消息
+                                                send_user_color(c, color_writer_clone.clone());
+                                            } else {
+                                                log::warn!("bad color: {}", s);
+                                            }
                                         }
                                     }
                                 }
@@ -810,24 +851,38 @@ fn Canvas(props: CanvasProps) -> Element {
                         let video_data_clone = video_data.clone();
                         rsx! {
                             div {
-                                "style": "position: absolute; top: 10px; left: 10px; max-width: 400px; max-height: 300px; background: white; border: 2px solid #333; padding: 5px;",
+                                "style": "position: absolute; top: 10px; left: 10px; max-width: 500px; max-height: 400px; background: rgba(0, 0, 0, 0.8); border: 2px solid #444; border-radius: 8px; padding: 10px; z-index: 9999;",
 
+                                // 视频控制面板
                                 div {
-                                    "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;",
-                                    span { "用户: {video_data_clone.username}" }
-                                    button {
-                                        "style": "background-color: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;",
-                                        onclick: move |_| {
-                                            delete_video(video_id_clone.clone(), video_delete_writer.clone());
-                                        },
-                                        "×"
+                                    "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 4px;",
+                                    span { 
+                                        "style": "color: #333; font-weight: bold; font-size: 14px;",
+                                        "用户: {video_data_clone.username}"
+                                    }
+                                    div {
+                                        "style": "display: flex; gap: 5px;",
+                                        span {
+                                            "style": "color: #666; font-size: 12px;",
+                                            "文件: {video_data_clone.file_name}"
+                                        }
+                                        button {
+                                            "style": "background-color: #ff4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10000; box-shadow: 0 2px 4px rgba(0,0,0,0.3);",
+                                            onclick: move |_| {
+                                                println!("视频删除按钮被点击!");
+                                                delete_video(video_id_clone.clone(), video_delete_writer.clone());
+                                            },
+                                            "×"
+                                        }
                                     }
                                 }
 
+                                // 视频播放器
                                 video {
                                     controls: true,
-                                    "style": "max-width: 100%; max-height: 100%;",
-                                    src: format!("data:video/mp4;base64,{}", general_purpose::STANDARD.encode(&video_data_clone.video_data))
+                                    "style": "width: 100%; max-height: 350px; border-radius: 4px; background: #000;",
+                                    src: format!("data:video/mp4;base64,{}", general_purpose::STANDARD.encode(&video_data_clone.video_data)),
+                                    "Video not supported by your browser."
                                 }
                             }
                         }
@@ -1065,7 +1120,13 @@ fn GlobalMouseOverlay(
     mouse_positions: Signal<HashMap<String, MouseState>>,
     app_state: Signal<DioxusAppState>,
 ) -> Element {
+
+    // let user_color = app_state.read().user_colors.get("20141")
+    //                             .copied()
+    //                             .unwrap_or(egui::Color32::from_rgb(255, 0, 0)); // 默认红色
+    //                         log::info!("Rendering mouse pointer for  with color rgb({},{},{})", user_color.r(), user_color.g(), user_color.b());
     rsx! {
+        
         div {
             "style": "position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; overflow: hidden;",
 
@@ -1079,10 +1140,17 @@ fn GlobalMouseOverlay(
 
                     // 鼠标圆点
                     div {
-                        "style": format!(
-                            "width: 10px; height: 10px; border-radius: 50%; background-color: rgb({},{},{}); border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);",
-                            app_state.read().current_color.r(), app_state.read().current_color.g(), app_state.read().current_color.b()
-                        )
+                        "style": {
+                            //获取该用户的颜色，如果没有则使用默认颜色
+                            let user_color = app_state.read().user_colors.get(username)
+                                .copied()
+                                .unwrap_or(egui::Color32::from_rgb(255, 0, 0)); // 默认红色
+                            log::info!("Rendering mouse pointer for user {} with color rgb({},{},{})", username, user_color.r(), user_color.g(), user_color.b());
+                            format!(
+                                "width: 10px; height: 10px; border-radius: 50%; background-color: rgb({},{},{}); border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);",
+                                user_color.r(), user_color.g(), user_color.b()
+                            )
+                        }
                     }
 
                     // 用户名标签
@@ -1449,8 +1517,32 @@ fn upload_image(image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
 }
 
 fn upload_video(video_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
-    // TODO: 实现文件选择和上传逻辑
-    println!("视频上传功能待实现");
+    // 使用spawn异步处理文件选择，避免阻塞UI线程
+    spawn(async move {
+        // 使用异步文件对话框
+        if let Some(file_path) = rfd::AsyncFileDialog::new()
+            .add_filter("视频文件", &["mp4", "avi", "mov", "mkv", "webm", "flv", "wmv"])
+            .set_title("选择视频文件")
+            .pick_file()
+            .await
+        {
+            // 异步读取文件数据
+            match tokio::fs::read(file_path.path()).await {
+                Ok(video_data) => {
+                    let file_name = file_path.file_name();
+                    let file_size = video_data.len() as u64;
+                    
+                    println!("视频文件选择成功: {} ({} bytes)", file_name, file_size);
+                    
+                    // 发送视频数据通过DDS
+                    send_video_data(video_data, file_name, file_size, video_writer);
+                }
+                Err(e) => {
+                    println!("读取视频文件失败: {}", e);
+                }
+            }
+        }
+    });
 }
 
 fn send_dds_message(message: &str, writer: &Arc<Mutex<*mut DDS_DataWriter>>) {
@@ -1499,6 +1591,32 @@ fn send_image_data(image_data: Vec<u8>, image_writer: Arc<Mutex<*mut DDS_DataWri
     send_image_data_with_dimensions(image_data, 0, 0, image_writer);
 }
 
+fn send_video_data(
+    video_data: Vec<u8>,
+    file_name: String,
+    file_size: u64,
+    video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+) {
+    let username = get_username();
+
+    // 将视频数据编码为base64字符串
+    let video_data_b64 = general_purpose::STANDARD.encode(&video_data);
+
+    let json_message = json!({
+        "username": username,
+        "video_data": video_data_b64,
+        "file_name": file_name,
+        "file_size": file_size
+    });
+
+    send_dds_message(&json_message.to_string(), &video_writer);
+    println!(
+        "视频上传成功: {} ({} bytes)",
+        file_name,
+        video_data.len()
+    );
+}
+
 fn send_image_data_with_dimensions(
     image_data: Vec<u8>,
     width: u32,
@@ -1524,4 +1642,25 @@ fn send_image_data_with_dimensions(
         width,
         height
     );
+}
+
+fn send_user_color(
+    color: egui::Color32,
+    color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+) {
+    let color_json = json!({
+        "type": "UserColor",
+        "username": get_username(),
+        "color": {
+            "r": color.r(),
+            "g": color.g(),
+            "b": color.b(),
+            "a": color.a()
+        },
+        "timestamp": get_current_timestamp_millis()
+    });
+    
+    let message = color_json.to_string();
+    send_dds_message(&message, &color_writer);
+    println!("发送用户颜色更新: {:?}", color);
 }

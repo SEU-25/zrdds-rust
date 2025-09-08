@@ -85,7 +85,7 @@ pub struct ChatMessage {
     pub color: egui::Color32, // 用户选择的颜色
 }
 
-// 弹幕数据结构
+// 弹幕消息数据结构
 #[derive(Clone)]
 pub struct DanmakuMessage {
     pub username: String,
@@ -98,6 +98,14 @@ pub struct DanmakuMessage {
     pub id: String,       // 弹幕唯一标识符
 }
 
+// 用户颜色数据结构
+#[derive(Clone)]
+pub struct UserColor {
+    pub username: String,
+    pub color: egui::Color32, // 用户选择的画笔颜色
+    pub timestamp: u64,       // 颜色更新时间戳
+}
+
 // 全局共享状态
 pub static mut RECEIVED: Option<Arc<Mutex<HashMap<String, MouseState>>>> = None;
 pub static mut RECEIVED_IMAGES: Option<Arc<Mutex<HashMap<String, ImageData>>>> = None;
@@ -108,4 +116,5 @@ pub static mut RECEIVED_IMAGE_DELETES: Option<Arc<Mutex<Vec<ImageDeleteOperation
 pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation>>>> = None;
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
 pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;
+pub static mut RECEIVED_USER_COLORS: Option<Arc<Mutex<HashMap<String, UserColor>>>> = None;
 pub static mut DANMAKU_ENABLED: Option<Arc<Mutex<bool>>> = None;

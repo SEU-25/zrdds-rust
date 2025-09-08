@@ -86,6 +86,83 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
     }
 }
 
+// 用户颜色消息回调函数
+pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
+    unsafe {
+        if reader.is_null() { return; }
+        let reader = reader as *mut DDS_BytesDataReader;
+        let mut data_values: DDS_BytesSeq = mem::zeroed();
+        DDS_BytesSeq_initialize(&mut data_values);
+        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
+        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+
+        DDS_BytesDataReader_take(
+            reader,
+            &mut data_values,
+            &mut sample_infos,
+            MAX_INT32_VALUE as i32,
+            DDS_ANY_SAMPLE_STATE,
+            DDS_ANY_VIEW_STATE,
+            DDS_ANY_INSTANCE_STATE,
+        );
+
+        for i in 0..sample_infos._length {
+            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
+            if !sample_ptr.is_null() {
+                let sample = &*sample_ptr;
+                let len = DDS_OctetSeq_get_length(&sample.value);
+                let mut vec = Vec::new();
+
+                for j in 0..len {
+                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
+                    if !bptr.is_null() {
+                        vec.push(*bptr);
+                    }
+                }
+
+                if let Ok(s) = String::from_utf8(vec) {
+                    if let Ok(color_msg) = serde_json::from_str::<serde_json::Value>(&s) {
+                        if color_msg["type"] == "UserColor" {
+                            let username = color_msg["username"].as_str().unwrap_or("unknown").to_string();
+                            
+                            // 解析颜色信息
+                            let color = if let Some(color_obj) = color_msg["color"].as_object() {
+                                if let (Some(r), Some(g), Some(b), Some(a)) = (
+                                    color_obj["r"].as_u64(),
+                                    color_obj["g"].as_u64(),
+                                    color_obj["b"].as_u64(),
+                                    color_obj["a"].as_u64()
+                                ) {
+                                    Color32::from_rgba_premultiplied(r as u8, g as u8, b as u8, a as u8)
+                                } else {
+                                    Color32::WHITE // 默认颜色
+                                }
+                            } else {
+                                Color32::WHITE // 默认颜色
+                            };
+                            
+                            let timestamp = color_msg["timestamp"].as_u64().unwrap_or(0);
+                            
+                            // 添加到用户颜色映射
+                            if let Some(ref received_user_colors_clone) = RECEIVED_USER_COLORS {
+                                let mut data = received_user_colors_clone.lock().unwrap();
+                                data.insert(username.clone(), UserColor {
+                                    username: username.clone(),
+                                    color,
+                                    timestamp,
+                                });
+                                println!("接收到用户颜色消息: username={}, color={:?}", username, color);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    }
+}
+
 pub extern "C" fn on_danmaku_data_available(reader: *mut DDS_DataReader) {
     unsafe {
         if reader.is_null() { return; }
@@ -473,10 +550,11 @@ pub extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
                     if let Ok(mouse_state) = serde_json::from_str::<serde_json::Value>(&s) {
                         if let Some(ref received_clone) = RECEIVED {
                             let mut data = received_clone.lock().unwrap();
+                            let username = mouse_state["username"].as_str().unwrap_or("unknown").to_string();
                             data.insert(
-                                mouse_state["username"].to_string(),
+                                username.clone(),
                                 MouseState {
-                                    username: mouse_state["username"].to_string(),
+                                    username: username,
                                     color: color_from_json(&mouse_state["color"]),
                                     x: mouse_state["x"].as_f64().unwrap() as f32,
                                     y: mouse_state["y"].as_f64().unwrap() as f32,

@@ -2,13 +2,20 @@
 name = "zrdds"
 version = "0.1.0"
 edition = "2024"
-authors = ["Your Name <your.email@example.com>"]
+# authors = ["Your Name <your.email@example.com>"]
 description = "Rust bindings for ZRDDS"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/zrdds"
-keywords = ["dds", "real-time", "messaging", "distributed"]
-categories = ["network-programming", "api-bindings"]
+license = "proprietary"
+# repository = "https://github.com/yourusername/zrdds"
+# keywords = ["dds", "real-time", "messaging", "distributed"]
+# categories = ["network-programming", "api-bindings"]
 readme = "README.md"
+include = [
+    "src/**",
+    "Cargo.toml",
+    "README.md",
+    "build.rs",
+    "include/**",
+]
 
 [lib]
 name = "zrdds"

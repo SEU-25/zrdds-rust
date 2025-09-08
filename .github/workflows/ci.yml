@@ -119,29 +119,11 @@ jobs:
         run: cargo deadlinks --dir target/doc/zrdds --check-http
         continue-on-error: true
 
-      - name: 准备 public 目录
-        run: |
-          if (-Not (Test-Path "./public")) { New-Item -ItemType Directory -Path "./public" }
-
-      - name: 自动复制单个文件和目录到 public
-        run: |
-          # 自动找到 ./target/doc 下的文件（不包含目录）
-          Get-ChildItem -Path "./target/doc" -File | ForEach-Object {
-              Copy-Item -Path $_.FullName -Destination "./public/" -Force
-          }
-          # 复制 ./target/doc/zrdds 下的所有内容到 public
-          $srcDir = "./target/doc/zrdds"
-          if (Test-Path $srcDir) {
-              $destDir = "./public"
-              if (-Not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir }
-              Copy-Item -Path "$srcDir/*" -Destination $destDir -Recurse -Force
-          }
-
       - name: 部署到 Vercel
         uses: amondnet/vercel-action@v20
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./public
+          working-directory: ./target/doc
           vercel-args: '--prod'

@@ -3,7 +3,9 @@
   "cleanUrls": false,
   "trailingSlash": true,
   "rewrites": [
-    { "source": "/", "destination": "/zrdds/index.html" },
-    { "source": "/(.*)", "destination": "/$1" }
+    {
+      "source": "/:path*",
+      "destination": "/zrdds/:path*"
+    }
   ]
 }

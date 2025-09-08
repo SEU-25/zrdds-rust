@@ -417,7 +417,7 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
                                     username: username,
                                     message: message,
                                     start_time: current_time,
-                                    x: 1200.0, // 从屏幕最右侧开始
+                                    x: 1720.0, // 从屏幕最右侧开始
                                     y: y_position, // 分层显示
                                     color: color,
                                     speed: 100.0,

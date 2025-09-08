@@ -160,7 +160,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_image_deletes = received_image_deletes.clone();
         let received_video_deletes = received_video_deletes.clone();
         let received_chat_messages = received_chat_messages.clone();
-        let received_danmaku_messages = received_danmaku_messages.clone();
+        let received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>> = received_danmaku_messages.clone();
 
         async move {
             loop {
@@ -1119,11 +1119,11 @@ fn update_danmaku_positions(danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessa
     for message in messages.iter_mut() {
         let elapsed = now - message.start_time;
         // 从屏幕最右侧开始向左移动
-        message.x = 1200.0 - (elapsed as f32 * message.speed);
+        message.x = 1720.0 - (elapsed as f32 * message.speed);
     }
 
     // 移除超出屏幕或过期的弹幕
-    messages.retain(|msg| msg.x > 0.0 && (now - msg.start_time) < 10.0);
+    messages.retain(|msg| msg.x > -100.0 && (now - msg.start_time) < 60.0);
 }
 
 fn add_danmaku_message(

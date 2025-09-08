@@ -391,10 +391,12 @@ fn main() {
     let config = Config::new()
         .with_window(
             WindowBuilder::new()
-                .with_title("ZRDDS Dioxus 应用")
-                .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 800))
-                .with_resizable(true)
-                .with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
+                .with_title("在线课堂")
+                .with_inner_size(dioxus_desktop::LogicalSize::new(1920, 780))
+                .with_maximized(true)
+                .with_resizable(false)
+                //.with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
+                //.with_maximized(true)
         )
         .with_custom_head(r#"
             <style>

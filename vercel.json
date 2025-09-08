@@ -1,8 +1,11 @@
 {
-  "version": 2,
   "cleanUrls": false,
   "trailingSlash": true,
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/zrdds/index.html"
+    },
     {
       "source": "/:path*",
       "destination": "/zrdds/:path*"

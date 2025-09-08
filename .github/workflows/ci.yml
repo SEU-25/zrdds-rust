@@ -116,6 +116,9 @@ jobs:
         run: cargo deadlinks --dir target/doc/zrdds --check-http
         continue-on-error: true
 
+      - name: 复制 vercel.json
+        run: copy vercel.json ./target/doc/vercel.json
+
       - name: 部署到 Vercel
         uses: amondnet/vercel-action@v20
         with:

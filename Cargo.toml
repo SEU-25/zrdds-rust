@@ -14,7 +14,7 @@ include = [
     "Cargo.toml",
     "README.md",
     "build.rs",
-    "include/**",
+    # 如果希望用户能在不配置 ZRDDS 的环境下直接使用则要把 libs 也打包进去
 ]
 
 [lib]

@@ -1611,7 +1611,7 @@ fn send_video_data(
 
     send_dds_message(&json_message.to_string(), &video_writer);
     println!(
-        "视频上传成功: {} ({} bytes)",
+        "视频DDS消息发送完成: {} ({} bytes)",
         file_name,
         video_data.len()
     );

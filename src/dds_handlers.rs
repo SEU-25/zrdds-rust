@@ -3,15 +3,15 @@ use crate::bindings::*;
 use std::sync::{Arc, Mutex};
 use egui::Color32;
 use base64::{Engine as _, engine::general_purpose};
-
+use crate::core::Reader;
 use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
 
 // 画笔笔迹消息回调函数
-pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_draw_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -87,10 +87,10 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 用户颜色消息回调函数
-pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_user_color_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -163,10 +163,10 @@ pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
     }
 }
 
-pub extern "C" fn on_danmaku_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_danmaku_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -239,10 +239,10 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
 }
 
 // 图片消息回调函数
-pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_image_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -301,10 +301,10 @@ pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 擦除消息回调函数
-pub extern "C" fn on_erase_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_erase_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -357,10 +357,10 @@ pub extern "C" fn on_erase_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 图片删除消息回调函数
-pub extern "C" fn on_image_delete_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_image_delete_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -409,10 +409,10 @@ pub extern "C" fn on_image_delete_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 聊天消息回调函数
-pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_chat_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -512,10 +512,10 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 鼠标消息回调函数
-pub extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -571,11 +571,11 @@ pub extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 视频消息回调函数
-pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_video_data_available(reader: Reader) {
     unsafe {
         println!("1");
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
@@ -642,10 +642,10 @@ pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
 }
 
 // 视频删除消息回调函数
-pub extern "C" fn on_video_delete_data_available(reader: *mut DDS_DataReader) {
+pub extern "C" fn on_video_delete_data_available(reader: Reader) {
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
+        if reader.raw.is_null() { return; }
+        let reader = reader.raw as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
         let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();

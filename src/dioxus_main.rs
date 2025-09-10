@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::{ffi::CString, ptr, mem};
 use zrdds::bindings::*;
+use zrdds::core::DPFactory;
 use zrdds::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation, DanmakuMessage};
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_USER_COLORS, DANMAKU_ENABLED};
@@ -59,21 +60,22 @@ fn main() {
 
     unsafe {
         // DDS 初始化
-        let factory = DDS_DomainParticipantFactory_get_instance();
+        let factory = DPFactory::instance().unwrap();
 
         let dp_qos: *const DDS_DomainParticipantQos = unsafe {
             &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT
         };
-        let participant = DDS_DomainParticipantFactory_create_participant(
-            factory,
+
+        let participant = factory.create_dp(
+            &factory,
             11,
             dp_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
-        );
+        ).unwrap();
 
         let type_name = DDS_BytesTypeSupport_get_type_name();
-        DDS_BytesTypeSupport_register_type(participant, type_name);
+        DDS_BytesTypeSupport_register_type(participant.raw, type_name);
         
         let topic_name = CString::new("mouse_topic").unwrap();
         let topic_qos: *const DDS_TopicQos = unsafe {

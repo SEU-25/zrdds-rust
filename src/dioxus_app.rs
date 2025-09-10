@@ -47,7 +47,7 @@ impl Default for DioxusAppState {
             current_color: egui::Color32::from_rgb(255, 0, 0),
             draw_mode: DrawMode::Mouse,
             stroke_width: 2.0,
-            canvas_width: 800,
+            canvas_width: 1000,
             canvas_height: 600,
             chat_input: String::new(),
             danmaku_enabled: true,
@@ -530,12 +530,15 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                 // 工具栏
                 div {
-                    "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);",
+                    "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;
+                     margin-right:20px;                    
+                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                     display:flex",
 
-                    h3 {
-                        "style": "margin: 0 0 15px 0; color: #333;",
-                        "绘图工具"
-                    }
+                    // h3 {
+                    //     "style": "margin: 0 0 15px 0; color: #333;",
+                    //     "绘图工具"
+                    // }
 
                     // —— 颜色选择器（受控组件） ——
                     {
@@ -545,9 +548,11 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                         rsx! {
                             div {
-                                style: "display:flex; align-items:center; gap:10px;",
+                                "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
 
-                                label { "画笔颜色:" }
+                                label { 
+                                    "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                                    "画笔颜色:" }
 
                                 input {
                                     r#type: "color",
@@ -583,7 +588,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                     // 模式切换按钮
                     div {
-                        "style": "margin-bottom: 15px;",
+                        "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
                         label {
                             "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
                             "绘图模式:"
@@ -591,46 +596,49 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         div {
                             "style": "display: flex; gap: 8px;",
                             button {
+                                class: "button",
+                                "data-style": "primary",
                                 "style": if app_state.read().draw_mode == DrawMode::Mouse {
                                     "padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,123,255,0.3);"
                                 } else {
-                                    "padding: 8px 16px; background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                    "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
                                 },
                                 onclick: move |_| {
                                     let mut state = app_state.write();
                                     state.draw_mode = DrawMode::Mouse;
                                 },
-                                "🖱️ 鼠标"
+                                "鼠标"
                             }
                             button {
                                 "style": if app_state.read().draw_mode == DrawMode::Draw {
                                     "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(40,167,69,0.3);"
                                 } else {
-                                    "padding: 8px 16px; background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                    "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
                                 },
                                 onclick: move |_| {
                                     let mut state = app_state.write();
                                     state.draw_mode = DrawMode::Draw;
                                 },
-                                "✏️ 画笔"
+                                "画笔"
                             }
                             button {
                                 "style": if app_state.read().draw_mode == DrawMode::Erase {
                                     "padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(220,53,69,0.3);"
                                 } else {
-                                    "padding: 8px 16px; background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                    "padding: background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
                                 },
                                 onclick: move |_| {
                                     let mut state = app_state.write();
                                     state.draw_mode = DrawMode::Erase;
                                 },
-                                "🧹 擦除"
+                                "擦除"
                             }
                         }
                     }
 
                     // 媒体上传按钮
                     div {
+                        "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
                         label {
                             "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
                             "媒体上传:"
@@ -676,6 +684,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         }
                     }
                 }
+
 
                 // 画布区域
                 Canvas {
@@ -762,14 +771,23 @@ fn Canvas(props: CanvasProps) -> Element {
 
     rsx! {
         div {
-            "style": "flex: 1; position: relative; border: 2px solid #333; background-color: white; overflow: hidden;",
-            width: "{state.canvas_width}px",
+            "style": "flex: 1; 
+                    position: relative; 
+                    border: 2px solid #ccc;     
+                    border-radius: 12px;         
+                    background-color: white; 
+                    overflow: hidden; 
+                    margin-right: 20px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                    transition: all 0.2s;"
+                    ,
+            width: "full",
             height: "{state.canvas_height}px",
 
             // SVG画布用于绘制
             svg {
                 "style": "position: absolute; top: 0; left: 0; pointer-events: none; z-index: 2;",
-                width: "{state.canvas_width}",
+                width: "full",
                 height: "{state.canvas_height}",
 
                 // 渲染远程笔迹
@@ -1072,6 +1090,8 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                     }
 
                     button {
+                        class: "button",
+                        "data-style": "primary",
                         "style": "padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s;",
                         onclick: {
                             let chat_writer_clone = chat_writer.clone();
@@ -1104,7 +1124,9 @@ fn DanmakuOverlay(danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>) -> Elemen
                 div {
                     key: "{message.id}",
                     "style": format!(
-                        "position: absolute; left: {}px; top: {}px; color: rgb({},{},{}); font-size: 16px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space: nowrap;",
+                        "position: absolute; left: {}px; top: {}px; color: rgb({},{},{}); font-size: 16px; font-weight: bold;  rgba(0,0,0,0.8); white-space: nowrap;
+                        font-family:'KeinannPOP'
+                        ",
                         message.x, message.y, message.color.r(), message.color.g(), message.color.b()
                     ),
                     "{message.username}: {message.message}"

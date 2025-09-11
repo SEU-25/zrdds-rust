@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
-use zrdds::core::DPFactory;
+use zrdds::core::{DPFactory, Publisher};
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
@@ -86,14 +86,16 @@ fn main() {
 
         let topic_name = CString::new("mouse_topic").unwrap();
         let topic_qos: *const DDS_TopicQos = unsafe { &raw const DDS_TOPIC_QOS_DEFAULT };
-        let topic = participant.create_topic(
-            &participant,
-            topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let topic = participant
+            .create_topic(
+                &participant,
+                topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // C风格方法
         // DDS_DomainParticipant_create_topic(
         //     participant,
@@ -106,14 +108,16 @@ fn main() {
 
         // 创建图片topic
         let image_topic_name = CString::new("image_topic").unwrap();
-        let image_topic = participant.create_topic(
-            &participant,
-            image_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let image_topic = participant
+            .create_topic(
+                &participant,
+                image_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // DDS_DomainParticipant_create_topic(
         //     participant,
         //     image_topic_name.as_ptr(),
@@ -125,14 +129,16 @@ fn main() {
 
         // 创建画笔topic
         let draw_topic_name = CString::new("draw_topic").unwrap();
-        let draw_topic = participant.create_topic(
-            &participant,
-            draw_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let draw_topic = participant
+            .create_topic(
+                &participant,
+                draw_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // DDS_DomainParticipant_create_topic(
         //     participant,
         //     draw_topic_name.as_ptr(),
@@ -144,14 +150,16 @@ fn main() {
 
         // 创建擦除topic
         let erase_topic_name = CString::new("erase_topic").unwrap();
-        let erase_topic = participant.create_topic(
-            &participant,
-            erase_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let erase_topic = participant
+            .create_topic(
+                &participant,
+                erase_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // DDS_DomainParticipant_create_topic(
         //     participant,
         //     erase_topic_name.as_ptr(),
@@ -163,14 +171,16 @@ fn main() {
 
         // 创建图片删除topic
         let image_delete_topic_name = CString::new("image_delete_topic").unwrap();
-        let image_delete_topic = participant.create_topic(
-            &participant,
-            image_delete_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let image_delete_topic = participant
+            .create_topic(
+                &participant,
+                image_delete_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // DDS_DomainParticipant_create_topic(
         //     participant,
         //     image_delete_topic_name.as_ptr(),
@@ -182,14 +192,16 @@ fn main() {
 
         // 创建聊天topic
         let chat_topic_name = CString::new("chat_topic").unwrap();
-        let chat_topic = participant.create_topic(
-            &participant,
-            chat_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let chat_topic = participant
+            .create_topic(
+                &participant,
+                chat_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
         // DDS_DomainParticipant_create_topic(
         //     participant,
         //     chat_topic_name.as_ptr(),
@@ -201,140 +213,189 @@ fn main() {
 
         // 创建视频topic
         let video_topic_name = CString::new("video_topic").unwrap();
-        let video_topic = participant.create_topic(
-            &participant,
-            video_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let video_topic = participant
+            .create_topic(
+                &participant,
+                video_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         // 创建视频删除topic
         let video_delete_topic_name = CString::new("video_delete_topic").unwrap();
-        let video_delete_topic = participant.create_topic(
-            &participant,
-            video_delete_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let video_delete_topic = participant
+            .create_topic(
+                &participant,
+                video_delete_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         // 创建弹幕topic
         let danmaku_topic_name = CString::new("danmaku_topic").unwrap();
-        let danmaku_topic = participant.create_topic(
-            &participant,
-            danmaku_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let danmaku_topic = participant
+            .create_topic(
+                &participant,
+                danmaku_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         // 创建用户颜色topic
         let user_color_topic_name = CString::new("user_color_topic").unwrap();
-        let user_color_topic = participant.create_topic(
-            &participant,
-            user_color_topic_name.to_str().unwrap(),
-            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-            topic_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let user_color_topic = participant
+            .create_topic(
+                &participant,
+                user_color_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         // 创建publisher
         let publisher_qos: *const DDS_PublisherQos =
             unsafe { &raw const DDS_PUBLISHER_QOS_DEFAULT };
-        let publisher = participant.create_publisher(
-            &participant,
-            publisher_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let publisher = participant
+            .create_publisher(
+                &participant,
+                publisher_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         // 创建datawriter
         let datawriter_qos: *const DDS_DataWriterQos =
             unsafe { &raw const DDS_DATAWRITER_QOS_DEFAULT };
-        let writer = publisher.create_datawriter(
-            &publisher,
-            &topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let writer = publisher
+            .create_writer(
+                &topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let image_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            image_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let image_writer = publisher
+            .create_writer(
+                &image_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     image_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
 
-        let draw_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            draw_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let draw_writer = publisher
+            .create_writer(
+                &draw_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let erase_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            erase_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let erase_writer = publisher
+            .create_writer(
+                &erase_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let image_delete_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            image_delete_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let image_delete_writer = publisher
+            .create_writer(
+                &image_delete_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let chat_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            chat_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let chat_writer = publisher
+            .create_writer(
+                &chat_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let video_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            video_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let video_writer = publisher
+            .create_writer(
+                &video_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let video_delete_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            video_delete_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     video_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
 
-        let danmaku_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            danmaku_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let video_delete_writer = publisher
+            .create_writer(
+                &video_delete_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-        let user_color_writer = DDS_Publisher_create_datawriter(
-            publisher,
-            user_color_topic,
-            datawriter_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ) as *mut DDS_DataWriter;
+        let danmaku_writer = publisher
+            .create_writer(
+                &danmaku_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     danmaku_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
+
+        let user_color_writer = publisher
+            .create_writer(
+                &user_color_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     user_color_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
 
         // 包装在Arc<Mutex<>>中
         let writer = Arc::new(Mutex::new(writer));

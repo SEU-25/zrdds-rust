@@ -21,20 +21,20 @@ impl Publisher<'_> {
 
     成功返回Some()，失败返回None
     */
-    pub fn create_writer<'a>(
-        publisher: Publisher,
-        topic: Topic,
-        writerQos: *const DDS_DataWriterQos,
-        writerListener: *mut DDS_DataWriterListener,
+    pub fn create_writer(
+        &self,
+        topic: &Topic,
+        writer_qos: *const DDS_DataWriterQos,
+        writer_listener: *mut DDS_DataWriterListener,
         mask: u32,
     ) -> Option<Writer> {
         let writer = Writer {
             raw: unsafe {
                 DDS_Publisher_create_datawriter(
-                    publisher.raw,
+                    self.raw,
                     topic.raw,
-                    writerQos,
-                    writerListener,
+                    writer_qos,
+                    writer_listener,
                     mask,
                 )
             },

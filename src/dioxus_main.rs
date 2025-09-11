@@ -390,6 +390,7 @@ fn main() {
         // 创建subscriber
         let subscriber_qos: *const DDS_SubscriberQos =
             unsafe { &raw const DDS_SUBSCRIBER_QOS_DEFAULT };
+
         let subscriber = participant
             .create_subscriber(
                 &participant,
@@ -404,7 +405,7 @@ fn main() {
 
         // 创建各种listener和reader
         let mut listener = ReaderListener::new();
-        listener.set_on_data_available(on_data_available);
+        listener.set_on_data_available(mouse_on_data_available);
 
         let _reader = subscriber.create_reader(
             topic.raw as *mut DDS_TopicDescription,
@@ -414,7 +415,7 @@ fn main() {
         );
 
         let mut draw_listener = ReaderListener::new();
-        draw_listener.set_on_data_available(on_draw_data_available);
+        draw_listener.set_on_data_available(draw_on_data_available);
 
         let _draw_reader = subscriber.create_reader(
             draw_topic.raw as *mut DDS_TopicDescription,
@@ -424,7 +425,7 @@ fn main() {
         );
 
         let mut image_listener = ReaderListener::new();
-        image_listener.set_on_data_available(on_image_data_available);
+        image_listener.set_on_data_available(image_on_data_available);
 
         let _image_reader = subscriber.create_reader(
             image_topic.raw as *mut DDS_TopicDescription,
@@ -434,7 +435,7 @@ fn main() {
         );
 
         let mut erase_listener= ReaderListener::new();
-        erase_listener.set_on_data_available(on_erase_data_available);
+        erase_listener.set_on_data_available(erase_on_data_available);
 
         let _erase_reader = subscriber.create_reader(
             erase_topic.raw as *mut DDS_TopicDescription,
@@ -444,7 +445,7 @@ fn main() {
         );
 
         let mut image_delete_listener= ReaderListener::new();
-        image_delete_listener.set_on_data_available(on_image_delete_data_available);
+        image_delete_listener.set_on_data_available(image_delete_on_data_available);
 
         let _image_delete_reader = subscriber.create_reader(
             image_delete_topic.raw as *mut DDS_TopicDescription,
@@ -454,7 +455,7 @@ fn main() {
         );
 
         let mut chat_listener= ReaderListener::new();
-        chat_listener.set_on_data_available(on_chat_data_available);
+        chat_listener.set_on_data_available(chat_on_data_available);
 
         let _chat_reader = subscriber.create_reader(
             chat_topic.raw as *mut DDS_TopicDescription,
@@ -464,7 +465,7 @@ fn main() {
         );
 
         let mut video_listener= ReaderListener::new();
-        video_listener.set_on_data_available(on_video_data_available);
+        video_listener.set_on_data_available(video_on_data_available);
 
         let _video_reader = subscriber.create_reader(
             video_topic.raw as *mut DDS_TopicDescription,
@@ -474,7 +475,7 @@ fn main() {
         );
 
         let mut video_delete_listener= ReaderListener::new();
-        video_delete_listener.set_on_data_available(on_video_delete_data_available);
+        video_delete_listener.set_on_data_available(video_delete_on_data_available);
 
         let _video_delete_reader = subscriber.create_reader(
             video_delete_topic.raw as *mut DDS_TopicDescription,
@@ -484,7 +485,7 @@ fn main() {
         );
 
         let mut danmaku_listener= ReaderListener::new();
-        danmaku_listener.set_on_data_available(on_danmaku_data_available);
+        danmaku_listener.set_on_data_available(danmaku_on_data_available);
 
         let _danmaku_reader = subscriber.create_reader(
             danmaku_topic.raw as *mut DDS_TopicDescription,
@@ -494,7 +495,7 @@ fn main() {
         );
 
         let mut user_color_listener= ReaderListener::new();
-        user_color_listener.set_on_data_available(on_user_color_data_available);
+        user_color_listener.set_on_data_available(user_color_on_data_available);
 
         let _user_color_reader = subscriber.create_reader(
             user_color_topic.raw as *mut DDS_TopicDescription,

@@ -3,215 +3,140 @@ use crate::bindings::*;
 use egui::Color32;
 use base64::{Engine as _, engine::general_purpose};
 use crate::core::Reader;
+use crate::dds_simple_data_reader_listener;
 use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
+use paste::paste;
+use serde_json::Value;
+use base64::Engine as _; // for .decode()
+use std::borrow::Cow;
+use base64::Engine as _; // for .decode()
 
+/// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
+fn parse_color32_from_json(value: &Value) -> Color32 {
+    // 空数组常量，具有 'static 生命周期，不会被临时丢弃
+    const EMPTY: [Value; 0] = [];
+    let arr: &[Value] = value.as_array().map(|v| v.as_slice()).unwrap_or(&EMPTY);
 
-// 画笔笔迹消息回调函数
-pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+    // 读取第 i 个通道为 u8；缺失时取 0
+    let get_u8 = |i: usize| -> u8 {
+        arr.get(i).and_then(|v| v.as_u64()).unwrap_or(0) as u8
+    };
 
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::with_capacity(len as usize);
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(draw_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if draw_msg["type"] == "Draw" {
-                            if let Some(ref received_strokes_clone) = RECEIVED_STROKES {
-                                let color_array = draw_msg["color"].as_array().unwrap();
-                                let color = if color_array.len() >= 4 {
-                                    Color32::from_rgba_unmultiplied(
-                                        color_array[0].as_u64().unwrap() as u8,
-                                        color_array[1].as_u64().unwrap() as u8,
-                                        color_array[2].as_u64().unwrap() as u8,
-                                        color_array[3].as_u64().unwrap() as u8,
-                                    )
-                                } else {
-                                    Color32::from_rgb(
-                                        color_array[0].as_u64().unwrap() as u8,
-                                        color_array[1].as_u64().unwrap() as u8,
-                                        color_array[2].as_u64().unwrap() as u8,
-                                    )
-                                };
-
-                                let stroke = DrawStroke {
-                                    username: draw_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                    color,
-                                    start_x: draw_msg["start_x"].as_f64().unwrap_or(0.0) as f32,
-                                    start_y: draw_msg["start_y"].as_f64().unwrap_or(0.0) as f32,
-                                    end_x: draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
-                                    end_y: draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
-                                    stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
-                                    timestamp: draw_msg["timestamp"].as_u64().unwrap_or(0),
-                                };
-
-                                let mut data = received_strokes_clone.lock().unwrap();
-                                data.push(stroke);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    match arr.len() {
+        4 => Color32::from_rgba_unmultiplied(get_u8(0), get_u8(1), get_u8(2), get_u8(3)),
+        _ => Color32::from_rgb(get_u8(0), get_u8(1), get_u8(2)),
     }
 }
 
-// 用户颜色消息回调函数
-pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+fn handle_one_draw_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
 
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
+    // 解析 JSON 并入队
+    if let Ok(s) = String::from_utf8(buf) {
+        if let Ok(draw_msg) = serde_json::from_str::<Value>(&s) {
+            if draw_msg.get("type").and_then(|v| v.as_str()) == Some("Draw") {
+                let color = parse_color32_from_json(&draw_msg["color"]);
+                let stroke = DrawStroke {
+                    username: draw_msg["username"].as_str().unwrap_or("unknown").to_string(),
+                    color,
+                    start_x: draw_msg["start_x"].as_f64().unwrap_or(0.0) as f32,
+                    start_y: draw_msg["start_y"].as_f64().unwrap_or(0.0) as f32,
+                    end_x:   draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
+                    end_y:   draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
+                    stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
+                    timestamp:    draw_msg["timestamp"].as_u64().unwrap_or(0),
+                };
 
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::new();
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(color_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if color_msg["type"] == "UserColor" {
-                            let username = color_msg["username"].as_str().unwrap_or("unknown").to_string();
-
-                            // 解析颜色信息
-                            let color = if let Some(color_obj) = color_msg["color"].as_object() {
-                                if let (Some(r), Some(g), Some(b), Some(a)) = (
-                                    color_obj["r"].as_u64(),
-                                    color_obj["g"].as_u64(),
-                                    color_obj["b"].as_u64(),
-                                    color_obj["a"].as_u64()
-                                ) {
-                                    Color32::from_rgba_premultiplied(r as u8, g as u8, b as u8, a as u8)
-                                } else {
-                                    Color32::WHITE // 默认颜色
-                                }
-                            } else {
-                                Color32::WHITE // 默认颜色
-                            };
-
-                            let timestamp = color_msg["timestamp"].as_u64().unwrap_or(0);
-
-                            // 添加到用户颜色映射
-                            if let Some(ref received_user_colors_clone) = RECEIVED_USER_COLORS {
-                                let mut data = received_user_colors_clone.lock().unwrap();
-                                data.insert(username.clone(), UserColor {
-                                    username: username.clone(),
-                                    color,
-                                    timestamp,
-                                });
-                                println!("接收到用户颜色消息: username={}, color={:?}", username, color);
-                            }
-                        }
+                unsafe {
+                    if let Some(ref received_strokes) = RECEIVED_STROKES {
+                        received_strokes.lock().unwrap().push(stroke);
                     }
                 }
             }
         }
-
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
     }
 }
 
-pub extern "C" fn on_danmaku_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+// ---------- 1) 处理“一条样本”的纯 Rust 安全函数 ----------
+fn handle_one_user_color_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
 
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
+    // 解析 JSON -> 仅处理 type == "UserColor"
+    if let Ok(s) = String::from_utf8(buf) {
+        if let Ok(color_msg) = serde_json::from_str::<Value>(&s) {
+            if color_msg.get("type").and_then(|v| v.as_str()) == Some("UserColor") {
+                let username = color_msg.get("username")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown")
+                    .to_string();
 
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
+                // 解析颜色对象 {r,g,b,a}（缺省则用白色）
+                let color = color_msg.get("color")
+                    .and_then(|v| v.as_object())
+                    .and_then(|obj| {
+                        let r = obj.get("r").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+                        let g = obj.get("g").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+                        let b = obj.get("b").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+                        let a = obj.get("a").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+                        Some(Color32::from_rgba_premultiplied(r, g, b, a))
+                    })
+                    .unwrap_or(Color32::WHITE);
 
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::with_capacity(len as usize);
+                let timestamp = color_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
 
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
+                unsafe {
+                    if let Some(ref received_user_colors) = RECEIVED_USER_COLORS {
+                        let mut data = received_user_colors.lock().unwrap();
+                        data.insert(username.clone(), UserColor { username: username.clone(), color, timestamp });
                     }
                 }
 
-                if let Ok(json_str) = String::from_utf8(vec) {
-                     if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(&json_str) {
-                         if let Some(danmaku_message) = parse_danmaku_message(&json_value) {
-                             if let Some(ref received_danmaku_messages) = RECEIVED_DANMAKU_MESSAGES {
-                                 received_danmaku_messages.lock().unwrap().push(danmaku_message);
-                             }
-                         }
-                     }
+                // 可选：日志
+                // println!("接收到用户颜色消息: username={}, color={:?}", username, color);
+            }
+        }
+    }
+}
+
+fn handle_one_danmaku_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
+
+    // 解析 JSON -> 业务对象 -> 入队
+    if let Ok(json_str) = String::from_utf8(buf) {
+        if let Ok(json_value) = serde_json::from_str::<Value>(&json_str) {
+            if let Some(danmaku_message) = parse_danmaku_message(&json_value) {
+                unsafe {
+                    if let Some(ref received_danmaku_messages) = RECEIVED_DANMAKU_MESSAGES {
+                        received_danmaku_messages.lock().unwrap().push(danmaku_message);
+                    }
                 }
             }
         }
-
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
-        DDS_BytesSeq_finalize(&mut data_values);
-        DDS_SampleInfoSeq_finalize(&mut sample_infos);
     }
 }
 
@@ -238,462 +163,365 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
     })
 }
 
-// 图片消息回调函数
-pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        println!("1111111111111111111");
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
-
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-        println!("2222222222222222222222222");
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::with_capacity(len as usize);
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    println!("333333333333333333333333333");
-
-                    if let Ok(image_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if let Some(ref received_images_clone) = RECEIVED_IMAGES {
-                            if let Some(image_data_b64) = image_msg["image_data"].as_str() {
-                                if let Ok(image_bytes) = general_purpose::STANDARD.decode(image_data_b64) {
-                                    let mut data = received_images_clone.lock().unwrap();
-                                    data.insert(
-                                        image_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                        ImageData {
-                                            username: image_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                            image_data: image_bytes,
-                                            width: image_msg["width"].as_u64().unwrap_or(0) as u32,
-                                            height: image_msg["height"].as_u64().unwrap_or(0) as u32,
-                                        }
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+fn handle_one_image_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
         }
+    }
 
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    // JSON 解析
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(image_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    // 读取字段（容错）
+    let username = image_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let (width, height) = (
+        image_msg.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+        image_msg.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+    );
+
+    // 允许 image_data 为裸 base64 或 data URL（如 data:image/png;base64,XXXX）
+    let image_data_field = match image_msg.get("image_data") {
+        Some(Value::String(s)) => Some(Cow::from(s.as_str())),
+        _ => None,
+    };
+    let Some(img_str) = image_data_field else { return; };
+
+    // 如果是 data URL，切掉逗号前缀
+    let base64_part = img_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(&*img_str);
+
+    // 解码
+    let Ok(image_bytes) = general_purpose::STANDARD.decode(base64_part) else { return; };
+
+    // 写入共享缓存
+    unsafe {
+        if let Some(ref received_images) = RECEIVED_IMAGES {
+            let mut map = received_images.lock().unwrap();
+            map.insert(
+                username.to_string(),
+                ImageData {
+                    username: username.to_string(),
+                    image_data: image_bytes,
+                    width,
+                    height,
+                },
+            );
+        }
     }
 }
 
-// 擦除消息回调函数
-pub extern "C" fn on_erase_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
-
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::with_capacity(len as usize);
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(erase_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if let Some(ref received_erases_clone) = RECEIVED_ERASES {
-                            let mut data = received_erases_clone.lock().unwrap();
-                            data.push(EraseOperation {
-                                username: erase_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                x: erase_msg["x"].as_f64().unwrap_or(0.0) as f32,
-                                y: erase_msg["y"].as_f64().unwrap_or(0.0) as f32,
-                                radius: erase_msg["radius"].as_f64().unwrap_or(20.0) as f32,
-                                timestamp: erase_msg["timestamp"].as_u64().unwrap_or(0),
-                            });
-                        }
-                    }
-                }
-            }
+fn handle_one_erase_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
         }
+    }
 
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    // 解析 JSON -> 入队
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(erase_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    let username = erase_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let x        = erase_msg.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let y        = erase_msg.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let radius   = erase_msg.get("radius").and_then(|v| v.as_f64()).unwrap_or(20.0) as f32;
+    let timestamp= erase_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+
+    unsafe {
+        if let Some(ref received_erases) = RECEIVED_ERASES {
+            let mut data = received_erases.lock().unwrap();
+            data.push(EraseOperation { username, x, y, radius, timestamp });
+        }
     }
 }
 
-// 图片删除消息回调函数
-pub extern "C" fn on_image_delete_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
-
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::new();
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(delete_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if let Some(ref received_image_deletes_clone) = RECEIVED_IMAGE_DELETES {
-                            let mut data = received_image_deletes_clone.lock().unwrap();
-                            data.push(ImageDeleteOperation {
-                                username: delete_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                image_id: delete_msg["image_id"].as_str().unwrap_or("").to_string(),
-                            });
-                        }
-                    }
-                }
-            }
+fn handle_one_image_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
         }
+    }
 
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    // 解析 JSON -> 入队
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let image_id = delete_msg.get("image_id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    unsafe {
+        if let Some(ref received_image_deletes) = RECEIVED_IMAGE_DELETES {
+            let mut data = received_image_deletes.lock().unwrap();
+            data.push(ImageDeleteOperation { username, image_id });
+        }
     }
 }
 
 // 聊天消息回调函数
-pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
+fn handle_one_chat_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
+
+    // JSON 解析
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(chat_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    // 基本字段
+    let username  = chat_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let message   = chat_msg.get("message").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let timestamp = chat_msg.get("timestamp").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    // 颜色：对象 {r,g,b,a}，缺省则白色
+    let color = chat_msg.get("color")
+        .and_then(|v| v.as_object())
+        .and_then(|obj| {
+            let r = obj.get("r").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+            let g = obj.get("g").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+            let b = obj.get("b").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+            let a = obj.get("a").and_then(|v| v.as_u64()).map(|x| x as u8)?;
+            Some(Color32::from_rgba_premultiplied(r, g, b, a))
+        })
+        .unwrap_or(Color32::WHITE);
+
+    // 1) 写入聊天消息队列
     unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+        if let Some(ref received_chat_messages) = RECEIVED_CHAT_MESSAGES {
+            let mut data = received_chat_messages.lock().unwrap();
+            data.push(ChatMessage {
+                username: username.clone(),
+                message: message.clone(),
+                timestamp: timestamp.clone(),
+                color,
+            });
+        }
+    }
 
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
+    // 2) 弹幕（根据开关）
+    let danmaku_enabled = match unsafe { (&raw const DANMAKU_ENABLED).read() } {
+        Some(flag) => *flag.lock().unwrap(),
+        None => true, // 默认启用
+    };
 
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::new();
+    if danmaku_enabled {
+        unsafe {
+            if let Some(ref received_danmaku_messages) = RECEIVED_DANMAKU_MESSAGES {
+                let mut list = received_danmaku_messages.lock().unwrap();
+                let current_time = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs_f64();
+                let y_position = (list.len() % 10) as f32 * 50.0 + 50.0; // 分层显示
+                let danmaku_id = format!("{}-{}-{}", username, message.len(), (current_time * 1000.0) as u64);
 
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(chat_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        let username = chat_msg["username"].as_str().unwrap_or("unknown").to_string();
-                        let message = chat_msg["message"].as_str().unwrap_or("").to_string();
-                        let timestamp = chat_msg["timestamp"].as_str().unwrap_or("").to_string();
-
-                        // 解析颜色信息
-                        let color = if let Some(color_obj) = chat_msg["color"].as_object() {
-                            if let (Some(r), Some(g), Some(b), Some(a)) = (
-                                color_obj["r"].as_u64(),
-                                color_obj["g"].as_u64(),
-                                color_obj["b"].as_u64(),
-                                color_obj["a"].as_u64()
-                            ) {
-                                Color32::from_rgba_premultiplied(r as u8, g as u8, b as u8, a as u8)
-                            } else {
-                                Color32::WHITE // 默认颜色
-                            }
-                        } else {
-                            Color32::WHITE // 默认颜色
-                        };
-
-                        // 添加到聊天消息
-                        if let Some(ref received_chat_messages_clone) = RECEIVED_CHAT_MESSAGES {
-                            let mut data = received_chat_messages_clone.lock().unwrap();
-                            data.push(ChatMessage {
-                                username: username.clone(),
-                                message: message.clone(),
-                                timestamp: timestamp.clone(),
-                                color: color,
-                            });
-                        }
-
-                        // 只有在弹幕开关启用时才添加到弹幕消息
-                        let danmaku_enabled = if let Some(ref enabled) = DANMAKU_ENABLED {
-                            enabled.lock().unwrap().clone()
-                        } else {
-                            true // 默认启用
-                        };
-                        if danmaku_enabled {
-                            if let Some(ref received_danmaku_messages_clone) = RECEIVED_DANMAKU_MESSAGES {
-                                let mut data = received_danmaku_messages_clone.lock().unwrap();
-                                let current_time = std::time::SystemTime::now()
-                                    .duration_since(std::time::UNIX_EPOCH)
-                                    .unwrap_or_default()
-                                    .as_secs_f64();
-                                let y_position = (data.len() % 10) as f32 * 50.0 + 50.0;
-                                let danmaku_id = format!("{}-{}-{}", username, message.len(), (current_time * 1000.0) as u64);
-                                data.push(DanmakuMessage {
-                                    username: username,
-                                    message: message,
-                                    start_time: current_time,
-                                    x: 1720.0, // 从屏幕最右侧开始
-                                    y: y_position, // 分层显示
-                                    color: color,
-                                    speed: 100.0,
-                                    id: danmaku_id,
-                                });
-                            }
-                        }
-                    }
-                }
+                list.push(DanmakuMessage {
+                    username,
+                    message,
+                    start_time: current_time,
+                    x: 1720.0,       // 从屏幕最右侧开始
+                    y: y_position,   // 分层显示
+                    color,
+                    speed: 100.0,
+                    id: danmaku_id,
+                });
             }
         }
-
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
     }
 }
 
-// 鼠标消息回调函数
-pub extern "C" fn on_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
+fn handle_one_mouse_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
 
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::with_capacity(len as usize);
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(mouse_state) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if let Some(ref received_clone) = RECEIVED {
-                            let mut data = received_clone.lock().unwrap();
-                            let username = mouse_state["username"].as_str().unwrap_or("unknown").to_string();
-                            data.insert(
-                                username.clone(),
-                                MouseState {
-                                    username: username,
-                                    color: color_from_json(&mouse_state["color"]),
-                                    x: mouse_state["x"].as_f64().unwrap() as f32,
-                                    y: mouse_state["y"].as_f64().unwrap() as f32,
-                                }
-                            );
-                        }
-                    }
+    if let Ok(s) = String::from_utf8(buf) {
+        if let Ok(mouse_state) = serde_json::from_str::<serde_json::Value>(&s) {
+            unsafe {
+                if let Some(ref received_clone) = RECEIVED {
+                    let mut data = received_clone.lock().unwrap();
+                    let username = mouse_state["username"].as_str().unwrap_or("unknown").to_string();
+                    let x = mouse_state["x"].as_f64().unwrap_or_default() as f32;
+                    let y = mouse_state["y"].as_f64().unwrap_or_default() as f32;
+                    data.insert(
+                        username.clone(),
+                        MouseState {
+                            username,
+                            color: color_from_json(&mouse_state["color"]),
+                            x,
+                            y,
+                        },
+                    );
                 }
             }
         }
-
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
     }
 }
 
 // 视频消息回调函数
-pub extern "C" fn on_video_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        println!("1");
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
-
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        println!("2");
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::new();
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-
-                println!("3");
-                if let Ok(s) = String::from_utf8(vec) {
-                    println!("4");
-                    if let Ok(video_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        println!("5");
-                        if let Some(ref received_videos_clone) = RECEIVED_VIDEOS {
-                            let video_data_base64 = video_msg["video_data"].as_str().unwrap_or("");
-                            if let Ok(video_data) = general_purpose::STANDARD.decode(video_data_base64) {
-                                println!("6");
-                                let video = VideoData {
-                                    username: video_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                    video_data,
-                                    file_name: video_msg["file_name"].as_str().unwrap_or("video.mp4").to_string(),
-                                    file_size: video_msg["file_size"].as_u64().unwrap_or(0),
-                                };
-                                let file_name = video.file_name.clone();
-                                let file_size = video.file_size;
-                                let mut data = received_videos_clone.lock().unwrap();
-                                data.insert(video.username.clone(), video);
-                                println!("接收到视频: {} ({}字节)", file_name, file_size);
-                            } else {
-                                eprintln!("视频数据base64解码失败");
-                            }
-                        }
-                    }
-                }
-            }
+fn handle_one_video_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
         }
+    }
 
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    // JSON 解析
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(video_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    // 基本字段
+    let username  = video_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let file_name = video_msg.get("file_name").and_then(|v| v.as_str()).unwrap_or("video.mp4").to_string();
+    let file_size = video_msg.get("file_size").and_then(|v| v.as_u64()).unwrap_or(0);
+
+    // 读取 video_data（允许 data URL；自动裁掉逗号前缀）
+    let video_data_str = match video_msg.get("video_data").and_then(|v| v.as_str()) {
+        Some(s) => s,
+        None => {
+            eprintln!("视频消息缺少 video_data 字段");
+            return;
+        }
+    };
+    let base64_part = video_data_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(video_data_str);
+    let Ok(video_data) = general_purpose::STANDARD.decode(base64_part) else {
+        eprintln!("视频数据 base64 解码失败");
+        return;
+    };
+
+    // 存入共享容器
+    unsafe {
+        if let Some(ref received_videos) = RECEIVED_VIDEOS {
+            let mut map = received_videos.lock().unwrap();
+            map.insert(
+                username.clone(),
+                VideoData {
+                    username: username.clone(),
+                    video_data,
+                    file_name: file_name.clone(),
+                    file_size,
+                },
+            );
+            println!("接收到视频: {} ({} 字节) 来自 {}", file_name, file_size, username);
+        }
     }
 }
 
 // 视频删除消息回调函数
-pub extern "C" fn on_video_delete_data_available(reader: *mut DDS_DataReader) {
-    unsafe {
-        if reader.is_null() { return; }
-        let reader = reader as *mut DDS_BytesDataReader;
-        let mut data_values: DDS_BytesSeq = mem::zeroed();
-        DDS_BytesSeq_initialize(&mut data_values);
-        let mut sample_infos: DDS_SampleInfoSeq = mem::zeroed();
-        DDS_SampleInfoSeq_initialize(&mut sample_infos);
-
-        DDS_BytesDataReader_take(
-            reader,
-            &mut data_values,
-            &mut sample_infos,
-            MAX_INT32_VALUE as i32,
-            DDS_ANY_SAMPLE_STATE,
-            DDS_ANY_VIEW_STATE,
-            DDS_ANY_INSTANCE_STATE,
-        );
-
-        for i in 0..sample_infos._length {
-            let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
-            if !sample_ptr.is_null() {
-                let sample = &*sample_ptr;
-                let len = DDS_OctetSeq_get_length(&sample.value);
-                let mut vec = Vec::new();
-
-                for j in 0..len {
-                    let bptr = DDS_OctetSeq_get_reference(&sample.value, j);
-                    if !bptr.is_null() {
-                        vec.push(*bptr);
-                    }
-                }
-
-                if let Ok(s) = String::from_utf8(vec) {
-                    if let Ok(delete_msg) = serde_json::from_str::<serde_json::Value>(&s) {
-                        if let Some(ref received_video_deletes_clone) = RECEIVED_VIDEO_DELETES {
-                            let mut data = received_video_deletes_clone.lock().unwrap();
-                            data.push(VideoDeleteOperation {
-                                username: delete_msg["username"].as_str().unwrap_or("unknown").to_string(),
-                                video_id: delete_msg["video_id"].as_str().unwrap_or("").to_string(),
-                            });
-                        }
-                    }
-                }
-            }
+fn handle_one_video_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
         }
+    }
 
-        DDS_BytesDataReader_return_loan(reader, &mut data_values, &mut sample_infos);
+    // 解析 JSON -> 入队
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let video_id = delete_msg.get("video_id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    unsafe {
+        if let Some(ref received_video_deletes) = RECEIVED_VIDEO_DELETES {
+            let mut data = received_video_deletes.lock().unwrap();
+            data.push(VideoDeleteOperation { username, video_id });
+        }
     }
 }
 
+
+// 显式给出 $rdr/$samp/$in 的名字（想叫什么都行）
+dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
+    // 指针 -> 引用，然后交给安全函数
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_mouse_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(draw, DDS_Bytes, |_r, samp, inf| {
+    // 指针 -> 引用，然后交给安全函数
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_draw_sample(sample_ref, info_ref);
+});
+
+// ---------- 2) 宏调用：生成 extern "C" 回调 ----------
+dds_simple_data_reader_listener!(user_color, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_user_color_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(danmaku, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_danmaku_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(image, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_image_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(erase, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_erase_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(image_delete, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_image_delete_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(chat, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_chat_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(video, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_video_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_video_delete_sample(sample_ref, info_ref);
+});

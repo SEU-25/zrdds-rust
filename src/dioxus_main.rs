@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
-use zrdds::core::{DPFactory, Publisher};
+use zrdds::core::{DPFactory, ReaderListener};
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
@@ -295,13 +295,6 @@ fn main() {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_Publisher_create_datawriter(
-        //     publisher,
-        //     image_topic,
-        //     datawriter_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // ) as *mut DDS_DataWriter;
 
         let draw_writer = publisher
             .create_writer(
@@ -311,6 +304,13 @@ fn main() {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     draw_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
 
         let erase_writer = publisher
             .create_writer(
@@ -348,14 +348,6 @@ fn main() {
             )
             .unwrap();
 
-        // DDS_Publisher_create_datawriter(
-        //     publisher,
-        //     video_topic,
-        //     datawriter_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // ) as *mut DDS_DataWriter;
-
         let video_delete_writer = publisher
             .create_writer(
                 &video_delete_topic,
@@ -373,13 +365,6 @@ fn main() {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_Publisher_create_datawriter(
-        //     publisher,
-        //     danmaku_topic,
-        //     datawriter_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // ) as *mut DDS_DataWriter;
 
         let user_color_writer = publisher
             .create_writer(
@@ -389,13 +374,6 @@ fn main() {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_Publisher_create_datawriter(
-        //     publisher,
-        //     user_color_topic,
-        //     datawriter_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // ) as *mut DDS_DataWriter;
 
         // 包装在Arc<Mutex<>>中
         let writer = Arc::new(Mutex::new(writer));
@@ -412,19 +390,21 @@ fn main() {
         // 创建subscriber
         let subscriber_qos: *const DDS_SubscriberQos =
             unsafe { &raw const DDS_SUBSCRIBER_QOS_DEFAULT };
-        let subscriber = DDS_DomainParticipant_create_subscriber(
-            participant,
-            subscriber_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        );
+        let subscriber = participant
+            .create_subscriber(
+                &participant,
+                subscriber_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
         let datareader_qos: *const DDS_DataReaderQos =
             unsafe { &raw const DDS_DATAREADER_QOS_DEFAULT };
 
         // 创建各种listener和reader
-        let mut listener: DDS_DataReaderListener = mem::zeroed();
-        listener.on_data_available = Some(on_data_available);
+        let mut listener = ReaderListener::new();
+        listener.set_on_data_available(on_data_available);
 
         let _reader = DDS_Subscriber_create_datareader(
             subscriber,

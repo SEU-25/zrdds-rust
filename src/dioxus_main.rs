@@ -1,16 +1,23 @@
 use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
-use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
-use std::{ffi::CString, ptr, mem};
+use std::sync::{Arc, Mutex};
+use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
 use zrdds::core::DPFactory;
-use zrdds::dioxus_structs::{ChatMessage, MouseState, DrawStroke, EraseOperation, ImageDeleteOperation, VideoDeleteOperation, DanmakuMessage};
-use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
-use zrdds::dioxus_structs::{RECEIVED, RECEIVED_IMAGES, RECEIVED_CHAT_MESSAGES, RECEIVED_VIDEOS, RECEIVED_VIDEO_DELETES, RECEIVED_STROKES, RECEIVED_ERASES, RECEIVED_IMAGE_DELETES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_USER_COLORS, DANMAKU_ENABLED};
-use zrdds::dioxus_app::*;
-use zrdds::utils::*;
 use zrdds::dds_handlers::*;
+use zrdds::dioxus_app::*;
+use zrdds::dioxus_structs::{
+    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
+    VideoDeleteOperation,
+};
+use zrdds::dioxus_structs::{
+    DANMAKU_ENABLED, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
+    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGES, RECEIVED_STROKES, RECEIVED_USER_COLORS,
+    RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
+};
+use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
+use zrdds::utils::*;
 
 // 全局props变量
 static mut DIOXUS_PROPS: Option<DioxusAppProps> = None;
@@ -32,15 +39,21 @@ fn main() {
 
     // 初始化共享状态
     let received: Arc<Mutex<HashMap<String, MouseState>>> = Arc::new(Mutex::new(HashMap::new()));
-    let received_images: Arc<Mutex<HashMap<String, CustomImageData>>> = Arc::new(Mutex::new(HashMap::new()));
+    let received_images: Arc<Mutex<HashMap<String, CustomImageData>>> =
+        Arc::new(Mutex::new(HashMap::new()));
     let received_strokes: Arc<Mutex<Vec<DrawStroke>>> = Arc::new(Mutex::new(Vec::new()));
     let received_erases: Arc<Mutex<Vec<EraseOperation>>> = Arc::new(Mutex::new(Vec::new()));
-    let received_image_deletes: Arc<Mutex<Vec<ImageDeleteOperation>>> = Arc::new(Mutex::new(Vec::new()));
+    let received_image_deletes: Arc<Mutex<Vec<ImageDeleteOperation>>> =
+        Arc::new(Mutex::new(Vec::new()));
     let received_chat_messages: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(Vec::new()));
-    let received_danmaku_messages: Arc<Mutex<Vec<DanmakuMessage>>> = Arc::new(Mutex::new(Vec::new()));
-    let received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>> = Arc::new(Mutex::new(HashMap::new()));
-    let received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>> = Arc::new(Mutex::new(Vec::new()));
-    let received_user_colors: Arc<Mutex<HashMap<String, zrdds::dioxus_structs::UserColor>>> = Arc::new(Mutex::new(HashMap::new()));
+    let received_danmaku_messages: Arc<Mutex<Vec<DanmakuMessage>>> =
+        Arc::new(Mutex::new(Vec::new()));
+    let received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>> =
+        Arc::new(Mutex::new(HashMap::new()));
+    let received_video_deletes: Arc<Mutex<Vec<VideoDeleteOperation>>> =
+        Arc::new(Mutex::new(Vec::new()));
+    let received_user_colors: Arc<Mutex<HashMap<String, zrdds::dioxus_structs::UserColor>>> =
+        Arc::new(Mutex::new(HashMap::new()));
     let danmaku_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
 
     unsafe {
@@ -62,95 +75,136 @@ fn main() {
         // DDS 初始化
         let factory = DPFactory::instance().unwrap();
 
-        let dp_qos: *const DDS_DomainParticipantQos = unsafe {
-            &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT
-        };
+        let dp_qos: *const DDS_DomainParticipantQos =
+            unsafe { &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT };
 
-        let participant = factory.create_dp(
-            &factory,
-            11,
-            dp_qos,
-            ptr::null_mut(),
-            DDS_STATUS_MASK_NONE,
-        ).unwrap();
-
+        let participant = factory
+            .create_dp(&factory, 11, dp_qos, ptr::null_mut(), DDS_STATUS_MASK_NONE)
+            .unwrap();
         let type_name = DDS_BytesTypeSupport_get_type_name();
         DDS_BytesTypeSupport_register_type(participant.raw, type_name);
-        
+
         let topic_name = CString::new("mouse_topic").unwrap();
-        let topic_qos: *const DDS_TopicQos = unsafe {
-            &raw const DDS_TOPIC_QOS_DEFAULT
-        };
-        let topic = DDS_DomainParticipant_create_topic(
-            participant,
-            topic_name.as_ptr(),
-            type_name,
+        let topic_qos: *const DDS_TopicQos = unsafe { &raw const DDS_TOPIC_QOS_DEFAULT };
+        let topic = participant.create_topic(
+            &participant,
+            topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // C风格方法
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建图片topic
         let image_topic_name = CString::new("image_topic").unwrap();
-        let image_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            image_topic_name.as_ptr(),
-            type_name,
+        let image_topic = participant.create_topic(
+            &participant,
+            image_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     image_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建画笔topic
         let draw_topic_name = CString::new("draw_topic").unwrap();
-        let draw_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            draw_topic_name.as_ptr(),
-            type_name,
+        let draw_topic = participant.create_topic(
+            &participant,
+            draw_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     draw_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建擦除topic
         let erase_topic_name = CString::new("erase_topic").unwrap();
-        let erase_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            erase_topic_name.as_ptr(),
-            type_name,
+        let erase_topic = participant.create_topic(
+            &participant,
+            erase_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     erase_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建图片删除topic
         let image_delete_topic_name = CString::new("image_delete_topic").unwrap();
-        let image_delete_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            image_delete_topic_name.as_ptr(),
-            type_name,
+        let image_delete_topic = participant.create_topic(
+            &participant,
+            image_delete_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     image_delete_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建聊天topic
         let chat_topic_name = CString::new("chat_topic").unwrap();
-        let chat_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            chat_topic_name.as_ptr(),
-            type_name,
+        let chat_topic = participant.create_topic(
+            &participant,
+            chat_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     chat_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
         // 创建视频topic
         let video_topic_name = CString::new("video_topic").unwrap();
-        let video_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            video_topic_name.as_ptr(),
-            type_name,
+        let video_topic = participant.create_topic(
+            &participant,
+            video_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
@@ -158,10 +212,10 @@ fn main() {
 
         // 创建视频删除topic
         let video_delete_topic_name = CString::new("video_delete_topic").unwrap();
-        let video_delete_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            video_delete_topic_name.as_ptr(),
-            type_name,
+        let video_delete_topic = participant.create_topic(
+            &participant,
+            video_delete_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
@@ -169,10 +223,10 @@ fn main() {
 
         // 创建弹幕topic
         let danmaku_topic_name = CString::new("danmaku_topic").unwrap();
-        let danmaku_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            danmaku_topic_name.as_ptr(),
-            type_name,
+        let danmaku_topic = participant.create_topic(
+            &participant,
+            danmaku_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
@@ -180,33 +234,31 @@ fn main() {
 
         // 创建用户颜色topic
         let user_color_topic_name = CString::new("user_color_topic").unwrap();
-        let user_color_topic = DDS_DomainParticipant_create_topic(
-            participant,
-            user_color_topic_name.as_ptr(),
-            type_name,
+        let user_color_topic = participant.create_topic(
+            &participant,
+            user_color_topic_name.to_str().unwrap(),
+            unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
             topic_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
 
         // 创建publisher
-        let publisher_qos: *const DDS_PublisherQos = unsafe {
-            &raw const DDS_PUBLISHER_QOS_DEFAULT
-        };
-        let publisher = DDS_DomainParticipant_create_publisher(
-            participant,
+        let publisher_qos: *const DDS_PublisherQos =
+            unsafe { &raw const DDS_PUBLISHER_QOS_DEFAULT };
+        let publisher = participant.create_publisher(
+            &participant,
             publisher_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
         );
 
         // 创建datawriter
-        let datawriter_qos: *const DDS_DataWriterQos = unsafe {
-            &raw const DDS_DATAWRITER_QOS_DEFAULT
-        };
-        let writer = DDS_Publisher_create_datawriter(
-            publisher,
-            topic,
+        let datawriter_qos: *const DDS_DataWriterQos =
+            unsafe { &raw const DDS_DATAWRITER_QOS_DEFAULT };
+        let writer = publisher.create_datawriter(
+            &publisher,
+            &topic,
             datawriter_qos,
             ptr::null_mut(),
             DDS_STATUS_MASK_NONE,
@@ -297,9 +349,8 @@ fn main() {
         let user_color_writer = Arc::new(Mutex::new(user_color_writer));
 
         // 创建subscriber
-        let subscriber_qos: *const DDS_SubscriberQos = unsafe {
-            &raw const DDS_SUBSCRIBER_QOS_DEFAULT
-        };
+        let subscriber_qos: *const DDS_SubscriberQos =
+            unsafe { &raw const DDS_SUBSCRIBER_QOS_DEFAULT };
         let subscriber = DDS_DomainParticipant_create_subscriber(
             participant,
             subscriber_qos,
@@ -307,9 +358,8 @@ fn main() {
             DDS_STATUS_MASK_NONE,
         );
 
-        let datareader_qos: *const DDS_DataReaderQos = unsafe {
-            &raw const DDS_DATAREADER_QOS_DEFAULT
-        };
+        let datareader_qos: *const DDS_DataReaderQos =
+            unsafe { &raw const DDS_DATAREADER_QOS_DEFAULT };
 
         // 创建各种listener和reader
         let mut listener: DDS_DataReaderListener = mem::zeroed();
@@ -366,7 +416,7 @@ fn main() {
             &mut image_delete_listener,
             DDS_STATUS_MASK_ALL,
         ) as *mut DDS_DataReader;
-        
+
         let mut chat_listener: DDS_DataReaderListener = mem::zeroed();
         chat_listener.on_data_available = Some(on_chat_data_available);
 
@@ -421,19 +471,19 @@ fn main() {
             &mut user_color_listener,
             DDS_STATUS_MASK_ALL,
         ) as *mut DDS_DataReader;
-    
-    // 配置窗口
-    let config = Config::new()
-        .with_window(
-            WindowBuilder::new()
-                .with_title("在线课堂")
-                .with_inner_size(dioxus_desktop::LogicalSize::new(1920, 780))
-                .with_maximized(true)
-                .with_resizable(false)
-                //.with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
-                //.with_maximized(true)
-        )
-        .with_custom_head(r#"
+
+        // 配置窗口
+        let config = Config::new()
+            .with_window(
+                WindowBuilder::new()
+                    .with_title("在线课堂")
+                    .with_inner_size(dioxus_desktop::LogicalSize::new(1920, 780))
+                    .with_maximized(true)
+                    .with_resizable(false), //.with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
+                                            //.with_maximized(true)
+            )
+            .with_custom_head(
+                r#"
             <style>
                 body {
                     margin: 0;
@@ -674,37 +724,37 @@ fn main() {
                     stroke-linejoin: round;
                 }
             </style>
-        "#.to_string());
-    
-    // 设置全局props
-    unsafe {
-        DIOXUS_PROPS = Some(DioxusAppProps {
-            received: received.clone(),
-            received_images: received_images.clone(),
-            received_videos: received_videos.clone(),
-            received_strokes: received_strokes.clone(),
-            received_erases: received_erases.clone(),
-            received_image_deletes: received_image_deletes.clone(),
-            received_video_deletes: received_video_deletes.clone(),
-            received_chat_messages: received_chat_messages.clone(),
-            received_danmaku_messages: received_danmaku_messages.clone(),
-            received_user_colors: received_user_colors.clone(),
-            writer: writer.clone(),
-            image_writer: image_writer.clone(),
-            video_writer: video_writer.clone(),
-            draw_writer: draw_writer.clone(),
-            erase_writer: erase_writer.clone(),
-            image_delete_writer: image_delete_writer.clone(),
-            video_delete_writer: video_delete_writer.clone(),
-            chat_writer: chat_writer.clone(),
-            danmaku_writer: danmaku_writer.clone(),
-            color_writer: user_color_writer.clone(),
-        });
-    }
+        "#
+                .to_string(),
+            );
 
-    // 启动应用
-    LaunchBuilder::new()
-        .with_cfg(config)
-        .launch(app_wrapper);
+        // 设置全局props
+        unsafe {
+            DIOXUS_PROPS = Some(DioxusAppProps {
+                received: received.clone(),
+                received_images: received_images.clone(),
+                received_videos: received_videos.clone(),
+                received_strokes: received_strokes.clone(),
+                received_erases: received_erases.clone(),
+                received_image_deletes: received_image_deletes.clone(),
+                received_video_deletes: received_video_deletes.clone(),
+                received_chat_messages: received_chat_messages.clone(),
+                received_danmaku_messages: received_danmaku_messages.clone(),
+                received_user_colors: received_user_colors.clone(),
+                writer: writer.clone(),
+                image_writer: image_writer.clone(),
+                video_writer: video_writer.clone(),
+                draw_writer: draw_writer.clone(),
+                erase_writer: erase_writer.clone(),
+                image_delete_writer: image_delete_writer.clone(),
+                video_delete_writer: video_delete_writer.clone(),
+                chat_writer: chat_writer.clone(),
+                danmaku_writer: danmaku_writer.clone(),
+                color_writer: user_color_writer.clone(),
+            });
+        }
+
+        // 启动应用
+        LaunchBuilder::new().with_cfg(config).launch(app_wrapper);
     }
 }

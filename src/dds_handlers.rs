@@ -1,11 +1,11 @@
-use std::{ffi::CString, ptr, mem};
+use std::mem;
 use crate::bindings::*;
-use std::sync::{Arc, Mutex};
 use egui::Color32;
 use base64::{Engine as _, engine::general_purpose};
 use crate::core::Reader;
 use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
+
 
 // 画笔笔迹消息回调函数
 pub extern "C" fn on_draw_data_available(reader: Reader) {

@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"   # 例如 v0.1.0
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest

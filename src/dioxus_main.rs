@@ -264,8 +264,7 @@ fn main() {
             .unwrap();
 
         // 创建publisher
-        let publisher_qos: *const DDS_PublisherQos =
-            unsafe { &raw const DDS_PUBLISHER_QOS_DEFAULT };
+        let publisher_qos: *const DDS_PublisherQos = &raw const DDS_PUBLISHER_QOS_DEFAULT;
         let publisher = participant
             .create_publisher(
                 &participant,
@@ -275,9 +274,17 @@ fn main() {
             )
             .unwrap();
 
+        // datawriter qos的可靠性为可靠
+        let mut dw_qos = std::mem::MaybeUninit::<DDS_DataWriterQos>::zeroed();
+        let _rtn_code =
+            DDS_Publisher_get_default_datawriter_qos(publisher.raw, dw_qos.as_mut_ptr());
+        let mut dw_qos = dw_qos.assume_init();
+        dw_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+
         // 创建datawriter
-        let datawriter_qos: *const DDS_DataWriterQos =
-            unsafe { &raw const DDS_DATAWRITER_QOS_DEFAULT };
+        let datawriter_qos: *const DDS_DataWriterQos = &raw const dw_qos;
+        // println!("设置数据写者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
+
         let writer = publisher
             .create_writer(
                 &topic,
@@ -399,8 +406,15 @@ fn main() {
             )
             .unwrap();
 
-        let datareader_qos: *const DDS_DataReaderQos =
-            unsafe { &raw const DDS_DATAREADER_QOS_DEFAULT };
+        let mut dr_qos = std::mem::MaybeUninit::<DDS_DataReaderQos>::zeroed();
+        let _rtn_code =
+            DDS_Subscriber_get_default_datareader_qos(subscriber.raw, dr_qos.as_mut_ptr());
+        let mut dr_qos = dr_qos.assume_init();
+        dr_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+
+        // 创建datareader
+        let datareader_qos: *const DDS_DataReaderQos = &raw const dr_qos;
+        // println!("设置数据读者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
         // 创建各种listener和reader
         let mut listener = ReaderListener::new();
@@ -433,7 +447,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut erase_listener= ReaderListener::new();
+        let mut erase_listener = ReaderListener::new();
         erase_listener.set_on_data_available(on_erase_data_available);
 
         let _erase_reader = subscriber.create_reader(
@@ -443,7 +457,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut image_delete_listener= ReaderListener::new();
+        let mut image_delete_listener = ReaderListener::new();
         image_delete_listener.set_on_data_available(on_image_delete_data_available);
 
         let _image_delete_reader = subscriber.create_reader(
@@ -453,7 +467,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut chat_listener= ReaderListener::new();
+        let mut chat_listener = ReaderListener::new();
         chat_listener.set_on_data_available(on_chat_data_available);
 
         let _chat_reader = subscriber.create_reader(
@@ -463,7 +477,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut video_listener= ReaderListener::new();
+        let mut video_listener = ReaderListener::new();
         video_listener.set_on_data_available(on_video_data_available);
 
         let _video_reader = subscriber.create_reader(
@@ -473,7 +487,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut video_delete_listener= ReaderListener::new();
+        let mut video_delete_listener = ReaderListener::new();
         video_delete_listener.set_on_data_available(on_video_delete_data_available);
 
         let _video_delete_reader = subscriber.create_reader(
@@ -483,7 +497,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut danmaku_listener= ReaderListener::new();
+        let mut danmaku_listener = ReaderListener::new();
         danmaku_listener.set_on_data_available(on_danmaku_data_available);
 
         let _danmaku_reader = subscriber.create_reader(
@@ -493,7 +507,7 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut user_color_listener= ReaderListener::new();
+        let mut user_color_listener = ReaderListener::new();
         user_color_listener.set_on_data_available(on_user_color_data_available);
 
         let _user_color_reader = subscriber.create_reader(

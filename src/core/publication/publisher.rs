@@ -6,7 +6,7 @@ use crate::core::topic::Topic;
 use std::marker::PhantomData;
 
 pub struct Publisher<'a> {
-    pub(crate) raw: *mut DDS_Publisher,
+    pub raw: *mut DDS_Publisher,
     pub(crate) _marker: PhantomData<&'a DomainParticipant>,
 }
 

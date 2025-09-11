@@ -3,9 +3,10 @@ use crate::core::domain::DomainParticipant;
 use crate::core::subscription::Reader;
 use std::ffi::CString;
 use std::marker::PhantomData;
+use crate::core::ReaderListener;
 
 pub struct Subscriber<'a> {
-    pub(crate) raw: *mut DDS_Subscriber,
+    pub raw: *mut DDS_Subscriber,
     pub(crate) _marker: PhantomData<&'a DomainParticipant>,
 }
 
@@ -21,14 +22,14 @@ impl Subscriber<'_> {
     成功返回Some()，失败返回None
     */
     pub fn create_reader(
-        self_: Subscriber,
+        &self,
         topic: *mut DDS_TopicDescription,
         qos: *const DDS_DataReaderQos,
-        listener: *mut DDS_DataReaderListener,
+        listener: &mut ReaderListener,
         mask: u32,
     ) -> Option<Reader> {
         let reader = Reader {
-            raw: unsafe { DDS_Subscriber_create_datareader(self_.raw, topic, qos, listener, mask) },
+            raw: unsafe { DDS_Subscriber_create_datareader(self.raw, topic, qos, &mut listener.raw, mask) },
             _marker: PhantomData,
         };
 

@@ -3,7 +3,7 @@ use crate::dds_handlers::on_chat_data_available;
 use std::mem;
 
 pub struct ReaderListener {
-    pub(crate) raw: *mut DDS_DataReaderListener,
+    pub raw: DDS_DataReaderListener,
 }
 
 impl ReaderListener {
@@ -17,8 +17,6 @@ impl ReaderListener {
         &mut self,
         on_data_available: extern "C" fn(reader: *mut DDS_DataReader),
     ) {
-        unsafe {
-            (*self.raw).on_data_available = Some(on_data_available);
-        }
+        unsafe { self.raw.on_data_available = Some(on_data_available); }
     }
 }

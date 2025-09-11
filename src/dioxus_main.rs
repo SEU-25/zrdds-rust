@@ -406,112 +406,107 @@ fn main() {
         let mut listener = ReaderListener::new();
         listener.set_on_data_available(on_data_available);
 
-        let _reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            topic as *mut DDS_TopicDescription,
+        let _reader = subscriber.create_reader(
+            topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut draw_listener: DDS_DataReaderListener = mem::zeroed();
-        draw_listener.on_data_available = Some(on_draw_data_available);
+        let mut draw_listener = ReaderListener::new();
+        draw_listener.set_on_data_available(on_draw_data_available);
 
-        let _draw_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            draw_topic as *mut DDS_TopicDescription,
+        let _draw_reader = subscriber.create_reader(
+            draw_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut draw_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
         let mut image_listener: DDS_DataReaderListener = mem::zeroed();
         image_listener.on_data_available = Some(on_image_data_available);
 
-        let _image_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            image_topic as *mut DDS_TopicDescription,
+        let mut image_listener_foo = ReaderListener {
+            raw: mem::zeroed(),
+        };
+        image_listener_foo.set_on_data_available(on_image_data_available);
+
+        let _image_reader = subscriber.create_reader(
+            image_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
-            &mut image_listener,
+            &mut image_listener_foo,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut erase_listener: DDS_DataReaderListener = mem::zeroed();
-        erase_listener.on_data_available = Some(on_erase_data_available);
+        let mut erase_listener= ReaderListener::new();
+        erase_listener.set_on_data_available(on_erase_data_available);
 
-        let _erase_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            erase_topic as *mut DDS_TopicDescription,
+        let _erase_reader = subscriber.create_reader(
+            erase_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut erase_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut image_delete_listener: DDS_DataReaderListener = mem::zeroed();
-        image_delete_listener.on_data_available = Some(on_image_delete_data_available);
+        let mut image_delete_listener= ReaderListener::new();
+        image_delete_listener.set_on_data_available(on_image_delete_data_available);
 
-        let _image_delete_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            image_delete_topic as *mut DDS_TopicDescription,
+        let _image_delete_reader = subscriber.create_reader(
+            image_delete_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut image_delete_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut chat_listener: DDS_DataReaderListener = mem::zeroed();
-        chat_listener.on_data_available = Some(on_chat_data_available);
+        let mut chat_listener= ReaderListener::new();
+        chat_listener.set_on_data_available(on_chat_data_available);
 
-        let _chat_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            chat_topic as *mut DDS_TopicDescription,
+        let _chat_reader = subscriber.create_reader(
+            chat_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut chat_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut video_listener: DDS_DataReaderListener = mem::zeroed();
-        video_listener.on_data_available = Some(on_video_data_available);
+        let mut video_listener= ReaderListener::new();
+        video_listener.set_on_data_available(on_video_data_available);
 
-        let _video_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            video_topic as *mut DDS_TopicDescription,
+        let _video_reader = subscriber.create_reader(
+            video_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut video_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut video_delete_listener: DDS_DataReaderListener = mem::zeroed();
-        video_delete_listener.on_data_available = Some(on_video_delete_data_available);
+        let mut video_delete_listener= ReaderListener::new();
+        video_delete_listener.set_on_data_available(on_video_delete_data_available);
 
-        let _video_delete_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            video_delete_topic as *mut DDS_TopicDescription,
+        let _video_delete_reader = subscriber.create_reader(
+            video_delete_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut video_delete_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut danmaku_listener: DDS_DataReaderListener = mem::zeroed();
-        danmaku_listener.on_data_available = Some(on_danmaku_data_available);
+        let mut danmaku_listener= ReaderListener::new();
+        danmaku_listener.set_on_data_available(on_danmaku_data_available);
 
-        let _danmaku_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            danmaku_topic as *mut DDS_TopicDescription,
+        let _danmaku_reader = subscriber.create_reader(
+            danmaku_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut danmaku_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
-        let mut user_color_listener: DDS_DataReaderListener = mem::zeroed();
-        user_color_listener.on_data_available = Some(on_user_color_data_available);
+        let mut user_color_listener= ReaderListener::new();
+        user_color_listener.set_on_data_available(on_user_color_data_available);
 
-        let _user_color_reader = DDS_Subscriber_create_datareader(
-            subscriber,
-            user_color_topic as *mut DDS_TopicDescription,
+        let _user_color_reader = subscriber.create_reader(
+            user_color_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut user_color_listener,
             DDS_STATUS_MASK_ALL,
-        ) as *mut DDS_DataReader;
+        );
 
         // 配置窗口
         let config = Config::new()

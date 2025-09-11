@@ -5,9 +5,9 @@
 
 pub mod reader;
 pub mod subscriber;
-mod subscriber_qos;
-mod reader_qos;
-mod reader_listener;
+pub mod subscriber_qos;
+pub mod reader_qos;
+pub mod reader_listener;
 
 pub use reader::*;
 pub use subscriber::*;

@@ -5,7 +5,7 @@
 
 pub mod factory;
 pub mod participant;
-mod dp_qos;
+pub mod dp_qos;
 
 pub use factory::*;
 pub use participant::*;

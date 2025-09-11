@@ -5,8 +5,8 @@
 
 pub mod publisher;
 pub mod writer;
-mod publisher_qos;
-mod writer_qos;
+pub mod publisher_qos;
+pub mod writer_qos;
 
 pub use publisher::*;
 pub use writer::*;

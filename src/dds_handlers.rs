@@ -1,11 +1,11 @@
-use std::{ffi::CString, ptr, mem};
+use std::mem;
 use crate::bindings::*;
-use std::sync::{Arc, Mutex};
 use egui::Color32;
 use base64::{Engine as _, engine::general_purpose};
-
+use crate::core::Reader;
 use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
+
 
 // 画笔笔迹消息回调函数
 pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
@@ -61,7 +61,7 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
                                         color_array[2].as_u64().unwrap() as u8,
                                     )
                                 };
-                                
+
                                 let stroke = DrawStroke {
                                     username: draw_msg["username"].as_str().unwrap_or("unknown").to_string(),
                                     color,
@@ -72,7 +72,7 @@ pub extern "C" fn on_draw_data_available(reader: *mut DDS_DataReader) {
                                     stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
                                     timestamp: draw_msg["timestamp"].as_u64().unwrap_or(0),
                                 };
-                                
+
                                 let mut data = received_strokes_clone.lock().unwrap();
                                 data.push(stroke);
                             }
@@ -124,7 +124,7 @@ pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
                     if let Ok(color_msg) = serde_json::from_str::<serde_json::Value>(&s) {
                         if color_msg["type"] == "UserColor" {
                             let username = color_msg["username"].as_str().unwrap_or("unknown").to_string();
-                            
+
                             // 解析颜色信息
                             let color = if let Some(color_obj) = color_msg["color"].as_object() {
                                 if let (Some(r), Some(g), Some(b), Some(a)) = (
@@ -140,9 +140,9 @@ pub extern "C" fn on_user_color_data_available(reader: *mut DDS_DataReader) {
                             } else {
                                 Color32::WHITE // 默认颜色
                             };
-                            
+
                             let timestamp = color_msg["timestamp"].as_u64().unwrap_or(0);
-                            
+
                             // 添加到用户颜色映射
                             if let Some(ref received_user_colors_clone) = RECEIVED_USER_COLORS {
                                 let mut data = received_user_colors_clone.lock().unwrap();
@@ -221,7 +221,7 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
     let message = json_value["message"].as_str().unwrap_or("").to_string();
     let start_time = json_value["start_time"].as_f64().unwrap_or(0.0);
     let danmaku_id = format!("{}-{}-{}", username, message.len(), (start_time * 1000.0) as u64);
-    
+
     Some(DanmakuMessage {
         username,
         message,
@@ -242,6 +242,7 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
 pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
     unsafe {
         if reader.is_null() { return; }
+        println!("1111111111111111111");
         let reader = reader as *mut DDS_BytesDataReader;
         let mut data_values: DDS_BytesSeq = mem::zeroed();
         DDS_BytesSeq_initialize(&mut data_values);
@@ -257,6 +258,7 @@ pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
             DDS_ANY_VIEW_STATE,
             DDS_ANY_INSTANCE_STATE,
         );
+        println!("2222222222222222222222222");
 
         for i in 0..sample_infos._length {
             let sample_ptr = DDS_BytesSeq_get_reference(&mut data_values, i);
@@ -274,6 +276,8 @@ pub extern "C" fn on_image_data_available(reader: *mut DDS_DataReader) {
                 }
 
                 if let Ok(s) = String::from_utf8(vec) {
+                    println!("333333333333333333333333333");
+
                     if let Ok(image_msg) = serde_json::from_str::<serde_json::Value>(&s) {
                         if let Some(ref received_images_clone) = RECEIVED_IMAGES {
                             if let Some(image_data_b64) = image_msg["image_data"].as_str() {
@@ -447,7 +451,7 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
                         let username = chat_msg["username"].as_str().unwrap_or("unknown").to_string();
                         let message = chat_msg["message"].as_str().unwrap_or("").to_string();
                         let timestamp = chat_msg["timestamp"].as_str().unwrap_or("").to_string();
-                        
+
                         // 解析颜色信息
                         let color = if let Some(color_obj) = chat_msg["color"].as_object() {
                             if let (Some(r), Some(g), Some(b), Some(a)) = (
@@ -463,7 +467,7 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
                         } else {
                             Color32::WHITE // 默认颜色
                         };
-                        
+
                         // 添加到聊天消息
                         if let Some(ref received_chat_messages_clone) = RECEIVED_CHAT_MESSAGES {
                             let mut data = received_chat_messages_clone.lock().unwrap();
@@ -474,7 +478,7 @@ pub extern "C" fn on_chat_data_available(reader: *mut DDS_DataReader) {
                                 color: color,
                             });
                         }
-                        
+
                         // 只有在弹幕开关启用时才添加到弹幕消息
                         let danmaku_enabled = if let Some(ref enabled) = DANMAKU_ENABLED {
                             enabled.lock().unwrap().clone()

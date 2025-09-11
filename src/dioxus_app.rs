@@ -18,6 +18,7 @@ use std::{
 };
 use tokio;
 use env_logger;
+use crate::core::Writer;
 
 // Dioxus应用状态结构
 #[derive(Clone, Debug)]
@@ -85,16 +86,16 @@ pub struct DioxusAppProps {
     pub received_chat_messages: Arc<Mutex<Vec<ChatMessage>>>,
     pub received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>>,
     pub received_user_colors: Arc<Mutex<HashMap<String, UserColor>>>,
-    pub writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub image_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub draw_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub danmaku_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    pub color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    pub writer: Arc<Mutex<Writer>>,
+    pub image_writer: Arc<Mutex<Writer>>,
+    pub video_writer: Arc<Mutex<Writer>>,
+    pub draw_writer: Arc<Mutex<Writer>>,
+    pub erase_writer: Arc<Mutex<Writer>>,
+    pub image_delete_writer: Arc<Mutex<Writer>>,
+    pub video_delete_writer: Arc<Mutex<Writer>>,
+    pub chat_writer: Arc<Mutex<Writer>>,
+    pub danmaku_writer: Arc<Mutex<Writer>>,
+    pub color_writer: Arc<Mutex<Writer>>,
 }
 
 impl PartialEq for DioxusAppProps {
@@ -458,14 +459,14 @@ struct CentralPanelProps {
     danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>,
     is_drawing: Signal<bool>,
     last_mouse_pos: Signal<(f32, f32)>,
-    writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    image_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    draw_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    writer: Arc<Mutex<Writer>>,
+    image_writer: Arc<Mutex<Writer>>,
+    video_writer: Arc<Mutex<Writer>>,
+    draw_writer: Arc<Mutex<Writer>>,
+    erase_writer: Arc<Mutex<Writer>>,
+    image_delete_writer: Arc<Mutex<Writer>>,
+    video_delete_writer: Arc<Mutex<Writer>>,
+    color_writer: Arc<Mutex<Writer>>,
 }
 
 impl PartialEq for CentralPanelProps {
@@ -719,11 +720,11 @@ struct CanvasProps {
     danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>,
     is_drawing: Signal<bool>,
     last_mouse_pos: Signal<(f32, f32)>,
-    writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    draw_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    writer: Arc<Mutex<Writer>>,
+    draw_writer: Arc<Mutex<Writer>>,
+    erase_writer: Arc<Mutex<Writer>>,
+    image_delete_writer: Arc<Mutex<Writer>>,
+    video_delete_writer: Arc<Mutex<Writer>>,
 }
 
 impl PartialEq for CanvasProps {
@@ -969,8 +970,8 @@ fn Canvas(props: CanvasProps) -> Element {
 struct ChatPanelProps {
     chat_messages: Signal<Vec<ChatMessage>>,
     app_state: Signal<DioxusAppState>,
-    chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    chat_writer: Arc<Mutex<Writer>>,
+    writer: Arc<Mutex<Writer>>,
     danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>,
 }
 
@@ -1247,7 +1248,7 @@ fn add_danmaku_message(
 fn send_chat_message(
     message: String,
     color: egui::Color32,
-    chat_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    chat_writer: Arc<Mutex<Writer>>,
     danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>,
     danmaku_enabled: bool,
 ) {
@@ -1291,9 +1292,9 @@ fn handle_mouse_move(
     last_mouse_pos: &mut Signal<(f32, f32)>,
     local_strokes: &mut Signal<Vec<DrawStroke>>,
     strokes: &mut Signal<Vec<DrawStroke>>,
-    writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    draw_writer: Arc<Mutex<*mut DDS_DataWriter>>,
-    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    writer: Arc<Mutex<Writer>>,
+    draw_writer: Arc<Mutex<Writer>>,
+    erase_writer: Arc<Mutex<Writer>>,
 ) {
     let state = app_state.read();
     let (last_x, last_y) = last_mouse_pos.read().clone();
@@ -1338,7 +1339,7 @@ fn handle_mouse_down(
     last_mouse_pos: &mut Signal<(f32, f32)>,
     local_strokes: &mut Signal<Vec<DrawStroke>>,
     strokes: &mut Signal<Vec<DrawStroke>>,
-    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    erase_writer: Arc<Mutex<Writer>>,
 ) {
     let state = app_state.read();
 
@@ -1366,7 +1367,7 @@ fn handle_erase(
     y: f32,
     local_strokes: &mut Signal<Vec<DrawStroke>>,
     strokes: &mut Signal<Vec<DrawStroke>>,
-    erase_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    erase_writer: Arc<Mutex<Writer>>,
 ) {
     let erase_radius = 30.0;
     let erase_timestamp = get_current_timestamp_millis();
@@ -1424,7 +1425,7 @@ fn send_mouse_position(
     x: f32,
     y: f32,
     color: egui::Color32,
-    writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    writer: Arc<Mutex<Writer>>,
 ) {
     let mouse_state = MouseState {
         username: get_username(),
@@ -1444,7 +1445,7 @@ fn send_mouse_position(
     send_dds_message(&json_message.to_string(), &writer);
 }
 
-fn send_draw_stroke(stroke: &DrawStroke, draw_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn send_draw_stroke(stroke: &DrawStroke, draw_writer: Arc<Mutex<Writer>>) {
     let draw_stroke = DrawStroke {
         username: stroke.username.clone(),
         color: stroke.color,
@@ -1471,7 +1472,7 @@ fn send_draw_stroke(stroke: &DrawStroke, draw_writer: Arc<Mutex<*mut DDS_DataWri
     send_dds_message(&json_message.to_string(), &draw_writer);
 }
 
-fn delete_image(image_id: String, image_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn delete_image(image_id: String, image_delete_writer: Arc<Mutex<Writer>>) {
     println!("删除图片请求: image_id = {}", image_id);
 
     let delete_op = ImageDeleteOperation {
@@ -1489,7 +1490,7 @@ fn delete_image(image_id: String, image_delete_writer: Arc<Mutex<*mut DDS_DataWr
     send_dds_message(&json_message.to_string(), &image_delete_writer);
 }
 
-fn delete_video(video_id: String, video_delete_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn delete_video(video_id: String, video_delete_writer: Arc<Mutex<Writer>>) {
     let delete_op = VideoDeleteOperation {
         username: get_username(),
         video_id,
@@ -1506,7 +1507,7 @@ fn delete_video(video_id: String, video_delete_writer: Arc<Mutex<*mut DDS_DataWr
     println!("图片删除成功: {}", json_message.to_string());
 }
 
-fn upload_image(image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn upload_image(image_writer: Arc<Mutex<Writer>>) {
     // 使用spawn异步处理文件选择，避免阻塞UI线程
     spawn(async move {
         // 使用异步文件对话框
@@ -1538,7 +1539,7 @@ fn upload_image(image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
     });
 }
 
-fn upload_video(video_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn upload_video(video_writer: Arc<Mutex<Writer>>) {
     // 使用spawn异步处理文件选择，避免阻塞UI线程
     spawn(async move {
         // 使用异步文件对话框
@@ -1567,7 +1568,7 @@ fn upload_video(video_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
     });
 }
 
-fn send_dds_message(message: &str, writer: &Arc<Mutex<*mut DDS_DataWriter>>) {
+fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
     let buffer = message.as_bytes();
     let mut data: DDS_Bytes = unsafe { mem::zeroed() };
     unsafe { DDS_OctetSeq_initialize(&mut data.value as *mut DDS_OctetSeq) };
@@ -1580,7 +1581,7 @@ fn send_dds_message(message: &str, writer: &Arc<Mutex<*mut DDS_DataWriter>>) {
             buffer.len() as DDS_ULong,
         );
 
-        let writer_ptr = *writer.lock().unwrap();
+        let writer_ptr = writer.lock().unwrap().raw;
         let handle = DDS_BytesDataWriter_register_instance(
             writer_ptr as *mut DDS_BytesDataWriter,
             &mut data,
@@ -1609,7 +1610,7 @@ fn get_current_timestamp_millis() -> u64 {
         .as_millis() as u64
 }
 
-fn send_image_data(image_data: Vec<u8>, image_writer: Arc<Mutex<*mut DDS_DataWriter>>) {
+fn send_image_data(image_data: Vec<u8>, image_writer: Arc<Mutex<Writer>>) {
     send_image_data_with_dimensions(image_data, 0, 0, image_writer);
 }
 
@@ -1617,7 +1618,7 @@ fn send_video_data(
     video_data: Vec<u8>,
     file_name: String,
     file_size: u64,
-    video_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    video_writer: Arc<Mutex<Writer>>,
 ) {
     let username = get_username();
 
@@ -1643,7 +1644,7 @@ fn send_image_data_with_dimensions(
     image_data: Vec<u8>,
     width: u32,
     height: u32,
-    image_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    image_writer: Arc<Mutex<Writer>>,
 ) {
     let username = get_username();
 
@@ -1668,7 +1669,7 @@ fn send_image_data_with_dimensions(
 
 fn send_user_color(
     color: egui::Color32,
-    color_writer: Arc<Mutex<*mut DDS_DataWriter>>,
+    color_writer: Arc<Mutex<Writer>>,
 ) {
     let color_json = json!({
         "type": "UserColor",

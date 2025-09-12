@@ -686,7 +686,15 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         }
                     }
 
-                    ToggleSwitch{}
+                    div {  
+                        "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
+                        label {
+                            "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                            "屏幕共享:"
+                        }
+                        ToggleSwitch{}
+                    }
+                    // ToggleSwitch{}
                 }
 
 
@@ -1695,16 +1703,37 @@ fn send_user_color(
 #[component]
 fn Sidebar() -> Element {
     rsx! {
+        
         div {
-            style: "width: 80px; background-color:rgb(200, 201, 202); display: flex; flex-direction: column; align-items: center; padding: 20px 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);",
+            "style": "width: 80px; background-color:rgb(200, 201, 202); display: flex; flex-direction: column; align-items: center; padding: 20px 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);",
             
             // 侧边栏按钮
             div {
-                style: "display: flex; flex-direction: column; gap: 15px;",
+                "style": "display: flex; flex-direction: column; gap: 15px;",
+            
                 
+                button {
+                    "style": "width: 50px; height: 50px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        view_box: "0 0 24 24",
+                        clip_rule: "evenodd",
+                        fill_rule: "evenodd",
+                        stroke_linejoin: "round",
+                        stroke_miterlimit: "2",
+                        path {
+                            d: "m21 3.998c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-16.5.5h15v15h-15zm6.75 6.752h-3.5c-.414 0-.75.336-.75.75s.336.75.75.75h3.5v3.5c0 .414.336.75.75.75s.75-.336.75-.75v-3.5h3.5c.414 0 .75-.336.75-.75s-.336-.75-.75-.75h-3.5v-3.5c0-.414-.336-.75-.75-.75s-.75.336-.75.75z",
+                            fill_rule: "nonzero",
+                        }
+                    }
+                }
+
                 // 按钮1
                 button {
-                    style: "width: 50px; height: 50px; background-color: #3498db; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    "style": "width: 50px; height: 50px; background-color: #3498db; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
                     onclick: move |_| {
                         println!("侧边栏按钮1被点击");
                     },
@@ -1713,7 +1742,7 @@ fn Sidebar() -> Element {
                 
                 // 按钮2
                 button {
-                    style: "width: 50px; height: 50px; background-color: #e74c3c; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    "style": "width: 50px; height: 50px; background-color: #e74c3c; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
                     onclick: move |_| {
                         println!("侧边栏按钮2被点击");
                     },
@@ -1722,7 +1751,7 @@ fn Sidebar() -> Element {
                 
                 // 按钮3
                 button {
-                    style: "width: 50px; height: 50px; background-color: #2ecc71; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    "style": "width: 50px; height: 50px; background-color: #2ecc71; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
                     onclick: move |_| {
                         println!("侧边栏按钮3被点击");
                     },
@@ -1731,7 +1760,7 @@ fn Sidebar() -> Element {
                 
                 // 按钮4
                 button {
-                    style: "width: 50px; height: 50px; background-color: #f39c12; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    "style": "width: 50px; height: 50px; background-color: #f39c12; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
                     onclick: move |_| {
                         println!("侧边栏按钮4被点击");
                     },
@@ -1740,7 +1769,7 @@ fn Sidebar() -> Element {
                 
                 // 按钮5
                 button {
-                    style: "width: 50px; height: 50px; background-color: #9b59b6; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    "style": "width: 50px; height: 50px; background-color: #9b59b6; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
                     onclick: move |_| {
                         println!("侧边栏按钮5被点击");
                     },

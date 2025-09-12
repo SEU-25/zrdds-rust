@@ -799,12 +799,16 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         div {
                             "style": "display: flex; gap: 8px; flex-wrap: wrap;",
                             {
-                                let has_media = !images.read().is_empty();
+                                let has_media = !images.read().is_empty() || !videos.read().is_empty();
                                 let has_queue = !app_state.read().image_queue.is_empty();
                                 
-                                let queue_button_style = "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;";
+                                let queue_button_style = if has_media || has_queue {
+                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                } else {
+                                    "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                };
                                 
-                                let video_button_style = if has_media {
+                                let video_button_style = if has_media || has_queue {
                                     "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
                                 } else {
                                     "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
@@ -826,9 +830,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                         "style": video_button_style,
                                         disabled: has_media||has_queue,
                                         onclick: move |_| {
-                                            if !has_media {
-                                                upload_video(video_writer.clone());
-                                            }
+                                            upload_video(video_writer.clone());
                                         },
                                         "🎥 上传视频"
                                     }

@@ -423,18 +423,13 @@ fn main() {
             DDS_STATUS_MASK_ALL,
         );
 
-        let mut image_listener: DDS_DataReaderListener = mem::zeroed();
-        image_listener.on_data_available = Some(on_image_data_available);
-
-        let mut image_listener_foo = ReaderListener {
-            raw: mem::zeroed(),
-        };
-        image_listener_foo.set_on_data_available(on_image_data_available);
+        let mut image_listener = ReaderListener::new();
+        image_listener.set_on_data_available(on_image_data_available);
 
         let _image_reader = subscriber.create_reader(
             image_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
-            &mut image_listener_foo,
+            &mut image_listener,
             DDS_STATUS_MASK_ALL,
         );
 

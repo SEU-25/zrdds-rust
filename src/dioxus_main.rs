@@ -449,7 +449,7 @@ fn main() {
         );
 
         let mut erase_listener = ReaderListener::new();
-        erase_listener.set_on_data_available(on_erase_data_available);
+        erase_listener.set_on_data_available(erase_on_data_available);
 
         let _erase_reader = subscriber.create_reader(
             erase_topic.raw as *mut DDS_TopicDescription,

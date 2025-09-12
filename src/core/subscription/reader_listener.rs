@@ -1,5 +1,4 @@
 use crate::bindings::{DDS_DataReader, DDS_DataReaderListener};
-use crate::dds_handlers::on_chat_data_available;
 use std::mem;
 
 pub struct ReaderListener {

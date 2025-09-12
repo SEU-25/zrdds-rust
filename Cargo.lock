@@ -7640,6 +7640,7 @@ dependencies = [
  "libc",
  "log",
  "parking_lot",
+ "paste",
  "rand 0.8.5",
  "rfd 0.15.4",
  "serde",

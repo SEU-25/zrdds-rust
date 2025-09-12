@@ -20,6 +20,13 @@ use tokio;
 use env_logger;
 use crate::core::Writer;
 
+// 应用状态枚举
+#[derive(Clone, Debug, PartialEq)]
+pub enum AppState {
+    DomainInput,
+    MainApp,
+}
+
 // Dioxus应用状态结构
 #[derive(Clone, Debug)]
 pub struct DioxusAppState {
@@ -35,6 +42,9 @@ pub struct DioxusAppState {
     pub user_colors: HashMap<String, egui::Color32>, // 用户颜色映射
     pub image_queue: Vec<crate::dioxus_structs::ImageItem>, // 本地图片队列
     pub current_image_index: usize, // 当前显示的图片索引
+    pub app_state: AppState, // 应用当前状态
+    pub domain_id: Option<u32>, // DDS域号
+    pub domain_input: String, // 域号输入字段
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -59,6 +69,9 @@ impl Default for DioxusAppState {
             user_colors: HashMap::new(),
             image_queue: Vec::new(),
             current_image_index: 0,
+            app_state: AppState::DomainInput,
+            domain_id: None,
+            domain_input: String::new(),
         }
     }
 }
@@ -80,6 +93,7 @@ pub struct DioxusDanmakuMessage {
 // 主应用组件Props
 #[derive(Clone)]
 pub struct DioxusAppProps {
+    pub domain_id: u32,
     pub received: Arc<Mutex<HashMap<String, MouseState>>>,
     pub received_images: Arc<Mutex<HashMap<String, CustomImageData>>>,
     pub received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>>,
@@ -108,7 +122,8 @@ pub struct DioxusAppProps {
 impl PartialEq for DioxusAppProps {
     fn eq(&self, other: &Self) -> bool {
         // 对于指针类型，我们比较地址
-        Arc::ptr_eq(&self.received, &other.received)
+        self.domain_id == other.domain_id
+            && Arc::ptr_eq(&self.received, &other.received)
             && Arc::ptr_eq(&self.received_images, &other.received_images)
             && Arc::ptr_eq(&self.received_videos, &other.received_videos)
             && Arc::ptr_eq(&self.received_strokes, &other.received_strokes)
@@ -132,6 +147,7 @@ impl PartialEq for DioxusAppProps {
 pub fn DioxusApp(props: DioxusAppProps) -> Element {
     // 解构props
     let DioxusAppProps {
+        domain_id,
         received,
         received_images,
         received_videos,
@@ -160,6 +176,14 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     // 应用状态
     let mut app_state = use_signal(|| {
         let mut state = DioxusAppState::default();
+        // 设置域号
+        state.domain_id = Some(domain_id);
+        // 根据域号决定应用状态：域号为0时显示输入界面，否则显示主界面
+        if domain_id == 0 {
+            state.app_state = AppState::DomainInput;
+        } else {
+            state.app_state = AppState::MainApp;
+        }
         // 初始化当前用户的颜色到user_colors映射中
         let username = get_username();
         state.user_colors.insert(username, state.current_color);
@@ -435,58 +459,140 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     });
 
     rsx! {
-        div {
-            "style": "display: flex; height: 100vh; font-family: Arial, sans-serif; position: relative;",
+        match app_state.read().app_state {
+            AppState::DomainInput => rsx! {
+                div {
+                    "style": "display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);",
+                    
+                    div {
+                        "style": "background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; min-width: 400px;",
+                        
+                        h1 {
+                            "style": "color: #333; margin-bottom: 30px; font-size: 28px;",
+                            "设置DDS域号"
+                        }
+                        
+                        p {
+                            "style": "color: #666; margin-bottom: 20px; font-size: 16px;",
+                            "请输入1-150之间的域号"
+                        }
+                        
+                        input {
+                            "type": "number",
+                            "min": "1",
+                            "max": "150",
+                            "placeholder": "输入域号 (1-150)",
+                            "style": "width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; margin-bottom: 20px; text-align: center;",
+                            "value": "{app_state.read().domain_input}",
+                            oninput: move |evt| {
+                                app_state.write().domain_input = evt.value();
+                            }
+                        }
+                        
+                        button {
+                            "style": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: transform 0.2s;",
+                            "onmouseover": "this.style.transform='scale(1.05)'",
+                            "onmouseout": "this.style.transform='scale(1)'",
+                            onclick: move |_| {
+                                let binding = app_state.read();
+                                let input_value = binding.domain_input.trim();
+                                if let Ok(domain) = input_value.parse::<u32>() {
+                                    if domain >= 1 && domain <= 150 {
+                                        drop(binding);
+                                        
+                                        // 重新启动应用并传递新的域号
+                                        let current_exe = std::env::current_exe().unwrap();
+                                        std::process::Command::new(current_exe)
+                                            .arg(domain.to_string())
+                                            .spawn()
+                                            .expect("Failed to restart application");
+                                        
+                                        // 退出当前应用实例
+                                        std::process::exit(0);
+                                    }
+                                }
+                            },
+                            "确认"
+                        }
+                    }
+                }
+            },
+            AppState::MainApp => rsx! {
+                div {
+                    "style": "display: flex; height: 100vh; font-family: Arial, sans-serif; position: relative;",
 
-            // 左侧边栏
-            Sidebar {}
+                    // 右上角控制区域
+                    div {
+                        "style": "position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 10px; z-index: 1000;",
+                        
+                        // 域号显示
+                        div {
+                            "style": "background: rgba(0, 0, 0, 0.7); color: white; padding: 8px 12px; border-radius: 5px; font-size: 14px;",
+                            "DDS域号: {app_state.read().domain_id.unwrap_or(0)}"
+                        }
+                        
+                        // 返回域号输入界面按钮
+                        button {
+                            "style": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: transform 0.2s;",
+                            "onmouseover": "this.style.transform='scale(1.05)'",
+                            "onmouseout": "this.style.transform='scale(1)'",
+                            onclick: move |_| {
+                                // 切换到域号输入界面
+                                app_state.write().app_state = AppState::DomainInput;
+                                app_state.write().domain_input = String::new();
+                            },
+                            "切换域号"
+                        }
+                    }
 
-            // 主要内容区域
-            div {
-                "style": "flex: 1; display: flex;",
+                    // 主要内容区域
+                    div {
+                        "style": "flex: 1; display: flex;",
 
-                // 中央面板
-                CentralPanel {
+                        // 中央面板
+                        CentralPanel {
+                            app_state,
+                            mouse_positions,
+                            images,
+                            videos,
+                            strokes,
+                            local_strokes,
+                            danmaku_messages,
+                            is_drawing,
+                            last_mouse_pos,
+                            writer: writer.clone(),
+                            video_writer: video_writer.clone(),
+                            draw_writer: draw_writer.clone(),
+                            erase_writer: erase_writer.clone(),
+                            image_delete_writer: image_delete_writer.clone(),
+                            video_delete_writer: video_delete_writer.clone(),
+                            image_queue_writer: image_queue_writer.clone(),
+                            image_queue_delete_writer: props.image_queue_delete_writer.clone(),
+                            color_writer: color_writer.clone(),
+                        }
+
+                // 右侧聊天面板
+                ChatPanel {
+                    chat_messages,
                     app_state,
-                    mouse_positions,
-                    images,
-                    videos,
-                    strokes,
-                    local_strokes,
-                    danmaku_messages,
-                    is_drawing,
-                    last_mouse_pos,
+                    chat_writer: chat_writer.clone(),
                     writer: writer.clone(),
-                    video_writer: video_writer.clone(),
-                    draw_writer: draw_writer.clone(),
-                    erase_writer: erase_writer.clone(),
-                    image_delete_writer: image_delete_writer.clone(),
-                    video_delete_writer: video_delete_writer.clone(),
-                    image_queue_writer: image_queue_writer.clone(),
-                    image_queue_delete_writer: props.image_queue_delete_writer.clone(),
-                    color_writer: color_writer.clone(),
+                    danmaku_messages,
                 }
             }
 
-            // 右侧聊天面板
-            ChatPanel {
-                chat_messages,
-                app_state,
-                chat_writer: chat_writer.clone(),
-                writer: writer.clone(),
-                danmaku_messages,
+            // 弹幕层
+            DanmakuOverlay {
+                danmaku_messages: danmaku_messages
+            }
+
+            // 全局鼠标位置显示层
+            GlobalMouseOverlay {
+                mouse_positions: mouse_positions,
+                app_state: app_state
             }
         }
-
-        // 弹幕层
-        DanmakuOverlay {
-            danmaku_messages: danmaku_messages
-        }
-
-        // 全局鼠标位置显示层
-        GlobalMouseOverlay {
-            mouse_positions: mouse_positions,
-            app_state: app_state
+            }
         }
     }
 }
@@ -693,7 +799,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         div {
                             "style": "display: flex; gap: 8px; flex-wrap: wrap;",
                             {
-                                let has_media = !images.read().is_empty() || !videos.read().is_empty();
+                                let has_media = !images.read().is_empty();
                                 let has_queue = !app_state.read().image_queue.is_empty();
                                 
                                 let queue_button_style = "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;";
@@ -707,6 +813,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                 rsx! {
                                     button {
                                         "style": queue_button_style,
+                                        disabled: has_media||has_queue,
                                         onclick: {
                                         let image_queue_writer = image_queue_writer.clone();
                                         move |_| {
@@ -717,7 +824,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                     }
                                     button {
                                         "style": video_button_style,
-                                        disabled: has_media,
+                                        disabled: has_media||has_queue,
                                         onclick: move |_| {
                                             if !has_media {
                                                 upload_video(video_writer.clone());
@@ -1131,7 +1238,21 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
             // 聊天标题和弹幕开关
             div {
                 "style": "padding: 10px; border-bottom: 1px solid #ccc; background-color: #e9ecef;",
-                h3 { "style": "margin: 0 0 10px 0;", "聊天室" }
+                
+                // 标题和域号显示
+                div {
+                    "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
+                    h3 { "style": "margin: 0;", "聊天室" }
+                    
+                    // 域号显示
+                    if let Some(domain_id) = app_state.read().domain_id {
+                        div {
+                            "style": "background-color: #007bff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;",
+                            "域号: {domain_id}"
+                        }
+                    }
+                }
+                
                 label {
                     "style": "display: flex; align-items: center; gap: 5px;",
                     input {
@@ -1902,86 +2023,6 @@ fn send_image_queue_delete(
     println!("发送图片队列删除消息: {}", username);
 }
 
-// 侧边栏组件
-#[component]
-fn Sidebar() -> Element {
-    rsx! {
-        
-        div {
-            "style": "width: 80px; background-color:rgb(200, 201, 202); display: flex; flex-direction: column; align-items: center; padding: 20px 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);",
-            
-            // 侧边栏按钮
-            div {
-                "style": "display: flex; flex-direction: column; gap: 15px;",
-            
-                
-                button {
-                    "style": "width: 50px; height: 50px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        view_box: "0 0 24 24",
-                        clip_rule: "evenodd",
-                        fill_rule: "evenodd",
-                        stroke_linejoin: "round",
-                        stroke_miterlimit: "2",
-                        path {
-                            d: "m21 3.998c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-16.5.5h15v15h-15zm6.75 6.752h-3.5c-.414 0-.75.336-.75.75s.336.75.75.75h3.5v3.5c0 .414.336.75.75.75s.75-.336.75-.75v-3.5h3.5c.414 0 .75-.336.75-.75s-.336-.75-.75-.75h-3.5v-3.5c0-.414-.336-.75-.75-.75s-.75.336-.75.75z",
-                            fill_rule: "nonzero",
-                        }
-                    }
-                }
-
-                // 按钮1
-                button {
-                    "style": "width: 50px; height: 50px; background-color: #3498db; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        println!("侧边栏按钮1被点击");
-                    },
-                    "1"
-                }
-                
-                // 按钮2
-                button {
-                    "style": "width: 50px; height: 50px; background-color: #e74c3c; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        println!("侧边栏按钮2被点击");
-                    },
-                    "2"
-                }
-                
-                // 按钮3
-                button {
-                    "style": "width: 50px; height: 50px; background-color: #2ecc71; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        println!("侧边栏按钮3被点击");
-                    },
-                    "3"
-                }
-                
-                // 按钮4
-                button {
-                    "style": "width: 50px; height: 50px; background-color: #f39c12; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        println!("侧边栏按钮4被点击");
-                    },
-                    "4"
-                }
-                
-                // 按钮5
-                button {
-                    "style": "width: 50px; height: 50px; background-color: #9b59b6; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
-                    onclick: move |_| {
-                        println!("侧边栏按钮5被点击");
-                    },
-                    "5"
-                }
-            }
-        }
-    }
-}
 
 #[component]
 pub fn ToggleSwitch() -> Element {
@@ -2025,3 +2066,5 @@ pub fn ToggleSwitch() -> Element {
         }
     }
 }
+
+// 域号输入界面组件Props

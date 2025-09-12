@@ -33,10 +33,8 @@ fn app_wrapper() -> Element {
     }
 }
 
-fn main() {
-    // 初始化日志
-    env_logger::init();
-
+// 启动应用的主要逻辑
+fn start_app(domain_id: u32) {
     // 初始化共享状态
     let received: Arc<Mutex<HashMap<String, MouseState>>> = Arc::new(Mutex::new(HashMap::new()));
     let received_images: Arc<Mutex<HashMap<String, CustomImageData>>> =
@@ -85,7 +83,7 @@ fn main() {
             unsafe { &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT };
 
         let participant = factory
-            .create_dp(&factory, 11, dp_qos, ptr::null_mut(), DDS_STATUS_MASK_NONE)
+            .create_dp(&factory, domain_id, dp_qos, ptr::null_mut(), DDS_STATUS_MASK_NONE)
             .unwrap();
         let type_name = DDS_BytesTypeSupport_get_type_name();
         DDS_BytesTypeSupport_register_type(participant.raw, type_name);
@@ -844,6 +842,7 @@ fn main() {
         // 设置全局props
         unsafe {
             DIOXUS_PROPS = Some(DioxusAppProps {
+                domain_id,
                 received: received.clone(),
                 received_images: received_images.clone(),
                 received_videos: received_videos.clone(),
@@ -873,4 +872,17 @@ fn main() {
         // 启动应用
         LaunchBuilder::new().with_cfg(config).launch(app_wrapper);
     }
+}
+
+fn main() {
+    // 从命令行参数读取域号，如果没有参数则使用默认域号0
+    let args: Vec<String> = std::env::args().collect();
+    let domain_id = if args.len() > 1 {
+        args[1].parse::<u32>().unwrap_or(0)
+    } else {
+        0
+    };
+    
+    // 使用域号启动应用，域号为0时会显示域号输入界面
+    start_app(domain_id);
 }

@@ -8,13 +8,13 @@ use zrdds::core::{DPFactory, ReaderListener};
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
-    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation, ImageQueueDeleteOperation, MouseState,
-    VideoDeleteOperation,
+    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation,
+    ImageQueueDeleteOperation, MouseState, VideoDeleteOperation,
 };
 use zrdds::dioxus_structs::{
     DANMAKU_ENABLED, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
-    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGES, RECEIVED_STROKES, RECEIVED_USER_COLORS,
-    RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
+    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGES,
+    RECEIVED_STROKES, RECEIVED_USER_COLORS, RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
 };
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use zrdds::utils::*;
@@ -79,36 +79,32 @@ fn start_app(domain_id: u32) {
         // DDS 初始化
         let factory = DPFactory::instance().unwrap();
 
-        let dp_qos: *const DDS_DomainParticipantQos =
-            unsafe { &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT };
+        let dp_qos: *const DDS_DomainParticipantQos = &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT;
 
         let participant = factory
-            .create_dp(&factory, domain_id, dp_qos, ptr::null_mut(), DDS_STATUS_MASK_NONE)
+            .create_dp(
+                &factory,
+                domain_id,
+                dp_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
             .unwrap();
         let type_name = DDS_BytesTypeSupport_get_type_name();
         DDS_BytesTypeSupport_register_type(participant.raw, type_name);
 
         let topic_name = CString::new("mouse_topic").unwrap();
-        let topic_qos: *const DDS_TopicQos = unsafe { &raw const DDS_TOPIC_QOS_DEFAULT };
+        let topic_qos: *const DDS_TopicQos = &raw const DDS_TOPIC_QOS_DEFAULT;
         let topic = participant
             .create_topic(
                 &participant,
                 topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // C风格方法
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建图片topic
         let image_topic_name = CString::new("image_topic").unwrap();
@@ -116,20 +112,12 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 image_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     image_topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建画笔topic
         let draw_topic_name = CString::new("draw_topic").unwrap();
@@ -137,20 +125,12 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 draw_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     draw_topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建擦除topic
         let erase_topic_name = CString::new("erase_topic").unwrap();
@@ -158,20 +138,12 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 erase_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     erase_topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建图片删除topic
         let image_delete_topic_name = CString::new("image_delete_topic").unwrap();
@@ -179,20 +151,12 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 image_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     image_delete_topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建聊天topic
         let chat_topic_name = CString::new("chat_topic").unwrap();
@@ -200,20 +164,12 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 chat_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_DomainParticipant_create_topic(
-        //     participant,
-        //     chat_topic_name.as_ptr(),
-        //     type_name,
-        //     topic_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // );
 
         // 创建视频topic
         let video_topic_name = CString::new("video_topic").unwrap();
@@ -221,7 +177,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 video_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -234,7 +190,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 video_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -247,7 +203,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 danmaku_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -260,7 +216,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 user_color_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -273,7 +229,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 image_queue_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -286,7 +242,7 @@ fn start_app(domain_id: u32) {
             .create_topic(
                 &participant,
                 image_queue_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                std::ffi::CStr::from_ptr(type_name).to_str().unwrap(),
                 topic_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -310,17 +266,17 @@ fn start_app(domain_id: u32) {
             DDS_Publisher_get_default_datawriter_qos(publisher.raw, dw_qos.as_mut_ptr());
         let mut dw_qos = dw_qos.assume_init();
         dw_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+        let datawriter_qos_without_history = &raw const dw_qos;
         dw_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
         dw_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
 
         // 创建datawriter
         let datawriter_qos: *const DDS_DataWriterQos = &raw const dw_qos;
-        // println!("设置数据写者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
         let writer = publisher
             .create_writer(
                 &topic,
-                datawriter_qos,
+                datawriter_qos_without_history,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -334,13 +290,6 @@ fn start_app(domain_id: u32) {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        // DDS_Publisher_create_datawriter(
-        //     publisher,
-        //     draw_topic,
-        //     datawriter_qos,
-        //     ptr::null_mut(),
-        //     DDS_STATUS_MASK_NONE,
-        // ) as *mut DDS_DataWriter;
 
         let erase_writer = publisher
             .create_writer(
@@ -437,8 +386,7 @@ fn start_app(domain_id: u32) {
         let image_queue_delete_writer = Arc::new(Mutex::new(image_queue_delete_writer));
 
         // 创建subscriber
-        let subscriber_qos: *const DDS_SubscriberQos =
-            unsafe { &raw const DDS_SUBSCRIBER_QOS_DEFAULT };
+        let subscriber_qos: *const DDS_SubscriberQos = &raw const DDS_SUBSCRIBER_QOS_DEFAULT;
 
         let subscriber = participant
             .create_subscriber(
@@ -454,6 +402,7 @@ fn start_app(domain_id: u32) {
             DDS_Subscriber_get_default_datareader_qos(subscriber.raw, dr_qos.as_mut_ptr());
         let mut dr_qos = dr_qos.assume_init();
         dr_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+        let datareader_qos_without_history = &raw const dr_qos;
         dr_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
         dr_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
         //dr_qos.history.depth = 1;
@@ -468,7 +417,7 @@ fn start_app(domain_id: u32) {
 
         let _reader = subscriber.create_reader(
             topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            datareader_qos_without_history,
             &mut listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -882,7 +831,7 @@ fn main() {
     } else {
         0
     };
-    
+
     // 使用域号启动应用，域号为0时会显示域号输入界面
     start_app(domain_id);
 }

@@ -461,6 +461,103 @@ fn handle_one_video_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
+// 图片队列消息处理函数
+fn handle_one_image_queue_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
+
+    // JSON 解析
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(queue_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    // 读取字段
+    let username = queue_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let current_index = queue_msg.get("current_index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+    let timestamp = queue_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+    
+    // 解析图片列表
+    let images_array = match queue_msg.get("images").and_then(|v| v.as_array()) {
+        Some(arr) => arr,
+        None => return,
+    };
+    
+    let mut images = Vec::new();
+    for img_value in images_array {
+        let id = img_value.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let img_username = img_value.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+        let width = img_value.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+        let height = img_value.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+        let img_timestamp = img_value.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+        
+        // 解析图片数据
+        let image_data_str = match img_value.get("image_data").and_then(|v| v.as_str()) {
+            Some(s) => s,
+            None => continue,
+        };
+        
+        let base64_part = image_data_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(image_data_str);
+        let Ok(image_data) = general_purpose::STANDARD.decode(base64_part) else { continue; };
+        
+        images.push(ImageItem {
+            id,
+            username: img_username,
+            image_data,
+            width,
+            height,
+            timestamp: img_timestamp,
+        });
+    }
+    
+    // 写入共享缓存
+    unsafe {
+        if let Some(ref received_image_queues) = RECEIVED_IMAGE_QUEUES {
+            let mut map = received_image_queues.lock().unwrap();
+            map.insert(
+                username.clone(),
+                ImageQueue {
+                    username,
+                    images,
+                    current_index,
+                    timestamp,
+                },
+            );
+        }
+    }
+}
+
+// 图片队列删除消息处理函数
+fn handle_one_image_queue_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+    // Bytes -> Vec<u8>
+    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let mut buf = Vec::with_capacity(len as usize);
+    for j in 0..len {
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        if !bptr.is_null() {
+            unsafe { buf.push(*bptr); }
+        }
+    }
+
+    // 解析 JSON -> 入队
+    let Ok(s) = String::from_utf8(buf) else { return; };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+
+    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+
+    unsafe {
+        if let Some(ref received_image_queue_deletes) = RECEIVED_IMAGE_QUEUE_DELETES {
+            let mut data = received_image_queue_deletes.lock().unwrap();
+            data.push(ImageQueueDeleteOperation { username });
+        }
+    }
+}
+
 
 // 显式给出 $rdr/$samp/$in 的名字（想叫什么都行）
 dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
@@ -524,4 +621,16 @@ dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &DDS_Bytes      = unsafe { &*samp };
     let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
     handle_one_video_delete_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(image_queue, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_image_queue_sample(sample_ref, info_ref);
+});
+
+dds_simple_data_reader_listener!(image_queue_delete, DDS_Bytes, |_r, samp, inf| {
+    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
+    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    handle_one_image_queue_delete_sample(sample_ref, info_ref);
 });

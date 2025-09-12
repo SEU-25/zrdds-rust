@@ -1,7 +1,7 @@
 use crate::bindings::*;
 use crate::dioxus_structs::{
     ChatMessage, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
-    VideoDeleteOperation, UserColor,
+    VideoDeleteOperation, UserColor, ImageItem, ImageQueue, ImageQueueDeleteOperation,
 };
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use crate::utils::*;
@@ -33,6 +33,8 @@ pub struct DioxusAppState {
     pub current_image: Option<String>, // 当前显示的图片用户名（作为图片ID）
     pub current_video: Option<String>, // 当前显示的视频用户名（作为视频ID）
     pub user_colors: HashMap<String, egui::Color32>, // 用户颜色映射
+    pub image_queue: Vec<crate::dioxus_structs::ImageItem>, // 本地图片队列
+    pub current_image_index: usize, // 当前显示的图片索引
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -55,6 +57,8 @@ impl Default for DioxusAppState {
             current_image: None,
             current_video: None,
             user_colors: HashMap::new(),
+            image_queue: Vec::new(),
+            current_image_index: 0,
         }
     }
 }
@@ -86,13 +90,16 @@ pub struct DioxusAppProps {
     pub received_chat_messages: Arc<Mutex<Vec<ChatMessage>>>,
     pub received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>>,
     pub received_user_colors: Arc<Mutex<HashMap<String, UserColor>>>,
+    pub received_image_queues: Arc<Mutex<HashMap<String, ImageQueue>>>,
+    pub received_image_queue_deletes: Arc<Mutex<Vec<ImageQueueDeleteOperation>>>,
     pub writer: Arc<Mutex<Writer>>,
-    pub image_writer: Arc<Mutex<Writer>>,
     pub video_writer: Arc<Mutex<Writer>>,
     pub draw_writer: Arc<Mutex<Writer>>,
     pub erase_writer: Arc<Mutex<Writer>>,
     pub image_delete_writer: Arc<Mutex<Writer>>,
     pub video_delete_writer: Arc<Mutex<Writer>>,
+    pub image_queue_writer: Arc<Mutex<Writer>>,
+    pub image_queue_delete_writer: Arc<Mutex<Writer>>,
     pub chat_writer: Arc<Mutex<Writer>>,
     pub danmaku_writer: Arc<Mutex<Writer>>,
     pub color_writer: Arc<Mutex<Writer>>,
@@ -110,12 +117,12 @@ impl PartialEq for DioxusAppProps {
             && Arc::ptr_eq(&self.received_video_deletes, &other.received_video_deletes)
             && Arc::ptr_eq(&self.received_chat_messages, &other.received_chat_messages)
             && Arc::ptr_eq(&self.writer, &other.writer)
-            && Arc::ptr_eq(&self.image_writer, &other.image_writer)
             && Arc::ptr_eq(&self.video_writer, &other.video_writer)
             && Arc::ptr_eq(&self.draw_writer, &other.draw_writer)
             && Arc::ptr_eq(&self.erase_writer, &other.erase_writer)
             && Arc::ptr_eq(&self.image_delete_writer, &other.image_delete_writer)
             && Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer)
+            && Arc::ptr_eq(&self.image_queue_delete_writer, &other.image_queue_delete_writer)
             && Arc::ptr_eq(&self.chat_writer, &other.chat_writer)
     }
 }
@@ -135,13 +142,16 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         received_chat_messages,
         received_danmaku_messages,
         received_user_colors,
+        received_image_queues,
+        received_image_queue_deletes,
         writer,
-        image_writer,
         video_writer,
         draw_writer,
         erase_writer,
         image_delete_writer,
         video_delete_writer,
+        image_queue_writer,
+        ref image_queue_delete_writer,
         chat_writer,
         danmaku_writer,
         color_writer,
@@ -177,6 +187,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_chat_messages = received_chat_messages.clone();
         let received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>> = received_danmaku_messages.clone();
         let received_user_colors = received_user_colors.clone();
+        let received_image_queues = received_image_queues.clone();
+        let received_image_queue_deletes = received_image_queue_deletes.clone();
 
         async move {
             loop {
@@ -212,6 +224,24 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                     for delete_op in q.drain(..) {
                         videos.write().remove(&delete_op.video_id);
                         received_videos.lock().unwrap().remove(&delete_op.video_id);
+                    }
+                }
+
+                // 处理图片队列删除操作
+                {
+                    let mut q = received_image_queue_deletes.lock().unwrap();
+                    for delete_op in q.drain(..) {
+                        println!(
+                            "接收到图片队列删除操作: username={}",
+                            delete_op.username
+                        );
+                        
+                        // 清空本地图片队列（如果是其他用户的删除操作）
+                        if delete_op.username != get_username() {
+                            app_state.write().image_queue.clear();
+                            app_state.write().current_image_index = 0;
+                            println!("清空本地图片队列");
+                        }
                     }
                 }
 
@@ -388,6 +418,18 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                         app_state.write().user_colors.insert(username, user_color.color);
                     }
                 }
+
+                // 处理图片队列更新
+                {
+                    let mut image_queue_map = received_image_queues.lock().unwrap();
+                    for (username, image_queue) in image_queue_map.drain() {
+                        println!("接收到图片队列更新: username={}, images_count={}", username, image_queue.images.len());
+                        
+                        // 更新app_state中的图片队列
+                        app_state.write().image_queue = image_queue.images;
+                        app_state.write().current_image_index = image_queue.current_index;
+                    }
+                }
             }
         }
     });
@@ -415,12 +457,13 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                     is_drawing,
                     last_mouse_pos,
                     writer: writer.clone(),
-                    image_writer: image_writer.clone(),
                     video_writer: video_writer.clone(),
                     draw_writer: draw_writer.clone(),
                     erase_writer: erase_writer.clone(),
                     image_delete_writer: image_delete_writer.clone(),
                     video_delete_writer: video_delete_writer.clone(),
+                    image_queue_writer: image_queue_writer.clone(),
+                    image_queue_delete_writer: props.image_queue_delete_writer.clone(),
                     color_writer: color_writer.clone(),
                 }
             }
@@ -461,12 +504,13 @@ struct CentralPanelProps {
     is_drawing: Signal<bool>,
     last_mouse_pos: Signal<(f32, f32)>,
     writer: Arc<Mutex<Writer>>,
-    image_writer: Arc<Mutex<Writer>>,
     video_writer: Arc<Mutex<Writer>>,
     draw_writer: Arc<Mutex<Writer>>,
     erase_writer: Arc<Mutex<Writer>>,
     image_delete_writer: Arc<Mutex<Writer>>,
     video_delete_writer: Arc<Mutex<Writer>>,
+    image_queue_writer: Arc<Mutex<Writer>>,
+    image_queue_delete_writer: Arc<Mutex<Writer>>,
     color_writer: Arc<Mutex<Writer>>,
 }
 
@@ -484,12 +528,12 @@ impl PartialEq for CentralPanelProps {
         self.last_mouse_pos == other.last_mouse_pos &&
         // 对于Arc指针，我们比较地址
         Arc::ptr_eq(&self.writer, &other.writer) &&
-        Arc::ptr_eq(&self.image_writer, &other.image_writer) &&
         Arc::ptr_eq(&self.video_writer, &other.video_writer) &&
         Arc::ptr_eq(&self.draw_writer, &other.draw_writer) &&
         Arc::ptr_eq(&self.erase_writer, &other.erase_writer) &&
         Arc::ptr_eq(&self.image_delete_writer, &other.image_delete_writer) &&
         Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer) &&
+        Arc::ptr_eq(&self.image_queue_delete_writer, &other.image_queue_delete_writer) &&
         Arc::ptr_eq(&self.color_writer, &other.color_writer)
     }
 }
@@ -509,12 +553,13 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
         is_drawing,
         last_mouse_pos,
         writer,
-        image_writer,
         video_writer,
         draw_writer,
         erase_writer,
         image_delete_writer,
         video_delete_writer,
+        image_queue_writer,
+        ref image_queue_delete_writer,
         color_writer,
     } = props;
 
@@ -646,14 +691,13 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                             "媒体上传:"
                         }
                         div {
-                            "style": "display: flex; gap: 8px;",
+                            "style": "display: flex; gap: 8px; flex-wrap: wrap;",
                             {
                                 let has_media = !images.read().is_empty() || !videos.read().is_empty();
-                                let image_button_style = if has_media {
-                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
-                                } else {
-                                    "padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                };
+                                let has_queue = !app_state.read().image_queue.is_empty();
+                                
+                                let queue_button_style = "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;";
+                                
                                 let video_button_style = if has_media {
                                     "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
                                 } else {
@@ -662,14 +706,14 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                                 rsx! {
                                     button {
-                                        "style": image_button_style,
-                                        disabled: has_media,
-                                        onclick: move |_| {
-                                            if !has_media {
-                                                upload_image(image_writer.clone());
-                                            }
-                                        },
-                                        "📷 上传图片"
+                                        "style": queue_button_style,
+                                        onclick: {
+                                        let image_queue_writer = image_queue_writer.clone();
+                                        move |_| {
+                                            upload_images_to_queue(app_state, image_queue_writer.clone());
+                                        }
+                                    },
+                                        "📁 上传图片"
                                     }
                                     button {
                                         "style": video_button_style,
@@ -714,6 +758,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                     erase_writer,
                     image_delete_writer,
                     video_delete_writer,
+                    image_queue_delete_writer: props.image_queue_delete_writer.clone(),
                 }
             }
         }
@@ -736,6 +781,7 @@ struct CanvasProps {
     erase_writer: Arc<Mutex<Writer>>,
     image_delete_writer: Arc<Mutex<Writer>>,
     video_delete_writer: Arc<Mutex<Writer>>,
+    image_queue_delete_writer: Arc<Mutex<Writer>>,
 }
 
 impl PartialEq for CanvasProps {
@@ -755,7 +801,8 @@ impl PartialEq for CanvasProps {
         Arc::ptr_eq(&self.draw_writer, &other.draw_writer) &&
         Arc::ptr_eq(&self.erase_writer, &other.erase_writer) &&
         Arc::ptr_eq(&self.image_delete_writer, &other.image_delete_writer) &&
-        Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer)
+        Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer) &&
+        Arc::ptr_eq(&self.image_queue_delete_writer, &other.image_queue_delete_writer)
     }
 }
 
@@ -778,6 +825,7 @@ fn Canvas(props: CanvasProps) -> Element {
         erase_writer,
         image_delete_writer,
         video_delete_writer,
+        ref image_queue_delete_writer,
     } = props;
     let state = app_state.read();
 
@@ -831,19 +879,23 @@ fn Canvas(props: CanvasProps) -> Element {
                 // 鼠标位置渲染已移至GlobalMouseOverlay组件，在整个应用区域显示
             }
 
-            // 背景图片层
+            // 背景图片层 - 显示图片队列
             {
-                let images_guard = images.read();
-                if let Some((image_id, image_data)) = images_guard.iter().last() {
-                    let image_id_clone = image_id.clone();
-                    let image_data_clone = image_data.clone();
+                let state_read = app_state.read();
+                if !state_read.image_queue.is_empty() && state_read.current_image_index < state_read.image_queue.len() {
+                    let current_image = &state_read.image_queue[state_read.current_image_index];
+                    let current_image_clone = current_image.clone();
+                    let queue_len = state_read.image_queue.len();
+                    let current_index = state_read.current_image_index;
+                    drop(state_read);
+                    
                     rsx! {
                         div {
                             "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
 
                             // 背景图片
                             img {
-                                src: format!("data:image/png;base64,{}", general_purpose::STANDARD.encode(&image_data_clone.image_data)),
+                                src: format!("data:image/png;base64,{}", general_purpose::STANDARD.encode(&current_image_clone.image_data)),
                                 "style": "width: 100%; height: 100%; object-fit: contain; opacity: 0.8;"
                             }
                         }
@@ -854,20 +906,75 @@ fn Canvas(props: CanvasProps) -> Element {
 
                             div {
                                 "style": "display: flex; align-items: center; gap: 8px; font-size: 12px;",
-                                span { "图片: {image_data_clone.username}" }
+                                span { "图片 {current_index + 1}/{queue_len}: {current_image_clone.id}" }
+                                
+                                // 左切换按钮
+                                button {
+                                    "style": "background-color: #007bff; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; margin-right: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold;",
+                                    onclick: move |_| {
+                                        switch_to_previous_image(app_state);
+                                    },
+                                    "‹"
+                                }
+                                
+                                // 右切换按钮
+                                button {
+                                    "style": "background-color: #007bff; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; margin-right: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold;",
+                                    onclick: move |_| {
+                                        switch_to_next_image(app_state);
+                                    },
+                                    "›"
+                                }
+                                
+                                // 删除队列按钮
                                 button {
                                     "style": "background-color: #dc3545; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; z-index: 2147483647; position: relative; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events:auto;",
                                     onclick: move |_| {
-                                        println!("删除按钮被点击!");
-                                        delete_image(image_id_clone.clone(), image_delete_writer.clone());
+                                        delete_image_queue(app_state, props.image_queue_delete_writer.clone());
                                     },
-                                    "x"
+                                    "🗑"
                                 }
                             }
                         }
                     }
                 } else {
-                    rsx! { div {} }
+                    // 如果没有图片队列，显示远程图片
+                    let images_guard = images.read();
+                    if let Some((image_id, image_data)) = images_guard.iter().last() {
+                        let image_id_clone = image_id.clone();
+                        let image_data_clone = image_data.clone();
+                        rsx! {
+                            div {
+                                "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
+
+                                // 背景图片
+                                img {
+                                    src: format!("data:image/png;base64,{}", general_purpose::STANDARD.encode(&image_data_clone.image_data)),
+                                    "style": "width: 100%; height: 100%; object-fit: contain; opacity: 0.8;"
+                                }
+                            }
+
+                            // 图片控制面板
+                            div {
+                                "style": "position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border: 1px solid #333; border-radius: 5px; padding: 8px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.3);",
+
+                                div {
+                                    "style": "display: flex; align-items: center; gap: 8px; font-size: 12px;",
+                                    span { "图片: {image_data_clone.username}" }
+                                    button {
+                                        "style": "background-color: #dc3545; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; z-index: 2147483647; position: relative; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events:auto;",
+                                        onclick: move |_| {
+                                            println!("删除按钮被点击!");
+                                            delete_image(image_id_clone.clone(), image_delete_writer.clone());
+                                        },
+                                        "x"
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        rsx! { div {} }
+                    }
                 }
             }
 
@@ -1518,36 +1625,110 @@ fn delete_video(video_id: String, video_delete_writer: Arc<Mutex<Writer>>) {
     println!("图片删除成功: {}", json_message.to_string());
 }
 
-fn upload_image(image_writer: Arc<Mutex<Writer>>) {
-    // 使用spawn异步处理文件选择，避免阻塞UI线程
-    spawn(async move {
-        // 使用异步文件对话框
-        if let Some(file_path) = rfd::AsyncFileDialog::new()
-            .add_filter("图片文件", &["png", "jpg", "jpeg", "gif", "bmp", "webp"])
-            .set_title("选择图片文件")
-            .pick_file()
-            .await
-        {
-            // 异步读取文件数据
-            match tokio::fs::read(file_path.path()).await {
-                Ok(image_data) => {
-                    // 获取图片尺寸（可选）
-                    let (width, height) = match image::open(file_path.path()) {
-                        Ok(img) => (img.width(), img.height()),
-                        Err(_) => (0, 0),
-                    };
 
-                    // 发送图片数据通过DDS
-                    let data_len = image_data.len();
-                    send_image_data_with_dimensions(image_data, width, height, image_writer);
-                    println!("图片上传成功: {} bytes, {}x{}", data_len, width, height);
+
+// 新增：上传多张图片到本地队列
+fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_writer: Arc<Mutex<Writer>>) {
+    spawn(async move {
+        // 使用异步文件对话框选择多个文件
+        let files = rfd::AsyncFileDialog::new()
+            .add_filter("图片文件", &["png", "jpg", "jpeg", "gif", "bmp", "webp"])
+            .set_title("选择多张图片文件")
+            .pick_files()
+            .await;
+
+        if let Some(files) = files {
+            let mut new_images = Vec::new();
+            
+            for file in files {
+                match tokio::fs::read(file.path()).await {
+                    Ok(image_data) => {
+                        let filename = file.file_name();
+                        let timestamp = get_current_timestamp_millis();
+                        
+                        // 获取图片尺寸
+                        let (width, height) = match image::open(file.path()) {
+                            Ok(img) => (img.width(), img.height()),
+                            Err(_) => (0, 0),
+                        };
+                        
+                        let image_item = ImageItem {
+                            id: format!("{}-{}", get_username(), timestamp),
+                            username: get_username(),
+                            image_data,
+                            width,
+                            height,
+                            timestamp,
+                        };
+                        
+                        new_images.push(image_item);
+                        println!("成功加载图片: {}", file.file_name());
+                    }
+                    Err(e) => {
+                        println!("读取图片文件失败 {}: {}", file.file_name(), e);
+                    }
                 }
-                Err(e) => {
-                    println!("读取图片文件失败: {}", e);
+            }
+            
+            if !new_images.is_empty() {
+                // 添加到本地队列
+                app_state.write().image_queue.extend(new_images.clone());
+                
+                // 如果是第一次添加图片，设置当前索引为0
+                if app_state.read().image_queue.len() == new_images.len() {
+                    app_state.write().current_image_index = 0;
                 }
+                
+                // 发送DDS消息通知其他客户端
+                let image_queue = ImageQueue {
+                    username: get_username(),
+                    images: new_images.clone(),
+                    current_index: app_state.read().current_image_index,
+                    timestamp: get_current_timestamp_millis(),
+                };
+                send_image_queue_data(&image_queue.images, image_queue.current_index, image_queue_writer);
+                println!("成功添加 {} 张图片到队列，当前队列长度: {}", new_images.len(), app_state.read().image_queue.len());
             }
         }
     });
+}
+
+// 切换到上一张图片
+fn switch_to_previous_image(mut app_state: Signal<DioxusAppState>) {
+    let mut state = app_state.write();
+    if !state.image_queue.is_empty() {
+        if state.current_image_index > 0 {
+            state.current_image_index -= 1;
+        } else {
+            state.current_image_index = state.image_queue.len() - 1;
+        }
+        println!("切换到上一张图片，当前索引: {}", state.current_image_index);
+    }
+}
+
+// 切换到下一张图片
+fn switch_to_next_image(mut app_state: Signal<DioxusAppState>) {
+    let mut state = app_state.write();
+    if !state.image_queue.is_empty() {
+        if state.current_image_index < state.image_queue.len() - 1 {
+            state.current_image_index += 1;
+        } else {
+            state.current_image_index = 0;
+        }
+        println!("切换到下一张图片，当前索引: {}", state.current_image_index);
+    }
+}
+
+// 删除整个图片队列
+fn delete_image_queue(mut app_state: Signal<DioxusAppState>, image_queue_delete_writer: Arc<Mutex<Writer>>) {
+    let mut state = app_state.write();
+    let queue_size = state.image_queue.len();
+    state.image_queue.clear();
+    state.current_image_index = 0;
+    
+    // 发送DDS删除消息
+    send_image_queue_delete(image_queue_delete_writer);
+    println!("删除图片队列，共删除 {} 张图片", queue_size);
 }
 
 fn upload_video(video_writer: Arc<Mutex<Writer>>) {
@@ -1621,9 +1802,7 @@ fn get_current_timestamp_millis() -> u64 {
         .as_millis() as u64
 }
 
-fn send_image_data(image_data: Vec<u8>, image_writer: Arc<Mutex<Writer>>) {
-    send_image_data_with_dimensions(image_data, 0, 0, image_writer);
-}
+
 
 fn send_video_data(
     video_data: Vec<u8>,
@@ -1651,32 +1830,7 @@ fn send_video_data(
     );
 }
 
-fn send_image_data_with_dimensions(
-    image_data: Vec<u8>,
-    width: u32,
-    height: u32,
-    image_writer: Arc<Mutex<Writer>>,
-) {
-    let username = get_username();
 
-    // 将图片数据编码为base64字符串
-    let image_data_b64 = general_purpose::STANDARD.encode(&image_data);
-
-    let json_message = json!({
-        "username": username,
-        "image_data": image_data_b64,
-        "width": width,
-        "height": height
-    });
-
-    send_dds_message(&json_message.to_string(), &image_writer);
-    println!(
-        "图片上传成功: {} bytes, {}x{}",
-        image_data.len(),
-        width,
-        height
-    );
-}
 
 fn send_user_color(
     color: egui::Color32,
@@ -1697,6 +1851,55 @@ fn send_user_color(
     let message = color_json.to_string();
     send_dds_message(&message, &color_writer);
     println!("发送用户颜色更新: {:?}", color);
+}
+
+// 发送图片队列数据
+fn send_image_queue_data(
+    images: &Vec<ImageItem>,
+    current_index: usize,
+    image_queue_writer: Arc<Mutex<Writer>>,
+) {
+    let username = get_username();
+    let timestamp = get_current_timestamp_millis();
+    
+    // 将图片数据转换为JSON格式
+    let images_json: Vec<serde_json::Value> = images.iter().map(|img| {
+        let image_data_b64 = general_purpose::STANDARD.encode(&img.image_data);
+        json!({
+            "id": img.id,
+            "username": img.username,
+            "image_data": image_data_b64,
+            "width": img.width,
+            "height": img.height,
+            "timestamp": img.timestamp
+        })
+    }).collect();
+    
+    let json_message = json!({
+        "type": "ImageQueue",
+        "username": username,
+        "images": images_json,
+        "current_index": current_index,
+        "timestamp": timestamp
+    });
+    
+    send_dds_message(&json_message.to_string(), &image_queue_writer);
+    println!("发送图片队列数据: {} 张图片，当前索引: {}", images.len(), current_index);
+}
+
+// 发送图片队列删除消息
+fn send_image_queue_delete(
+    image_queue_delete_writer: Arc<Mutex<Writer>>,
+) {
+    let username = get_username();
+    
+    let json_message = json!({
+        "type": "ImageQueueDelete",
+        "username": username
+    });
+    
+    send_dds_message(&json_message.to_string(), &image_queue_delete_writer);
+    println!("发送图片队列删除消息: {}", username);
 }
 
 // 侧边栏组件

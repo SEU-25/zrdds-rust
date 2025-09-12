@@ -8,12 +8,12 @@ use zrdds::core::{DPFactory, ReaderListener};
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
-    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
+    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation, ImageQueueDeleteOperation, MouseState,
     VideoDeleteOperation,
 };
 use zrdds::dioxus_structs::{
     DANMAKU_ENABLED, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
-    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGES, RECEIVED_STROKES, RECEIVED_USER_COLORS,
+    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGES, RECEIVED_STROKES, RECEIVED_USER_COLORS,
     RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
 };
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
@@ -54,6 +54,10 @@ fn main() {
         Arc::new(Mutex::new(Vec::new()));
     let received_user_colors: Arc<Mutex<HashMap<String, zrdds::dioxus_structs::UserColor>>> =
         Arc::new(Mutex::new(HashMap::new()));
+    let received_image_queues: Arc<Mutex<HashMap<String, zrdds::dioxus_structs::ImageQueue>>> =
+        Arc::new(Mutex::new(HashMap::new()));
+    let received_image_queue_deletes: Arc<Mutex<Vec<ImageQueueDeleteOperation>>> =
+        Arc::new(Mutex::new(Vec::new()));
     let danmaku_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
 
     unsafe {
@@ -68,6 +72,8 @@ fn main() {
         RECEIVED_VIDEOS = Some(received_videos.clone());
         RECEIVED_VIDEO_DELETES = Some(received_video_deletes.clone());
         RECEIVED_USER_COLORS = Some(received_user_colors.clone());
+        RECEIVED_IMAGE_QUEUES = Some(received_image_queues.clone());
+        RECEIVED_IMAGE_QUEUE_DELETES = Some(received_image_queue_deletes.clone());
         DANMAKU_ENABLED = Some(danmaku_enabled.clone());
     }
 
@@ -263,6 +269,32 @@ fn main() {
             )
             .unwrap();
 
+        // 创建图片队列topic
+        let image_queue_topic_name = CString::new("image_queue_topic").unwrap();
+        let image_queue_topic = participant
+            .create_topic(
+                &participant,
+                image_queue_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+        // 创建图片队列删除topic
+        let image_queue_delete_topic_name = CString::new("image_queue_delete_topic").unwrap();
+        let image_queue_delete_topic = participant
+            .create_topic(
+                &participant,
+                image_queue_delete_topic_name.to_str().unwrap(),
+                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
         // 创建publisher
         let publisher_qos: *const DDS_PublisherQos = &raw const DDS_PUBLISHER_QOS_DEFAULT;
         let publisher = participant
@@ -290,15 +322,6 @@ fn main() {
         let writer = publisher
             .create_writer(
                 &topic,
-                datawriter_qos,
-                ptr::null_mut(),
-                DDS_STATUS_MASK_NONE,
-            )
-            .unwrap();
-
-        let image_writer = publisher
-            .create_writer(
-                &image_topic,
                 datawriter_qos,
                 ptr::null_mut(),
                 DDS_STATUS_MASK_NONE,
@@ -384,9 +407,26 @@ fn main() {
             )
             .unwrap();
 
+        let image_queue_writer = publisher
+            .create_writer(
+                &image_queue_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+        let image_queue_delete_writer = publisher
+            .create_writer(
+                &image_queue_delete_topic,
+                datawriter_qos,
+                ptr::null_mut(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
         // 包装在Arc<Mutex<>>中
         let writer = Arc::new(Mutex::new(writer));
-        let image_writer = Arc::new(Mutex::new(image_writer));
         let draw_writer = Arc::new(Mutex::new(draw_writer));
         let erase_writer = Arc::new(Mutex::new(erase_writer));
         let image_delete_writer = Arc::new(Mutex::new(image_delete_writer));
@@ -395,6 +435,8 @@ fn main() {
         let video_delete_writer = Arc::new(Mutex::new(video_delete_writer));
         let danmaku_writer = Arc::new(Mutex::new(danmaku_writer));
         let user_color_writer = Arc::new(Mutex::new(user_color_writer));
+        let image_queue_writer = Arc::new(Mutex::new(image_queue_writer));
+        let image_queue_delete_writer = Arc::new(Mutex::new(image_queue_delete_writer));
 
         // 创建subscriber
         let subscriber_qos: *const DDS_SubscriberQos =
@@ -520,6 +562,26 @@ fn main() {
             user_color_topic.raw as *mut DDS_TopicDescription,
             datareader_qos,
             &mut user_color_listener,
+            DDS_STATUS_MASK_ALL,
+        );
+
+        let mut image_queue_listener = ReaderListener::new();
+        image_queue_listener.set_on_data_available(image_queue_on_data_available);
+
+        let _image_queue_reader = subscriber.create_reader(
+            image_queue_topic.raw as *mut DDS_TopicDescription,
+            datareader_qos,
+            &mut image_queue_listener,
+            DDS_STATUS_MASK_ALL,
+        );
+
+        let mut image_queue_delete_listener = ReaderListener::new();
+        image_queue_delete_listener.set_on_data_available(image_queue_delete_on_data_available);
+
+        let _image_queue_delete_reader = subscriber.create_reader(
+            image_queue_delete_topic.raw as *mut DDS_TopicDescription,
+            datareader_qos,
+            &mut image_queue_delete_listener,
             DDS_STATUS_MASK_ALL,
         );
 
@@ -792,8 +854,9 @@ fn main() {
                 received_chat_messages: received_chat_messages.clone(),
                 received_danmaku_messages: received_danmaku_messages.clone(),
                 received_user_colors: received_user_colors.clone(),
+                received_image_queues: received_image_queues.clone(),
+                received_image_queue_deletes: received_image_queue_deletes.clone(),
                 writer: writer.clone(),
-                image_writer: image_writer.clone(),
                 video_writer: video_writer.clone(),
                 draw_writer: draw_writer.clone(),
                 erase_writer: erase_writer.clone(),
@@ -802,6 +865,8 @@ fn main() {
                 chat_writer: chat_writer.clone(),
                 danmaku_writer: danmaku_writer.clone(),
                 color_writer: user_color_writer.clone(),
+                image_queue_writer: image_queue_writer.clone(),
+                image_queue_delete_writer: image_queue_delete_writer.clone(),
             });
         }
 

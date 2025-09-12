@@ -32,6 +32,26 @@ pub struct ImageData {
     pub height: u32,
 }
 
+// 单个图片项结构
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct ImageItem {
+    pub id: String,           // 图片唯一标识符
+    pub username: String,
+    pub image_data: Vec<u8>,  // PNG图片的原始字节数据
+    pub width: u32,
+    pub height: u32,
+    pub timestamp: u64,       // 上传时间戳
+}
+
+// 图片队列数据结构
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct ImageQueue {
+    pub username: String,
+    pub images: Vec<ImageItem>,  // 图片列表
+    pub current_index: usize,    // 当前显示的图片索引
+    pub timestamp: u64,          // 队列更新时间戳
+}
+
 // 画笔笔迹数据结构
 #[derive(Clone)]
 pub struct DrawStroke {
@@ -60,6 +80,12 @@ pub struct EraseOperation {
 pub struct ImageDeleteOperation {
     pub username: String,
     pub image_id: String, // 图片的唯一标识符（使用用户名作为ID）
+}
+
+// 图片队列删除操作数据结构
+#[derive(Clone)]
+pub struct ImageQueueDeleteOperation {
+    pub username: String,
 }
 
 // 视频数据结构
@@ -111,10 +137,12 @@ pub struct UserColor {
 // 全局共享状态
 pub static mut RECEIVED: Option<Arc<Mutex<HashMap<String, MouseState>>>> = None;
 pub static mut RECEIVED_IMAGES: Option<Arc<Mutex<HashMap<String, ImageData>>>> = None;
+pub static mut RECEIVED_IMAGE_QUEUES: Option<Arc<Mutex<HashMap<String, ImageQueue>>>> = None;
 pub static mut RECEIVED_VIDEOS: Option<Arc<Mutex<HashMap<String, VideoData>>>> = None;
 pub static mut RECEIVED_STROKES: Option<Arc<Mutex<Vec<DrawStroke>>>> = None;
 pub static mut RECEIVED_ERASES: Option<Arc<Mutex<Vec<EraseOperation>>>> = None;
 pub static mut RECEIVED_IMAGE_DELETES: Option<Arc<Mutex<Vec<ImageDeleteOperation>>>> = None;
+pub static mut RECEIVED_IMAGE_QUEUE_DELETES: Option<Arc<Mutex<Vec<ImageQueueDeleteOperation>>>> = None;
 pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation>>>> = None;
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
 pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;

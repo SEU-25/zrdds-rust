@@ -4,17 +4,21 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
-use zrdds::core::{DPFactory, ReaderListener};
+use zrdds::core::dp_listener::DPListener;
+use zrdds::core::{DPFactory, PublisherQos, ReaderListener, SubscriberQos, TopicQos};
+use zrdds::core::PublisherListener::PublisherListener;
+use zrdds::core::SubscriberListener::SubscriberListener;
+use zrdds::core::TopicListener::TopicListener;
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
-    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation, ImageQueueDeleteOperation, MouseState,
-    VideoDeleteOperation,
+    ChatMessage, DanmakuMessage, DrawStroke, EraseOperation, ImageDeleteOperation,
+    ImageQueueDeleteOperation, MouseState, VideoDeleteOperation,
 };
 use zrdds::dioxus_structs::{
     DANMAKU_ENABLED, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
-    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGES, RECEIVED_STROKES, RECEIVED_USER_COLORS,
-    RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
+    RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGES,
+    RECEIVED_STROKES, RECEIVED_USER_COLORS, RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
 };
 use zrdds::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use zrdds::utils::*;
@@ -79,24 +83,33 @@ fn start_app(domain_id: u32) {
         // DDS 初始化
         let factory = DPFactory::instance().unwrap();
 
-        let dp_qos: *const DDS_DomainParticipantQos =
-            unsafe { &raw const DDS_DOMAINPARTICIPANT_QOS_DEFAULT };
+        let dp_qos = factory.default_qos();
 
         let participant = factory
-            .create_dp(&factory, domain_id, dp_qos, ptr::null_mut(), DDS_STATUS_MASK_NONE)
+            .create_dp(
+                &factory,
+                domain_id,
+                &dp_qos,
+                &DPListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
             .unwrap();
         let type_name = DDS_BytesTypeSupport_get_type_name();
         DDS_BytesTypeSupport_register_type(participant.raw, type_name);
 
         let topic_name = CString::new("mouse_topic").unwrap();
-        let topic_qos: *const DDS_TopicQos = unsafe { &raw const DDS_TOPIC_QOS_DEFAULT };
+        let topic_qos = TopicQos::default_qos();
         let topic = participant
             .create_topic(
                 &participant,
                 topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -117,8 +130,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 image_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -138,8 +153,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 draw_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -159,8 +176,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 erase_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -180,8 +199,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 image_delete_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -201,8 +222,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 chat_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -222,8 +245,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 video_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -235,8 +260,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 video_delete_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -248,8 +275,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 danmaku_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -261,8 +290,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 user_color_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -274,8 +305,10 @@ fn start_app(domain_id: u32) {
                 &participant,
                 image_queue_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -287,19 +320,23 @@ fn start_app(domain_id: u32) {
                 &participant,
                 image_queue_delete_topic_name.to_str().unwrap(),
                 unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
-                topic_qos,
-                ptr::null_mut(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
 
         // 创建publisher
-        let publisher_qos: *const DDS_PublisherQos = &raw const DDS_PUBLISHER_QOS_DEFAULT;
+        let publisher_qos = PublisherQos::default_qos();
         let publisher = participant
             .create_publisher(
                 &participant,
-                publisher_qos,
-                ptr::null_mut(),
+                &publisher_qos,
+                &PublisherListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -437,14 +474,15 @@ fn start_app(domain_id: u32) {
         let image_queue_delete_writer = Arc::new(Mutex::new(image_queue_delete_writer));
 
         // 创建subscriber
-        let subscriber_qos: *const DDS_SubscriberQos =
-            unsafe { &raw const DDS_SUBSCRIBER_QOS_DEFAULT };
+        let subscriber_qos = SubscriberQos::default_qos();
 
         let subscriber = participant
             .create_subscriber(
                 &participant,
-                subscriber_qos,
-                ptr::null_mut(),
+                &subscriber_qos,
+                &SubscriberListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -882,7 +920,7 @@ fn main() {
     } else {
         0
     };
-    
+
     // 使用域号启动应用，域号为0时会显示域号输入界面
     start_app(domain_id);
 }

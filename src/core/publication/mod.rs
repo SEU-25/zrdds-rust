@@ -7,6 +7,7 @@ pub mod publisher;
 pub mod writer;
 pub mod publisher_qos;
 pub mod writer_qos;
+pub mod PublisherListener;
 
 pub use publisher::*;
 pub use writer::*;

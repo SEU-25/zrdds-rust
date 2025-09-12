@@ -396,7 +396,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         div {
             "style": "display: flex; height: 100vh; font-family: Arial, sans-serif; position: relative;",
 
-            // 移除全局鼠标事件监听层，改为在各个组件内部处理鼠标事件
+            // 左侧边栏
+            Sidebar {}
 
             // 主要内容区域
             div {
@@ -554,6 +555,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                 label { 
                                     "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
                                     "画笔颜色:" }
+                                // HoverCardUse {  }
 
                                 input {
                                     r#type: "color",
@@ -585,7 +587,6 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                             }
                         }
                     }
-
 
                     // 模式切换按钮
                     div {
@@ -684,6 +685,8 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                             }
                         }
                     }
+
+                    ToggleSwitch{}
                 }
 
 
@@ -1686,4 +1689,107 @@ fn send_user_color(
     let message = color_json.to_string();
     send_dds_message(&message, &color_writer);
     println!("发送用户颜色更新: {:?}", color);
+}
+
+// 侧边栏组件
+#[component]
+fn Sidebar() -> Element {
+    rsx! {
+        div {
+            style: "width: 80px; background-color:rgb(200, 201, 202); display: flex; flex-direction: column; align-items: center; padding: 20px 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);",
+            
+            // 侧边栏按钮
+            div {
+                style: "display: flex; flex-direction: column; gap: 15px;",
+                
+                // 按钮1
+                button {
+                    style: "width: 50px; height: 50px; background-color: #3498db; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        println!("侧边栏按钮1被点击");
+                    },
+                    "1"
+                }
+                
+                // 按钮2
+                button {
+                    style: "width: 50px; height: 50px; background-color: #e74c3c; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        println!("侧边栏按钮2被点击");
+                    },
+                    "2"
+                }
+                
+                // 按钮3
+                button {
+                    style: "width: 50px; height: 50px; background-color: #2ecc71; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        println!("侧边栏按钮3被点击");
+                    },
+                    "3"
+                }
+                
+                // 按钮4
+                button {
+                    style: "width: 50px; height: 50px; background-color: #f39c12; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        println!("侧边栏按钮4被点击");
+                    },
+                    "4"
+                }
+                
+                // 按钮5
+                button {
+                    style: "width: 50px; height: 50px; background-color: #9b59b6; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;",
+                    onclick: move |_| {
+                        println!("侧边栏按钮5被点击");
+                    },
+                    "5"
+                }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn ToggleSwitch() -> Element {
+    // 开关状态
+    let mut checked = use_signal(|| false);
+
+    // 开关外壳样式
+    let switch_style = format!(
+        "width: 50px;
+         height: 26px;
+         border-radius: 9999px;
+         background-color: {};
+         position: relative;
+         cursor: pointer;
+         transition: background-color 0.2s;",
+        if checked() { "blue" } else { "#d1d5db" } 
+    );
+
+    // 圆点样式
+    let thumb_style = format!(
+        "width: 22px;
+         height: 22px;
+         border-radius: 50%;
+         background-color: white;
+         position: absolute;
+         top: 2px;
+         left: {};
+         transition: left 0.2s;",
+        if checked() { "26px" } else { "2px" }
+    );
+
+    rsx! {
+        div {
+            "style": "{switch_style}",
+            onclick: move |_| {
+                checked.set(!checked());
+            },
+            div {
+                "style": "{thumb_style}",
+            }
+        }
+    }
 }

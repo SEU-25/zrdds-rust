@@ -10,7 +10,6 @@ keywords = ["dds", "real-time", "messaging", "distributed"]
 categories = ["network-programming", "api-bindings"]
 readme = "README.md"
 
-
 [lib]
 name = "zrdds"
 path = "src/lib.rs"
@@ -39,14 +38,12 @@ tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 env_logger = "0.10"
 rand = "0.8"
-# Removed web-specific dependencies for desktop app
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
-
+dioxus_components={path="F:/Rust/zrdds-rust/dioxus_components"}
 
 [build-dependencies]
 cc = "1.0"
 bindgen = "0.72"
 glob = "0.3.3"
-
 

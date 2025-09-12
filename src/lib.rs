@@ -11,3 +11,4 @@ pub mod dioxus_app;
 // pub use zrdds::*;
 
 pub mod core;
+pub mod components;

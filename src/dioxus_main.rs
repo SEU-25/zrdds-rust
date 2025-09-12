@@ -274,12 +274,14 @@ fn main() {
             )
             .unwrap();
 
-        // datawriter qos的可靠性为可靠
+        // datawriter qos的可靠性为可靠、持久化
         let mut dw_qos = std::mem::MaybeUninit::<DDS_DataWriterQos>::zeroed();
         let _rtn_code =
             DDS_Publisher_get_default_datawriter_qos(publisher.raw, dw_qos.as_mut_ptr());
         let mut dw_qos = dw_qos.assume_init();
         dw_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+        dw_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+        dw_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
 
         // 创建datawriter
         let datawriter_qos: *const DDS_DataWriterQos = &raw const dw_qos;
@@ -412,6 +414,9 @@ fn main() {
             DDS_Subscriber_get_default_datareader_qos(subscriber.raw, dr_qos.as_mut_ptr());
         let mut dr_qos = dr_qos.assume_init();
         dr_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+        dr_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+        dr_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
+        //dr_qos.history.depth = 1;
 
         // 创建datareader
         let datareader_qos: *const DDS_DataReaderQos = &raw const dr_qos;

@@ -27,7 +27,7 @@ impl Publisher<'_> {
         &self,
         topic: &Topic,
         writer_qos: &WriterQos,
-        writer_listener: &WriterListener,
+        writer_listener: &mut WriterListener,
         mask: u32,
     ) -> Option<Writer> {
         let writer = Writer {
@@ -36,7 +36,7 @@ impl Publisher<'_> {
                     self.raw,
                     topic.raw,
                     writer_qos.raw,
-                    writer_listener.raw,
+                    writer_listener.as_ptr_mut(),
                     mask,
                 )
             },

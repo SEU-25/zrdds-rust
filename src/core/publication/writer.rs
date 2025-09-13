@@ -1,6 +1,8 @@
 use crate::bindings::*;
 use crate::core::publication::Publisher;
 use std::marker::PhantomData;
+use crate::core::bytes::bytes::Bytes;
+use crate::core::bytes::instancehandle_t::InstanceHandleT;
 
 /// 统一的Writer结构体，同时支持高级API和底层API
 pub struct Writer {
@@ -19,9 +21,9 @@ impl Writer {
 impl Writer {
     /** 发布一个数据样本。
      */
-    pub fn write(&self, sample: *const DDS_Bytes, handle: *const DDS_InstanceHandle_t) -> i32 {
+    pub fn write(&self, sample: &Bytes, handle: &InstanceHandleT) -> i32 {
         let _writer: *mut DDS_BytesDataWriter = self.raw.cast();
 
-        unsafe { DDS_BytesDataWriter_write(_writer, sample, handle) }
+        unsafe { DDS_BytesDataWriter_write(_writer, sample.raw, handle.raw) }
     }
 }

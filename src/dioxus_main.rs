@@ -8,7 +8,7 @@ use zrdds::core::dp_listener::DPListener;
 use zrdds::core::publisher_listener::PublisherListener;
 use zrdds::core::subscriber_listener::SubscriberListener;
 use zrdds::core::topic_listener::TopicListener;
-use zrdds::core::{DPFactory, PublisherQos, ReaderListener, SubscriberQos, TopicQos, WriterQos};
+use zrdds::core::{DPFactory, PublisherQos, ReaderListener, ReaderQos, SubscriberQos, TopicQos, WriterQos};
 use zrdds::core::writer_listener::WriterListener;
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
@@ -361,9 +361,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -372,9 +370,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &draw_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -390,9 +386,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &erase_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -401,9 +395,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &image_delete_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -412,9 +404,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &chat_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -423,9 +413,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &video_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -434,9 +422,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &video_delete_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -445,9 +431,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &danmaku_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -456,9 +440,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &user_color_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -467,9 +449,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &image_queue_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -478,9 +458,7 @@ fn start_app(domain_id: u32) {
             .create_writer(
                 &image_queue_delete_topic,
                 &datawriter_qos,
-                &WriterListener {
-                    raw: ptr::null_mut(),
-                },
+                &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -522,7 +500,10 @@ fn start_app(domain_id: u32) {
         //dr_qos.history.depth = 1;
 
         // 创建datareader
-        let datareader_qos: *const DDS_DataReaderQos = &raw const dr_qos;
+        let datareader_qos =
+            ReaderQos {
+                raw: &raw mut dr_qos,
+            };
         // println!("设置数据读者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
         // 创建各种listener和reader
@@ -530,8 +511,8 @@ fn start_app(domain_id: u32) {
         listener.set_on_data_available(mouse_on_data_available);
 
         let _reader = subscriber.create_reader(
-            topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &topic.get_description(),
+            &datareader_qos,
             &mut listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -540,8 +521,8 @@ fn start_app(domain_id: u32) {
         draw_listener.set_on_data_available(draw_on_data_available);
 
         let _draw_reader = subscriber.create_reader(
-            draw_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &draw_topic.get_description(),
+            &datareader_qos,
             &mut draw_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -550,8 +531,8 @@ fn start_app(domain_id: u32) {
         image_listener.set_on_data_available(image_on_data_available);
 
         let _image_reader = subscriber.create_reader(
-            image_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &image_topic.get_description(),
+            &datareader_qos,
             &mut image_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -560,8 +541,8 @@ fn start_app(domain_id: u32) {
         erase_listener.set_on_data_available(erase_on_data_available);
 
         let _erase_reader = subscriber.create_reader(
-            erase_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &erase_topic.get_description(),
+            &datareader_qos,
             &mut erase_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -570,8 +551,8 @@ fn start_app(domain_id: u32) {
         image_delete_listener.set_on_data_available(image_delete_on_data_available);
 
         let _image_delete_reader = subscriber.create_reader(
-            image_delete_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &image_delete_topic.get_description(),
+            &datareader_qos,
             &mut image_delete_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -580,8 +561,8 @@ fn start_app(domain_id: u32) {
         chat_listener.set_on_data_available(chat_on_data_available);
 
         let _chat_reader = subscriber.create_reader(
-            chat_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &chat_topic.get_description(),
+            &datareader_qos,
             &mut chat_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -590,8 +571,8 @@ fn start_app(domain_id: u32) {
         video_listener.set_on_data_available(video_on_data_available);
 
         let _video_reader = subscriber.create_reader(
-            video_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &&video_topic.get_description(),
+            &datareader_qos,
             &mut video_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -600,8 +581,8 @@ fn start_app(domain_id: u32) {
         video_delete_listener.set_on_data_available(video_delete_on_data_available);
 
         let _video_delete_reader = subscriber.create_reader(
-            video_delete_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &video_delete_topic.get_description(),
+            &datareader_qos,
             &mut video_delete_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -610,8 +591,8 @@ fn start_app(domain_id: u32) {
         danmaku_listener.set_on_data_available(danmaku_on_data_available);
 
         let _danmaku_reader = subscriber.create_reader(
-            danmaku_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &danmaku_topic.get_description(),
+            &datareader_qos,
             &mut danmaku_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -620,8 +601,8 @@ fn start_app(domain_id: u32) {
         user_color_listener.set_on_data_available(user_color_on_data_available);
 
         let _user_color_reader = subscriber.create_reader(
-            user_color_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &user_color_topic.get_description(),
+            &datareader_qos,
             &mut user_color_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -630,8 +611,8 @@ fn start_app(domain_id: u32) {
         image_queue_listener.set_on_data_available(image_queue_on_data_available);
 
         let _image_queue_reader = subscriber.create_reader(
-            image_queue_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &image_queue_topic.get_description(),
+            &datareader_qos,
             &mut image_queue_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -640,8 +621,8 @@ fn start_app(domain_id: u32) {
         image_queue_delete_listener.set_on_data_available(image_queue_delete_on_data_available);
 
         let _image_queue_delete_reader = subscriber.create_reader(
-            image_queue_delete_topic.raw as *mut DDS_TopicDescription,
-            datareader_qos,
+            &image_queue_delete_topic.get_description(),
+            &datareader_qos,
             &mut image_queue_delete_listener,
             DDS_STATUS_MASK_ALL,
         );

@@ -3,7 +3,7 @@ use std::ffi::{CString, c_char};
 use crate::core::DomainParticipant;
 
 pub struct TypeSupport {
-    pub(crate) raw: *mut DDS_TypeSupport,
+    pub raw: *mut DDS_TypeSupport,
 }
 
 pub fn type_support_get_name() -> String {

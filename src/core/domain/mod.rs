@@ -11,6 +11,7 @@ pub mod dp_listener;
 pub use factory::*;
 pub use participant::*;
 pub use dp_qos::*;
-use crate::bindings::DDS_StatusKindMask;
+pub use dp_listener::*;
+pub use crate::bindings::DDS_StatusKindMask;
 
 pub type StatusKindMask = DDS_StatusKindMask;

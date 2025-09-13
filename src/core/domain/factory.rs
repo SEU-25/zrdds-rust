@@ -6,7 +6,7 @@ use crate::core::domain::dp_listener::DPListener;
 use crate::core::{DPQos, StatusKindMask};
 
 pub struct DPFactory {
-    pub(crate) raw: *mut DDS_DomainParticipantFactory,
+    pub raw: *mut DDS_DomainParticipantFactory,
 }
 
 impl DPFactory {

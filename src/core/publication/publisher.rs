@@ -4,10 +4,12 @@ use crate::core::domain::DomainParticipant;
 use crate::core::publication::Writer;
 use crate::core::topic::Topic;
 use std::marker::PhantomData;
+use crate::core::writer_listener::WriterListener;
+use crate::core::WriterQos;
 
 pub struct Publisher<'a> {
     pub raw: *mut DDS_Publisher,
-    pub(crate) _marker: PhantomData<&'a DomainParticipant>,
+    pub _marker: PhantomData<&'a DomainParticipant>,
 }
 
 impl Publisher<'_> {
@@ -24,8 +26,8 @@ impl Publisher<'_> {
     pub fn create_writer(
         &self,
         topic: &Topic,
-        writer_qos: *const DDS_DataWriterQos,
-        writer_listener: *mut DDS_DataWriterListener,
+        writer_qos: &WriterQos,
+        writer_listener: &WriterListener,
         mask: u32,
     ) -> Option<Writer> {
         let writer = Writer {
@@ -33,8 +35,8 @@ impl Publisher<'_> {
                 DDS_Publisher_create_datawriter(
                     self.raw,
                     topic.raw,
-                    writer_qos,
-                    writer_listener,
+                    writer_qos.raw,
+                    writer_listener.raw,
                     mask,
                 )
             },

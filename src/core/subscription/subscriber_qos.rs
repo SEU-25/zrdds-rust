@@ -1,7 +1,7 @@
 use crate::bindings::{DDS_SubscriberQos, DDS_SUBSCRIBER_QOS_DEFAULT};
 
 pub struct SubscriberQos{
-    pub(crate) raw: *mut DDS_SubscriberQos,
+    pub raw: *mut DDS_SubscriberQos,
 }
 
 impl SubscriberQos{

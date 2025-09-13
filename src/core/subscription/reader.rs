@@ -4,8 +4,8 @@ use std::marker::PhantomData;
 
 /// 统一的Reader结构体，同时支持高级API和底层API
 pub struct Reader<'a, 'b> {
-    pub(crate) raw: *mut DDS_DataReader,
-    pub(crate) _marker: PhantomData<&'b Subscriber<'a>>,
+    pub raw: *mut DDS_DataReader,
+    pub _marker: PhantomData<&'b Subscriber<'a>>,
 }
 
 /// 简化构造函数，用于高级API

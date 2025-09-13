@@ -1,7 +1,7 @@
 use crate::bindings::{DDS_TopicQos, DDS_TOPIC_QOS_DEFAULT};
 
 pub struct TopicQos {
-    pub(crate) raw: *mut DDS_TopicQos,
+    pub raw: *mut DDS_TopicQos,
 }
 
 impl TopicQos {

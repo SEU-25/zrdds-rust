@@ -7,7 +7,7 @@ use crate::core::ReaderListener;
 
 pub struct Subscriber<'a> {
     pub raw: *mut DDS_Subscriber,
-    pub(crate) _marker: PhantomData<&'a DomainParticipant>,
+    pub _marker: PhantomData<&'a DomainParticipant>,
 }
 
 impl Subscriber<'_> {

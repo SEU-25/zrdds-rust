@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 /// 统一的Writer结构体，同时支持高级API和底层API
 pub struct Writer {
-    pub(crate) raw: *mut DDS_DataWriter,
+    pub raw: *mut DDS_DataWriter,
 }
 
 /// 简化构造函数，用于高级API

@@ -5,10 +5,11 @@ use std::sync::{Arc, Mutex};
 use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
 use zrdds::core::dp_listener::DPListener;
-use zrdds::core::{DPFactory, PublisherQos, ReaderListener, SubscriberQos, TopicQos};
-use zrdds::core::PublisherListener::PublisherListener;
-use zrdds::core::SubscriberListener::SubscriberListener;
-use zrdds::core::TopicListener::TopicListener;
+use zrdds::core::publisher_listener::PublisherListener;
+use zrdds::core::subscriber_listener::SubscriberListener;
+use zrdds::core::topic_listener::TopicListener;
+use zrdds::core::{DPFactory, PublisherQos, ReaderListener, SubscriberQos, TopicQos, WriterQos};
+use zrdds::core::writer_listener::WriterListener;
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
@@ -351,14 +352,18 @@ fn start_app(domain_id: u32) {
         dw_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
 
         // 创建datawriter
-        let datawriter_qos: *const DDS_DataWriterQos = &raw const dw_qos;
+        let datawriter_qos = WriterQos {
+            raw: &raw mut dw_qos,
+        };
         // println!("设置数据写者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
         let writer = publisher
             .create_writer(
                 &topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -366,8 +371,10 @@ fn start_app(domain_id: u32) {
         let draw_writer = publisher
             .create_writer(
                 &draw_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -382,8 +389,10 @@ fn start_app(domain_id: u32) {
         let erase_writer = publisher
             .create_writer(
                 &erase_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -391,8 +400,10 @@ fn start_app(domain_id: u32) {
         let image_delete_writer = publisher
             .create_writer(
                 &image_delete_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -400,8 +411,10 @@ fn start_app(domain_id: u32) {
         let chat_writer = publisher
             .create_writer(
                 &chat_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -409,8 +422,10 @@ fn start_app(domain_id: u32) {
         let video_writer = publisher
             .create_writer(
                 &video_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -418,8 +433,10 @@ fn start_app(domain_id: u32) {
         let video_delete_writer = publisher
             .create_writer(
                 &video_delete_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -427,8 +444,10 @@ fn start_app(domain_id: u32) {
         let danmaku_writer = publisher
             .create_writer(
                 &danmaku_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -436,8 +455,10 @@ fn start_app(domain_id: u32) {
         let user_color_writer = publisher
             .create_writer(
                 &user_color_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -445,8 +466,10 @@ fn start_app(domain_id: u32) {
         let image_queue_writer = publisher
             .create_writer(
                 &image_queue_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
@@ -454,8 +477,10 @@ fn start_app(domain_id: u32) {
         let image_queue_delete_writer = publisher
             .create_writer(
                 &image_queue_delete_topic,
-                datawriter_qos,
-                ptr::null_mut(),
+                &datawriter_qos,
+                &WriterListener {
+                    raw: ptr::null_mut(),
+                },
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();

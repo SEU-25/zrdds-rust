@@ -4,5 +4,5 @@ use crate::core::TopicQos;
 
 pub struct Topic<'a> {
     pub raw: *mut DDS_Topic,
-    pub(crate) _marker: std::marker::PhantomData<&'a DomainParticipant>,
+    pub _marker: std::marker::PhantomData<&'a DomainParticipant>,
 }

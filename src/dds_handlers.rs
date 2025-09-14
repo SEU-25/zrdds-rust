@@ -1,3 +1,4 @@
+use std::pin::Pin;
 use crate::bindings::*;
 use crate::core::Reader;
 use crate::core::bytes::bytes::Bytes;
@@ -32,10 +33,10 @@ fn parse_color32_from_json(value: &Value) -> Color32 {
 
 fn handle_one_draw_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -75,10 +76,10 @@ fn handle_one_draw_sample(sample: &Bytes, _info: &SampleInfo) {
 // ---------- 1) 处理“一条样本”的纯 Rust 安全函数 ----------
 fn handle_one_user_color_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -137,10 +138,10 @@ fn handle_one_user_color_sample(sample: &Bytes, _info: &SampleInfo) {
 
 fn handle_one_danmaku_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -198,10 +199,10 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
 
 fn handle_one_image_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -269,10 +270,10 @@ fn handle_one_image_sample(sample: &Bytes, _info: &SampleInfo) {
 
 fn handle_one_erase_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -320,10 +321,10 @@ fn handle_one_erase_sample(sample: &Bytes, _info: &SampleInfo) {
 
 fn handle_one_image_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -361,10 +362,10 @@ fn handle_one_image_delete_sample(sample: &Bytes, _info: &SampleInfo) {
 // 聊天消息回调函数
 fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -461,10 +462,10 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
 }
 
 fn handle_one_mouse_sample(sample: &Bytes, _info: &SampleInfo) {
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -501,10 +502,10 @@ fn handle_one_mouse_sample(sample: &Bytes, _info: &SampleInfo) {
 // 视频消息回调函数
 fn handle_one_video_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -577,10 +578,10 @@ fn handle_one_video_sample(sample: &Bytes, _info: &SampleInfo) {
 // 视频删除消息回调函数
 fn handle_one_video_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -618,10 +619,10 @@ fn handle_one_video_delete_sample(sample: &Bytes, _info: &SampleInfo) {
 // 图片队列消息处理函数
 fn handle_one_image_queue_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -724,10 +725,10 @@ fn handle_one_image_queue_sample(sample: &Bytes, _info: &SampleInfo) {
 // 图片队列删除消息处理函数
 fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.as_ref()).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.as_ref()).value, j) };
         if !bptr.is_null() {
             unsafe {
                 buf.push(*bptr);
@@ -760,9 +761,9 @@ fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &SampleInfo) {
 // 显式给出 $rdr/$samp/$in 的名字（想叫什么都行）
 dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
     // 指针 -> 引用，然后交给安全函数
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -771,9 +772,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 
 dds_simple_data_reader_listener!(draw, DDS_Bytes, |_r, samp, inf| {
     // 指针 -> 引用，然后交给安全函数
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -782,9 +783,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 
 // ---------- 2) 宏调用：生成 extern "C" 回调 ----------
 dds_simple_data_reader_listener!(user_color, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -792,9 +793,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(danmaku, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -802,9 +803,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(image, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -812,9 +813,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(erase, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -822,9 +823,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(image_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -832,9 +833,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(chat, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -842,9 +843,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(video, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -852,9 +853,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -862,9 +863,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(image_queue, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
@@ -872,9 +873,9 @@ let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
 });
 
 dds_simple_data_reader_listener!(image_queue_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {
-        raw: sample_ref_raw,
+        inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
 let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };

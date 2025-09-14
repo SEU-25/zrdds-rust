@@ -24,6 +24,12 @@ impl Writer {
     pub fn write(&self, sample: &Bytes, handle: &InstanceHandleT) -> i32 {
         let _writer: *mut DDS_BytesDataWriter = self.raw.cast();
 
-        unsafe { DDS_BytesDataWriter_write(_writer, sample.raw, handle.raw) }
+        unsafe { DDS_BytesDataWriter_write(_writer, sample.as_ref(), handle.raw) }
+    }
+
+    pub fn writer_register_instance(&mut self, bytes: &mut Bytes) -> InstanceHandleT {
+        InstanceHandleT {
+            raw: &mut unsafe {DDS_BytesDataWriter_register_instance(self.raw as *mut DDS_BytesDataWriter, bytes.as_mut())},
+        }
     }
 }

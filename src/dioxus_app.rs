@@ -1884,26 +1884,19 @@ fn upload_video(video_writer: Arc<Mutex<Writer>>) {
 
 fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
     let buffer = message.as_bytes();
-    let mut data_raw: DDS_Bytes = unsafe { mem::zeroed() };
-    let data = Bytes {
-        raw: &mut data_raw,
-    };
-    unsafe { DDS_OctetSeq_initialize(&mut (*data.raw).value as *mut DDS_OctetSeq) };
+    let mut data = Bytes::new();
+    data.octet_seq_initialize();
+
+        data.octet_seq_loan_contiguous(
+            buffer,
+            buffer.len() as u32,
+            buffer.len() as u32,
+        );
 
     unsafe {
-        DDS_OctetSeq_loan_contiguous(
-            &mut (*data.raw).value as *mut DDS_OctetSeq,
-            buffer.as_ptr() as *mut DDS_Octet,
-            buffer.len() as DDS_ULong,
-            buffer.len() as DDS_ULong,
-        );
-
         let writer_ptr = writer.lock().unwrap().raw;
-        let handle = DDS_BytesDataWriter_register_instance(
-            writer_ptr as *mut DDS_BytesDataWriter,
-            data.raw,
-        );
-        DDS_BytesDataWriter_write(writer_ptr as *mut DDS_BytesDataWriter, data.raw, &handle);
+        let handle = writer.lock().unwrap().writer_register_instance(&mut data);
+        writer.lock().unwrap().write(&data, &handle);
     }
 }
 

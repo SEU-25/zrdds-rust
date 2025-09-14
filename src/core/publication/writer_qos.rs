@@ -1,6 +1,6 @@
 use std::{mem, ptr};
 use std::pin::Pin;
-use crate::bindings::{DDS_DataWriterListener, DDS_DataWriterQos};
+use crate::bindings::{DDS_DataWriterQos};
 
 pub struct WriterQos{
     pub inner: Option<Pin<Box<DDS_DataWriterQos>>>,

@@ -1,4 +1,3 @@
-use crate::bindings::*;
 use crate::dioxus_structs::{
     ChatMessage, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
     VideoDeleteOperation, UserColor, ImageItem, ImageQueue, ImageQueueDeleteOperation,
@@ -9,15 +8,12 @@ use base64::{Engine as _, engine::general_purpose};
 use dioxus::prelude::*;
 use eframe::egui;
 use serde_json::json;
-use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
-    mem,
     sync::{Arc, Mutex},
 };
 use tokio;
-use env_logger;
 use crate::core::bytes::bytes::Bytes;
 use crate::core::Writer;
 

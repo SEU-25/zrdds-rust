@@ -1,8 +1,6 @@
 use eframe::egui;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
-use serde::*;
-
 
 // 消息类型枚举
 #[derive(Clone, Debug)]

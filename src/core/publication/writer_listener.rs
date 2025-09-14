@@ -1,4 +1,4 @@
-use crate::bindings::{DDS_DataReaderListener, DDS_DataWriter, DDS_DataWriterListener};
+use crate::bindings::DDS_DataWriterListener;
 use std::pin::Pin;
 use std::{mem, ptr};
 

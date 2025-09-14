@@ -1,5 +1,3 @@
-use std::mem::MaybeUninit;
-
 use crate::bindings::*;
 use crate::core::domain::DomainParticipant;
 use crate::core::domain::dp_listener::DPListener;

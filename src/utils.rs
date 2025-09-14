@@ -1,6 +1,6 @@
 use eframe::egui::Color32;
 use serde_json::Value;
-use image::{ImageFormat, DynamicImage, GenericImageView};
+use image::{ImageFormat, GenericImageView};
 use base64::{Engine as _, engine::general_purpose};
 use std::fs;
 use std::path::Path;

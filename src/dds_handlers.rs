@@ -12,6 +12,7 @@ use paste::paste;
 use serde_json::Value;
 use std::borrow::Cow;
 use std::mem;
+use crate::core::sample::sample_info::SampleInfo;
 // for .decode()
 
 /// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
@@ -29,7 +30,7 @@ fn parse_color32_from_json(value: &Value) -> Color32 {
     }
 }
 
-fn handle_one_draw_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_draw_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -72,7 +73,7 @@ fn handle_one_draw_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // ---------- 1) 处理“一条样本”的纯 Rust 安全函数 ----------
-fn handle_one_user_color_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_user_color_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -134,7 +135,7 @@ fn handle_one_user_color_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_danmaku_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_danmaku_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -195,7 +196,7 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
     })
 }
 
-fn handle_one_image_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -266,7 +267,7 @@ fn handle_one_image_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_erase_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_erase_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -317,7 +318,7 @@ fn handle_one_erase_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_image_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -358,7 +359,7 @@ fn handle_one_image_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 聊天消息回调函数
-fn handle_one_chat_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -459,7 +460,7 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_mouse_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_mouse_sample(sample: &Bytes, _info: &SampleInfo) {
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
@@ -498,7 +499,7 @@ fn handle_one_mouse_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 视频消息回调函数
-fn handle_one_video_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_video_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -574,7 +575,7 @@ fn handle_one_video_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 视频删除消息回调函数
-fn handle_one_video_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_video_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -615,7 +616,7 @@ fn handle_one_video_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 图片队列消息处理函数
-fn handle_one_image_queue_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_queue_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -721,7 +722,7 @@ fn handle_one_image_queue_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 图片队列删除消息处理函数
-fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &SampleInfo) {
     // Bytes -> Vec<u8>
     let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
@@ -763,7 +764,8 @@ dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_mouse_sample(sample_ref, info_ref);
 });
 
@@ -773,7 +775,8 @@ dds_simple_data_reader_listener!(draw, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_draw_sample(sample_ref, info_ref);
 });
 
@@ -783,7 +786,8 @@ dds_simple_data_reader_listener!(user_color, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_user_color_sample(sample_ref, info_ref);
 });
 
@@ -792,7 +796,8 @@ dds_simple_data_reader_listener!(danmaku, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_danmaku_sample(sample_ref, info_ref);
 });
 
@@ -801,7 +806,8 @@ dds_simple_data_reader_listener!(image, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_sample(sample_ref, info_ref);
 });
 
@@ -810,7 +816,8 @@ dds_simple_data_reader_listener!(erase, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_erase_sample(sample_ref, info_ref);
 });
 
@@ -819,7 +826,8 @@ dds_simple_data_reader_listener!(image_delete, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_delete_sample(sample_ref, info_ref);
 });
 
@@ -828,7 +836,8 @@ dds_simple_data_reader_listener!(chat, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_chat_sample(sample_ref, info_ref);
 });
 
@@ -837,7 +846,8 @@ dds_simple_data_reader_listener!(video, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_video_sample(sample_ref, info_ref);
 });
 
@@ -846,7 +856,8 @@ dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_video_delete_sample(sample_ref, info_ref);
 });
 
@@ -855,7 +866,8 @@ dds_simple_data_reader_listener!(image_queue, DDS_Bytes, |_r, samp, inf| {
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_queue_sample(sample_ref, info_ref);
 });
 
@@ -864,6 +876,7 @@ dds_simple_data_reader_listener!(image_queue_delete, DDS_Bytes, |_r, samp, inf| 
     let sample_ref: &Bytes = &Bytes {
         raw: sample_ref_raw,
     };
-    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
+    let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
+let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_queue_delete_sample(sample_ref, info_ref);
 });

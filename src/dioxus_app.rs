@@ -18,6 +18,7 @@ use std::{
 };
 use tokio;
 use env_logger;
+use crate::core::bytes::bytes::Bytes;
 use crate::core::Writer;
 
 // 应用状态枚举
@@ -1883,12 +1884,15 @@ fn upload_video(video_writer: Arc<Mutex<Writer>>) {
 
 fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
     let buffer = message.as_bytes();
-    let mut data: DDS_Bytes = unsafe { mem::zeroed() };
-    unsafe { DDS_OctetSeq_initialize(&mut data.value as *mut DDS_OctetSeq) };
+    let mut data_raw: DDS_Bytes = unsafe { mem::zeroed() };
+    let data = Bytes {
+        raw: &mut data_raw,
+    };
+    unsafe { DDS_OctetSeq_initialize(&mut (*data.raw).value as *mut DDS_OctetSeq) };
 
     unsafe {
         DDS_OctetSeq_loan_contiguous(
-            &mut data.value as *mut DDS_OctetSeq,
+            &mut (*data.raw).value as *mut DDS_OctetSeq,
             buffer.as_ptr() as *mut DDS_Octet,
             buffer.len() as DDS_ULong,
             buffer.len() as DDS_ULong,
@@ -1897,9 +1901,9 @@ fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
         let writer_ptr = writer.lock().unwrap().raw;
         let handle = DDS_BytesDataWriter_register_instance(
             writer_ptr as *mut DDS_BytesDataWriter,
-            &mut data,
+            data.raw,
         );
-        DDS_BytesDataWriter_write(writer_ptr as *mut DDS_BytesDataWriter, &mut data, &handle);
+        DDS_BytesDataWriter_write(writer_ptr as *mut DDS_BytesDataWriter, data.raw, &handle);
     }
 }
 

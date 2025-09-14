@@ -7,7 +7,7 @@ use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use crate::core::topic_listener::TopicListener;
-use crate::core::{PublisherQos, SubscriberQos, TopicQos};
+use crate::core::{PublisherQos, SubscriberQos, TopicQos, Writer};
 use crate::core::publisher_listener::PublisherListener;
 use crate::core::subscriber_listener::SubscriberListener;
 use crate::core::type_support::TypeSupport;
@@ -24,7 +24,7 @@ impl DomainParticipant {
         topic_name: &str,
         type_support: &TypeSupport,
         qos_name: &str,
-    ) -> crate::core::publication::Writer {
+    ) -> Writer {
         unsafe {
             let topic_name = CString::new(topic_name).unwrap();
             let qos_name = CString::new(qos_name).unwrap();
@@ -36,7 +36,7 @@ impl DomainParticipant {
                 qos_name.as_ptr(),
                 std::ptr::null_mut(),
             );
-            crate::core::publication::Writer::new(writer)
+            Writer::new(writer)
         }
     }
 

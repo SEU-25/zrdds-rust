@@ -3,9 +3,9 @@ use crate::core::domain::DomainParticipant;
 
 use crate::core::publication::Writer;
 use crate::core::topic::Topic;
-use std::marker::PhantomData;
 use crate::core::writer_listener::WriterListener;
-use crate::core::WriterQos;
+use crate::core::{PublisherQos, ReturnCode, WriterQos};
+use std::marker::PhantomData;
 
 pub struct Publisher<'a> {
     pub raw: *mut DDS_Publisher,
@@ -15,8 +15,8 @@ pub struct Publisher<'a> {
 impl Publisher<'_> {
     /** 获取默认qos
      */
-    pub fn default_qos() -> DDS_PublisherQos {
-        unsafe { DDS_PUBLISHER_QOS_DEFAULT }
+    pub fn default_qos() -> PublisherQos {
+        PublisherQos::default_qos()
     }
 
     /** 创建DataWriter。
@@ -35,7 +35,7 @@ impl Publisher<'_> {
                 DDS_Publisher_create_datawriter(
                     self.raw,
                     topic.raw,
-                    writer_qos.raw,
+                    writer_qos.as_ptr(),
                     writer_listener.as_ptr_mut(),
                     mask,
                 )
@@ -47,5 +47,11 @@ impl Publisher<'_> {
         } else {
             Some(writer)
         }
+    }
+
+    pub fn publisher_get_default_writer_qos(&self, writer: &mut WriterQos) -> ReturnCode {
+        ReturnCode::from(unsafe {
+            DDS_Publisher_get_default_datawriter_qos(self.raw, writer.as_mut_ptr())
+        })
     }
 }

@@ -1,16 +1,18 @@
-use std::mem;
 use crate::bindings::*;
-use egui::Color32;
-use base64::{Engine as _, engine::general_purpose};
 use crate::core::Reader;
+use crate::core::bytes::bytes::Bytes;
 use crate::dds_simple_data_reader_listener;
 use crate::dioxus_structs::*;
 use crate::utils::color_from_json;
+use base64::Engine as _; // for .decode()
+use base64::Engine as _;
+use base64::{Engine as _, engine::general_purpose};
+use egui::Color32;
 use paste::paste;
 use serde_json::Value;
-use base64::Engine as _; // for .decode()
 use std::borrow::Cow;
-use base64::Engine as _; // for .decode()
+use std::mem;
+// for .decode()
 
 /// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
 fn parse_color32_from_json(value: &Value) -> Color32 {
@@ -19,9 +21,7 @@ fn parse_color32_from_json(value: &Value) -> Color32 {
     let arr: &[Value] = value.as_array().map(|v| v.as_slice()).unwrap_or(&EMPTY);
 
     // 读取第 i 个通道为 u8；缺失时取 0
-    let get_u8 = |i: usize| -> u8 {
-        arr.get(i).and_then(|v| v.as_u64()).unwrap_or(0) as u8
-    };
+    let get_u8 = |i: usize| -> u8 { arr.get(i).and_then(|v| v.as_u64()).unwrap_or(0) as u8 };
 
     match arr.len() {
         4 => Color32::from_rgba_unmultiplied(get_u8(0), get_u8(1), get_u8(2), get_u8(3)),
@@ -29,14 +29,16 @@ fn parse_color32_from_json(value: &Value) -> Color32 {
     }
 }
 
-fn handle_one_draw_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_draw_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
@@ -46,14 +48,17 @@ fn handle_one_draw_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
             if draw_msg.get("type").and_then(|v| v.as_str()) == Some("Draw") {
                 let color = parse_color32_from_json(&draw_msg["color"]);
                 let stroke = DrawStroke {
-                    username: draw_msg["username"].as_str().unwrap_or("unknown").to_string(),
+                    username: draw_msg["username"]
+                        .as_str()
+                        .unwrap_or("unknown")
+                        .to_string(),
                     color,
                     start_x: draw_msg["start_x"].as_f64().unwrap_or(0.0) as f32,
                     start_y: draw_msg["start_y"].as_f64().unwrap_or(0.0) as f32,
-                    end_x:   draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
-                    end_y:   draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
+                    end_x: draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
+                    end_y: draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
                     stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
-                    timestamp:    draw_msg["timestamp"].as_u64().unwrap_or(0),
+                    timestamp: draw_msg["timestamp"].as_u64().unwrap_or(0),
                 };
 
                 unsafe {
@@ -67,14 +72,16 @@ fn handle_one_draw_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 }
 
 // ---------- 1) 处理“一条样本”的纯 Rust 安全函数 ----------
-fn handle_one_user_color_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_user_color_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
@@ -82,13 +89,15 @@ fn handle_one_user_color_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
     if let Ok(s) = String::from_utf8(buf) {
         if let Ok(color_msg) = serde_json::from_str::<Value>(&s) {
             if color_msg.get("type").and_then(|v| v.as_str()) == Some("UserColor") {
-                let username = color_msg.get("username")
+                let username = color_msg
+                    .get("username")
                     .and_then(|v| v.as_str())
                     .unwrap_or("unknown")
                     .to_string();
 
                 // 解析颜色对象 {r,g,b,a}（缺省则用白色）
-                let color = color_msg.get("color")
+                let color = color_msg
+                    .get("color")
                     .and_then(|v| v.as_object())
                     .and_then(|obj| {
                         let r = obj.get("r").and_then(|v| v.as_u64()).map(|x| x as u8)?;
@@ -99,12 +108,22 @@ fn handle_one_user_color_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
                     })
                     .unwrap_or(Color32::WHITE);
 
-                let timestamp = color_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+                let timestamp = color_msg
+                    .get("timestamp")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
 
                 unsafe {
                     if let Some(ref received_user_colors) = RECEIVED_USER_COLORS {
                         let mut data = received_user_colors.lock().unwrap();
-                        data.insert(username.clone(), UserColor { username: username.clone(), color, timestamp });
+                        data.insert(
+                            username.clone(),
+                            UserColor {
+                                username: username.clone(),
+                                color,
+                                timestamp,
+                            },
+                        );
                     }
                 }
 
@@ -115,14 +134,16 @@ fn handle_one_user_color_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_danmaku_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_danmaku_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
@@ -132,7 +153,10 @@ fn handle_one_danmaku_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
             if let Some(danmaku_message) = parse_danmaku_message(&json_value) {
                 unsafe {
                     if let Some(ref received_danmaku_messages) = RECEIVED_DANMAKU_MESSAGES {
-                        received_danmaku_messages.lock().unwrap().push(danmaku_message);
+                        received_danmaku_messages
+                            .lock()
+                            .unwrap()
+                            .push(danmaku_message);
                     }
                 }
             }
@@ -142,10 +166,18 @@ fn handle_one_danmaku_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 
 // 解析弹幕消息的辅助函数
 fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessage> {
-    let username = json_value["username"].as_str().unwrap_or("unknown").to_string();
+    let username = json_value["username"]
+        .as_str()
+        .unwrap_or("unknown")
+        .to_string();
     let message = json_value["message"].as_str().unwrap_or("").to_string();
     let start_time = json_value["start_time"].as_f64().unwrap_or(0.0);
-    let danmaku_id = format!("{}-{}-{}", username, message.len(), (start_time * 1000.0) as u64);
+    let danmaku_id = format!(
+        "{}-{}-{}",
+        username,
+        message.len(),
+        (start_time * 1000.0) as u64
+    );
 
     Some(DanmakuMessage {
         username,
@@ -163,26 +195,38 @@ fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessag
     })
 }
 
-fn handle_one_image_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // JSON 解析
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(image_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(image_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
     // 读取字段（容错）
-    let username = image_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let username = image_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
     let (width, height) = (
         image_msg.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-        image_msg.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+        image_msg
+            .get("height")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32,
     );
 
     // 允许 image_data 为裸 base64 或 data URL（如 data:image/png;base64,XXXX）
@@ -190,13 +234,20 @@ fn handle_one_image_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
         Some(Value::String(s)) => Some(Cow::from(s.as_str())),
         _ => None,
     };
-    let Some(img_str) = image_data_field else { return; };
+    let Some(img_str) = image_data_field else {
+        return;
+    };
 
     // 如果是 data URL，切掉逗号前缀
-    let base64_part = img_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(&*img_str);
+    let base64_part = img_str
+        .rsplit_once(',')
+        .map(|(_, b64)| b64)
+        .unwrap_or(&*img_str);
 
     // 解码
-    let Ok(image_bytes) = general_purpose::STANDARD.decode(base64_part) else { return; };
+    let Ok(image_bytes) = general_purpose::STANDARD.decode(base64_part) else {
+        return;
+    };
 
     // 写入共享缓存
     unsafe {
@@ -215,52 +266,88 @@ fn handle_one_image_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_erase_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_erase_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // 解析 JSON -> 入队
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(erase_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(erase_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
-    let username = erase_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let x        = erase_msg.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
-    let y        = erase_msg.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
-    let radius   = erase_msg.get("radius").and_then(|v| v.as_f64()).unwrap_or(20.0) as f32;
-    let timestamp= erase_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+    let username = erase_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let x = erase_msg.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let y = erase_msg.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let radius = erase_msg
+        .get("radius")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(20.0) as f32;
+    let timestamp = erase_msg
+        .get("timestamp")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
     unsafe {
         if let Some(ref received_erases) = RECEIVED_ERASES {
             let mut data = received_erases.lock().unwrap();
-            data.push(EraseOperation { username, x, y, radius, timestamp });
+            data.push(EraseOperation {
+                username,
+                x,
+                y,
+                radius,
+                timestamp,
+            });
         }
     }
 }
 
-fn handle_one_image_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // 解析 JSON -> 入队
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
-    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let image_id = delete_msg.get("image_id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let username = delete_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let image_id = delete_msg
+        .get("image_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
 
     unsafe {
         if let Some(ref received_image_deletes) = RECEIVED_IMAGE_DELETES {
@@ -271,28 +358,47 @@ fn handle_one_image_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 聊天消息回调函数
-fn handle_one_chat_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_chat_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // JSON 解析
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(chat_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(chat_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
     // 基本字段
-    let username  = chat_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let message   = chat_msg.get("message").and_then(|v| v.as_str()).unwrap_or("").to_string();
-    let timestamp = chat_msg.get("timestamp").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let username = chat_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let message = chat_msg
+        .get("message")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let timestamp = chat_msg
+        .get("timestamp")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
 
     // 颜色：对象 {r,g,b,a}，缺省则白色
-    let color = chat_msg.get("color")
+    let color = chat_msg
+        .get("color")
         .and_then(|v| v.as_object())
         .and_then(|obj| {
             let r = obj.get("r").and_then(|v| v.as_u64()).map(|x| x as u8)?;
@@ -331,14 +437,19 @@ fn handle_one_chat_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
                     .unwrap_or_default()
                     .as_secs_f64();
                 let y_position = (list.len() % 10) as f32 * 50.0 + 50.0; // 分层显示
-                let danmaku_id = format!("{}-{}-{}", username, message.len(), (current_time * 1000.0) as u64);
+                let danmaku_id = format!(
+                    "{}-{}-{}",
+                    username,
+                    message.len(),
+                    (current_time * 1000.0) as u64
+                );
 
                 list.push(DanmakuMessage {
                     username,
                     message,
                     start_time: current_time,
-                    x: 1720.0,       // 从屏幕最右侧开始
-                    y: y_position,   // 分层显示
+                    x: 1720.0,     // 从屏幕最右侧开始
+                    y: y_position, // 分层显示
                     color,
                     speed: 100.0,
                     id: danmaku_id,
@@ -348,13 +459,15 @@ fn handle_one_chat_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
     }
 }
 
-fn handle_one_mouse_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+fn handle_one_mouse_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
@@ -363,7 +476,10 @@ fn handle_one_mouse_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
             unsafe {
                 if let Some(ref received_clone) = RECEIVED {
                     let mut data = received_clone.lock().unwrap();
-                    let username = mouse_state["username"].as_str().unwrap_or("unknown").to_string();
+                    let username = mouse_state["username"]
+                        .as_str()
+                        .unwrap_or("unknown")
+                        .to_string();
                     let x = mouse_state["x"].as_f64().unwrap_or_default() as f32;
                     let y = mouse_state["y"].as_f64().unwrap_or_default() as f32;
                     data.insert(
@@ -382,25 +498,42 @@ fn handle_one_mouse_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 视频消息回调函数
-fn handle_one_video_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_video_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // JSON 解析
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(video_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(video_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
     // 基本字段
-    let username  = video_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let file_name = video_msg.get("file_name").and_then(|v| v.as_str()).unwrap_or("video.mp4").to_string();
-    let file_size = video_msg.get("file_size").and_then(|v| v.as_u64()).unwrap_or(0);
+    let username = video_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let file_name = video_msg
+        .get("file_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("video.mp4")
+        .to_string();
+    let file_size = video_msg
+        .get("file_size")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
     // 读取 video_data（允许 data URL；自动裁掉逗号前缀）
     let video_data_str = match video_msg.get("video_data").and_then(|v| v.as_str()) {
@@ -410,7 +543,10 @@ fn handle_one_video_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
             return;
         }
     };
-    let base64_part = video_data_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(video_data_str);
+    let base64_part = video_data_str
+        .rsplit_once(',')
+        .map(|(_, b64)| b64)
+        .unwrap_or(video_data_str);
     let Ok(video_data) = general_purpose::STANDARD.decode(base64_part) else {
         eprintln!("视频数据 base64 解码失败");
         return;
@@ -429,29 +565,46 @@ fn handle_one_video_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
                     file_size,
                 },
             );
-            println!("接收到视频: {} ({} 字节) 来自 {}", file_name, file_size, username);
+            println!(
+                "接收到视频: {} ({} 字节) 来自 {}",
+                file_name, file_size, username
+            );
         }
     }
 }
 
 // 视频删除消息回调函数
-fn handle_one_video_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_video_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // 解析 JSON -> 入队
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
-    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let video_id = delete_msg.get("video_id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let username = delete_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let video_id = delete_msg
+        .get("video_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
 
     unsafe {
         if let Some(ref received_video_deletes) = RECEIVED_VIDEO_DELETES {
@@ -462,49 +615,84 @@ fn handle_one_video_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 图片队列消息处理函数
-fn handle_one_image_queue_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_queue_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // JSON 解析
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(queue_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(queue_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
     // 读取字段
-    let username = queue_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let current_index = queue_msg.get("current_index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-    let timestamp = queue_msg.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
-    
+    let username = queue_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let current_index = queue_msg
+        .get("current_index")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    let timestamp = queue_msg
+        .get("timestamp")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+
     // 解析图片列表
     let images_array = match queue_msg.get("images").and_then(|v| v.as_array()) {
         Some(arr) => arr,
         None => return,
     };
-    
+
     let mut images = Vec::new();
     for img_value in images_array {
-        let id = img_value.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-        let img_username = img_value.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+        let id = img_value
+            .get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let img_username = img_value
+            .get("username")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
         let width = img_value.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-        let height = img_value.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-        let img_timestamp = img_value.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
-        
+        let height = img_value
+            .get("height")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+        let img_timestamp = img_value
+            .get("timestamp")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+
         // 解析图片数据
         let image_data_str = match img_value.get("image_data").and_then(|v| v.as_str()) {
             Some(s) => s,
             None => continue,
         };
-        
-        let base64_part = image_data_str.rsplit_once(',').map(|(_, b64)| b64).unwrap_or(image_data_str);
-        let Ok(image_data) = general_purpose::STANDARD.decode(base64_part) else { continue; };
-        
+
+        let base64_part = image_data_str
+            .rsplit_once(',')
+            .map(|(_, b64)| b64)
+            .unwrap_or(image_data_str);
+        let Ok(image_data) = general_purpose::STANDARD.decode(base64_part) else {
+            continue;
+        };
+
         images.push(ImageItem {
             id,
             username: img_username,
@@ -514,7 +702,7 @@ fn handle_one_image_queue_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
             timestamp: img_timestamp,
         });
     }
-    
+
     // 写入共享缓存
     unsafe {
         if let Some(ref received_image_queues) = RECEIVED_IMAGE_QUEUES {
@@ -533,22 +721,32 @@ fn handle_one_image_queue_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
 }
 
 // 图片队列删除消息处理函数
-fn handle_one_image_queue_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleInfo) {
+fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &DDS_SampleInfo) {
     // Bytes -> Vec<u8>
-    let len = unsafe { DDS_OctetSeq_get_length(&sample.value) };
+    let len = unsafe { DDS_OctetSeq_get_length(&(*sample.raw).value) };
     let mut buf = Vec::with_capacity(len as usize);
     for j in 0..len {
-        let bptr = unsafe { DDS_OctetSeq_get_reference(&sample.value, j) };
+        let bptr = unsafe { DDS_OctetSeq_get_reference(&(*sample.raw).value, j) };
         if !bptr.is_null() {
-            unsafe { buf.push(*bptr); }
+            unsafe {
+                buf.push(*bptr);
+            }
         }
     }
 
     // 解析 JSON -> 入队
-    let Ok(s) = String::from_utf8(buf) else { return; };
-    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else { return; };
+    let Ok(s) = String::from_utf8(buf) else {
+        return;
+    };
+    let Ok(delete_msg) = serde_json::from_str::<Value>(&s) else {
+        return;
+    };
 
-    let username = delete_msg.get("username").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let username = delete_msg
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
 
     unsafe {
         if let Some(ref received_image_queue_deletes) = RECEIVED_IMAGE_QUEUE_DELETES {
@@ -558,79 +756,114 @@ fn handle_one_image_queue_delete_sample(sample: &DDS_Bytes, _info: &DDS_SampleIn
     }
 }
 
-
 // 显式给出 $rdr/$samp/$in 的名字（想叫什么都行）
 dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
     // 指针 -> 引用，然后交给安全函数
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_mouse_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(draw, DDS_Bytes, |_r, samp, inf| {
     // 指针 -> 引用，然后交给安全函数
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_draw_sample(sample_ref, info_ref);
 });
 
 // ---------- 2) 宏调用：生成 extern "C" 回调 ----------
 dds_simple_data_reader_listener!(user_color, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_user_color_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(danmaku, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_danmaku_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(image, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_image_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(erase, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_erase_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(image_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_image_delete_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(chat, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_chat_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(video, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_video_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_video_delete_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(image_queue, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_image_queue_sample(sample_ref, info_ref);
 });
 
 dds_simple_data_reader_listener!(image_queue_delete, DDS_Bytes, |_r, samp, inf| {
-    let sample_ref: &DDS_Bytes      = unsafe { &*samp };
-    let info_ref:   &DDS_SampleInfo = unsafe { &*inf  };
+    let sample_ref_raw: &mut DDS_Bytes = unsafe { &mut *samp };
+    let sample_ref: &Bytes = &Bytes {
+        raw: sample_ref_raw,
+    };
+    let info_ref: &DDS_SampleInfo = unsafe { &*inf };
     handle_one_image_queue_delete_sample(sample_ref, info_ref);
 });

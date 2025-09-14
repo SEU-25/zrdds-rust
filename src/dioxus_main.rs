@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
 use std::collections::HashMap;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
@@ -8,8 +9,11 @@ use zrdds::core::dp_listener::DPListener;
 use zrdds::core::publisher_listener::PublisherListener;
 use zrdds::core::subscriber_listener::SubscriberListener;
 use zrdds::core::topic_listener::TopicListener;
-use zrdds::core::{DPFactory, PublisherQos, ReaderListener, ReaderQos, SubscriberQos, TopicQos, WriterQos};
+use zrdds::core::type_support::{type_support_get_name, type_support_register_type};
 use zrdds::core::writer_listener::WriterListener;
+use zrdds::core::{
+    DPFactory, PublisherQos, ReaderListener, ReaderQos, SubscriberQos, TopicQos, WriterQos,
+};
 use zrdds::dds_handlers::*;
 use zrdds::dioxus_app::*;
 use zrdds::dioxus_structs::{
@@ -97,16 +101,16 @@ fn start_app(domain_id: u32) {
                 DDS_STATUS_MASK_NONE,
             )
             .unwrap();
-        let type_name = DDS_BytesTypeSupport_get_type_name();
-        DDS_BytesTypeSupport_register_type(participant.raw, type_name);
+        let type_name = type_support_get_name();
+        type_support_register_type(&participant, type_name.as_str());
 
-        let topic_name = CString::new("mouse_topic").unwrap();
+        let topic_name = String::from("mouse_topic");
         let topic_qos = TopicQos::default_qos();
         let topic = participant
             .create_topic(
                 &participant,
-                topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -125,12 +129,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建图片topic
-        let image_topic_name = CString::new("image_topic").unwrap();
+        let image_topic_name = String::from("image_topic");
         let image_topic = participant
             .create_topic(
                 &participant,
-                image_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                image_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -148,12 +152,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建画笔topic
-        let draw_topic_name = CString::new("draw_topic").unwrap();
+        let draw_topic_name = String::from("draw_topic");
         let draw_topic = participant
             .create_topic(
                 &participant,
-                draw_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                draw_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -171,12 +175,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建擦除topic
-        let erase_topic_name = CString::new("erase_topic").unwrap();
+        let erase_topic_name = String::from("erase_topic");
         let erase_topic = participant
             .create_topic(
                 &participant,
-                erase_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                erase_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -194,12 +198,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建图片删除topic
-        let image_delete_topic_name = CString::new("image_delete_topic").unwrap();
+        let image_delete_topic_name = String::from("image_delete_topic");
         let image_delete_topic = participant
             .create_topic(
                 &participant,
-                image_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                image_delete_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -217,12 +221,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建聊天topic
-        let chat_topic_name = CString::new("chat_topic").unwrap();
+        let chat_topic_name = String::from("chat_topic");
         let chat_topic = participant
             .create_topic(
                 &participant,
-                chat_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                chat_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -240,12 +244,12 @@ fn start_app(domain_id: u32) {
         // );
 
         // 创建视频topic
-        let video_topic_name = CString::new("video_topic").unwrap();
+        let video_topic_name = String::from("video_topic");
         let video_topic = participant
             .create_topic(
                 &participant,
-                video_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                video_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -255,12 +259,12 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // 创建视频删除topic
-        let video_delete_topic_name = CString::new("video_delete_topic").unwrap();
+        let video_delete_topic_name = String::from("video_delete_topic");
         let video_delete_topic = participant
             .create_topic(
                 &participant,
-                video_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                video_delete_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -270,12 +274,12 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // 创建弹幕topic
-        let danmaku_topic_name = CString::new("danmaku_topic").unwrap();
+        let danmaku_topic_name = String::from("danmaku_topic");
         let danmaku_topic = participant
             .create_topic(
                 &participant,
-                danmaku_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                danmaku_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -285,12 +289,12 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // 创建用户颜色topic
-        let user_color_topic_name = CString::new("user_color_topic").unwrap();
+        let user_color_topic_name = String::from("user_color_topic");
         let user_color_topic = participant
             .create_topic(
                 &participant,
-                user_color_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                user_color_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -300,12 +304,12 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // 创建图片队列topic
-        let image_queue_topic_name = CString::new("image_queue_topic").unwrap();
+        let image_queue_topic_name = String::from("image_queue_topic");
         let image_queue_topic = participant
             .create_topic(
                 &participant,
-                image_queue_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                image_queue_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -315,12 +319,12 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // 创建图片队列删除topic
-        let image_queue_delete_topic_name = CString::new("image_queue_delete_topic").unwrap();
+        let image_queue_delete_topic_name = String::from("image_queue_delete_topic");
         let image_queue_delete_topic = participant
             .create_topic(
                 &participant,
-                image_queue_delete_topic_name.to_str().unwrap(),
-                unsafe { std::ffi::CStr::from_ptr(type_name).to_str().unwrap() },
+                image_queue_delete_topic_name.as_str(),
+                type_name.as_str(),
                 &topic_qos,
                 &TopicListener {
                     raw: ptr::null_mut(),
@@ -343,24 +347,25 @@ fn start_app(domain_id: u32) {
             .unwrap();
 
         // datawriter qos的可靠性为可靠、持久化
-        let mut dw_qos = std::mem::MaybeUninit::<DDS_DataWriterQos>::zeroed();
-        let _rtn_code =
-            DDS_Publisher_get_default_datawriter_qos(publisher.raw, dw_qos.as_mut_ptr());
-        let mut dw_qos = dw_qos.assume_init();
-        dw_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
-        dw_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
-        dw_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
+        let mut writer_qos = WriterQos::new();
 
-        // 创建datawriter
-        let datawriter_qos = WriterQos {
-            raw: &raw mut dw_qos,
-        };
+        let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
+
+        writer_qos =
+            writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
+                inner
+            }));
+
         // println!("设置数据写者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
-
         let writer = publisher
             .create_writer(
                 &topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -369,7 +374,7 @@ fn start_app(domain_id: u32) {
         let draw_writer = publisher
             .create_writer(
                 &draw_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -385,7 +390,7 @@ fn start_app(domain_id: u32) {
         let erase_writer = publisher
             .create_writer(
                 &erase_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -394,7 +399,7 @@ fn start_app(domain_id: u32) {
         let image_delete_writer = publisher
             .create_writer(
                 &image_delete_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -403,7 +408,7 @@ fn start_app(domain_id: u32) {
         let chat_writer = publisher
             .create_writer(
                 &chat_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -412,7 +417,7 @@ fn start_app(domain_id: u32) {
         let video_writer = publisher
             .create_writer(
                 &video_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -421,7 +426,7 @@ fn start_app(domain_id: u32) {
         let video_delete_writer = publisher
             .create_writer(
                 &video_delete_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -430,7 +435,7 @@ fn start_app(domain_id: u32) {
         let danmaku_writer = publisher
             .create_writer(
                 &danmaku_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -439,7 +444,7 @@ fn start_app(domain_id: u32) {
         let user_color_writer = publisher
             .create_writer(
                 &user_color_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -448,7 +453,7 @@ fn start_app(domain_id: u32) {
         let image_queue_writer = publisher
             .create_writer(
                 &image_queue_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -457,7 +462,7 @@ fn start_app(domain_id: u32) {
         let image_queue_delete_writer = publisher
             .create_writer(
                 &image_queue_delete_topic,
-                &datawriter_qos,
+                &writer_qos,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -490,20 +495,20 @@ fn start_app(domain_id: u32) {
             )
             .unwrap();
 
-        let mut dr_qos = std::mem::MaybeUninit::<DDS_DataReaderQos>::zeroed();
-        let _rtn_code =
-            DDS_Subscriber_get_default_datareader_qos(subscriber.raw, dr_qos.as_mut_ptr());
-        let mut dr_qos = dr_qos.assume_init();
-        dr_qos.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
-        dr_qos.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
-        dr_qos.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
+        let mut reader_qos = ReaderQos::new();
+        let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        reader_qos =
+            reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
+                inner
+            }));
+
         //dr_qos.history.depth = 1;
 
-        // 创建datareader
-        let datareader_qos =
-            ReaderQos {
-                raw: &raw mut dr_qos,
-            };
         // println!("设置数据读者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
         // 创建各种listener和reader
@@ -512,7 +517,7 @@ fn start_app(domain_id: u32) {
 
         let _reader = subscriber.create_reader(
             &topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -522,7 +527,7 @@ fn start_app(domain_id: u32) {
 
         let _draw_reader = subscriber.create_reader(
             &draw_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut draw_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -532,7 +537,7 @@ fn start_app(domain_id: u32) {
 
         let _image_reader = subscriber.create_reader(
             &image_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut image_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -542,7 +547,7 @@ fn start_app(domain_id: u32) {
 
         let _erase_reader = subscriber.create_reader(
             &erase_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut erase_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -552,7 +557,7 @@ fn start_app(domain_id: u32) {
 
         let _image_delete_reader = subscriber.create_reader(
             &image_delete_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut image_delete_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -562,7 +567,7 @@ fn start_app(domain_id: u32) {
 
         let _chat_reader = subscriber.create_reader(
             &chat_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut chat_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -572,7 +577,7 @@ fn start_app(domain_id: u32) {
 
         let _video_reader = subscriber.create_reader(
             &&video_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut video_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -582,7 +587,7 @@ fn start_app(domain_id: u32) {
 
         let _video_delete_reader = subscriber.create_reader(
             &video_delete_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut video_delete_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -592,7 +597,7 @@ fn start_app(domain_id: u32) {
 
         let _danmaku_reader = subscriber.create_reader(
             &danmaku_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut danmaku_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -602,7 +607,7 @@ fn start_app(domain_id: u32) {
 
         let _user_color_reader = subscriber.create_reader(
             &user_color_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut user_color_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -612,7 +617,7 @@ fn start_app(domain_id: u32) {
 
         let _image_queue_reader = subscriber.create_reader(
             &image_queue_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut image_queue_listener,
             DDS_STATUS_MASK_ALL,
         );
@@ -622,7 +627,7 @@ fn start_app(domain_id: u32) {
 
         let _image_queue_delete_reader = subscriber.create_reader(
             &image_queue_delete_topic.get_description(),
-            &datareader_qos,
+            &reader_qos,
             &mut image_queue_delete_listener,
             DDS_STATUS_MASK_ALL,
         );

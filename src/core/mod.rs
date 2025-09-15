@@ -11,6 +11,7 @@ pub mod topic;
 pub mod type_support;
 pub mod bytes;
 pub mod sample;
+mod chat_message;
 
 // Re-export all public items from submodules
 pub use domain::*;

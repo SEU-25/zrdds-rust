@@ -1,16 +1,16 @@
-use std::mem::MaybeUninit;
-
 use crate::bindings::*;
 use crate::core::domain::DomainParticipant;
+use crate::core::domain::dp_listener::DPListener;
+use crate::core::{DPQos, StatusKindMask};
 
 pub struct DPFactory {
-    pub(crate) raw: *mut DDS_DomainParticipantFactory,
+    pub raw: *mut DDS_DomainParticipantFactory,
 }
 
 impl DPFactory {
     /** 创建域参与者工厂单例。
 
-    成功返回Some()，失败返回None
+       成功返回Some()，失败返回None
     */
     pub fn instance() -> Option<DPFactory> {
         let factory = unsafe { DDS_DomainParticipantFactory_get_instance() };
@@ -23,19 +23,19 @@ impl DPFactory {
 
     /** 创建一个新的域参与者实体，并设置QoS以及监听器，域参与者的创建表明应用程序打算加入domainId 指定的域中进行通信。
 
-    成功返回Some()，失败返回None
+       成功返回Some()，失败返回None
     */
     pub fn create_dp(
         &self,
         self_: &DPFactory,
         domain_id: u32,
-        qos_list: *const DDS_DomainParticipantQos,
-        listener: *mut DDS_DomainParticipantListener,
-        mask: DDS_StatusKindMask,
+        qos_list: &DPQos,
+        listener: &DPListener,
+        mask: StatusKindMask,
     ) -> Option<DomainParticipant> {
         let participant = unsafe {
             DDS_DomainParticipantFactory_create_participant(
-                self_.raw, domain_id, qos_list, listener, mask,
+                self_.raw, domain_id, qos_list.raw, listener.raw, mask,
             )
         };
 
@@ -46,18 +46,10 @@ impl DPFactory {
         }
     }
 
-    pub fn default_qos(&self) -> Result<DDS_DomainParticipantQos, i32> {
-        let mut qos = MaybeUninit::<DDS_DomainParticipantQos>::uninit();
-
-        let ret = unsafe {
-            DDS_DomainParticipantFactory_get_default_participant_qos(self.raw, qos.as_mut_ptr())
-        };
-
-        if ret == 0 {
-            Ok(unsafe { qos.assume_init() })
-        } else {
-            Err(ret)
-        }
+    pub fn default_qos(&self) -> DPQos {
+            DPQos {
+                raw: &raw mut DDS_DOMAINPARTICIPANT_QOS_DEFAULT,
+            }
     }
 
     /** 析构单例，该方法同样是线程不安全的，多个线程同时调用该函数，可能会出问题。

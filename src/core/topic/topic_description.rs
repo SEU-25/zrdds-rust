@@ -1,5 +1,5 @@
 use crate::bindings::DDS_TopicDescription;
 
 pub struct TopicDescription{
-    pub(crate) raw: *mut DDS_TopicDescription,
+    pub raw: *mut DDS_TopicDescription,
 }

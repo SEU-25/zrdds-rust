@@ -8,9 +8,10 @@ pub mod publication;
 pub mod return_code;
 pub mod subscription;
 pub mod topic;
-pub mod bytes_seq;
-pub mod sample_info_seq;
 pub mod type_support;
+pub mod bytes;
+pub mod sample;
+mod chat_message;
 
 // Re-export all public items from submodules
 pub use domain::*;

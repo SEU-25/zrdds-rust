@@ -3,18 +3,19 @@ use crate::core::domain::DomainParticipant;
 use crate::core::subscription::Reader;
 use std::ffi::CString;
 use std::marker::PhantomData;
-use crate::core::ReaderListener;
+use crate::core::{ReaderListener, ReaderQos, ReturnCode, SubscriberQos};
+use crate::core::topic_description::TopicDescription;
 
 pub struct Subscriber<'a> {
     pub raw: *mut DDS_Subscriber,
-    pub(crate) _marker: PhantomData<&'a DomainParticipant>,
+    pub _marker: PhantomData<&'a DomainParticipant>,
 }
 
 impl Subscriber<'_> {
     /** 获取默认qos
      */
-    pub fn default_qos() -> DDS_SubscriberQos {
-        unsafe { DDS_SUBSCRIBER_QOS_DEFAULT }
+    pub fn default_qos() -> SubscriberQos {
+        SubscriberQos::default_qos()
     }
 
     /** 该方法在订阅者下创建一个数据读者子实体，并设置关联的主题、QoS以及监听器。
@@ -23,13 +24,13 @@ impl Subscriber<'_> {
     */
     pub fn create_reader(
         &self,
-        topic: *mut DDS_TopicDescription,
-        qos: *const DDS_DataReaderQos,
+        topic: &TopicDescription,
+        qos: &ReaderQos,
         listener: &mut ReaderListener,
         mask: u32,
     ) -> Option<Reader> {
         let reader = Reader {
-            raw: unsafe { DDS_Subscriber_create_datareader(self.raw, topic, qos, &mut listener.raw, mask) },
+            raw: unsafe { DDS_Subscriber_create_datareader(self.raw, topic.raw, qos.as_ptr(), listener.as_mut_ptr(), mask) },
             _marker: PhantomData,
         };
 
@@ -60,4 +61,9 @@ impl Subscriber<'_> {
             Some(reader)
         }
     }
+
+    pub fn subscriber_get_default_reader_qos(&self, reader_qos: &mut ReaderQos) -> ReturnCode {
+        unsafe { ReturnCode::from(DDS_Subscriber_get_default_datareader_qos(self.raw, reader_qos.as_ptr_mut())) }
+    }
+    
 }

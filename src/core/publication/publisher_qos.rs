@@ -1,5 +1,13 @@
-use crate::bindings::DDS_PublisherQos;
+use crate::bindings::{DDS_PublisherQos, DDS_PUBLISHER_QOS_DEFAULT};
 
 pub struct PublisherQos {
-    pub(crate) raw: *mut DDS_PublisherQos,
+    pub raw: *mut DDS_PublisherQos,
+}
+
+impl PublisherQos {
+    pub fn default_qos() -> Self {
+            PublisherQos {
+                raw: unsafe { &raw mut DDS_PUBLISHER_QOS_DEFAULT },
+            }
+    }
 }

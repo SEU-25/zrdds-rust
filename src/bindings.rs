@@ -15027,30 +15027,1158 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn DDS_ContentFilterTopic_get_related_topic(
-        self_: *mut DDS_ContentFilteredTopic,
-    ) -> *mut DDS_Topic;
+    pub fn TypeCodeGetKind(self_: *const TypeCode) -> TCTypeKind;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn DDS_ContentFilteredTopic_get_expression_paramters(
-        self_: *mut DDS_ContentFilteredTopic,
-        para: *mut DDS_StringSeq,
+    pub fn TypeCodeCompare(typeCode1: *const TypeCode, typeCode2: *const TypeCode) -> ZR_BOOLEAN;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetName(self_: *const TypeCode) -> *const ZR_INT8;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetMemberCount(self_: *const TypeCode) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetMemberName(self_: *const TypeCode, index: ZR_UINT32) -> *const ZR_INT8;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetBaseType(self_: *const TypeCodeHeader) -> *const TypeCodeHeader;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetElementType(self_: *const TypeCode) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetIndexByName(self_: *const TypeCode, name: *const ZR_INT8) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetMemberType(self_: *const TypeCode, index: ZR_UINT32) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetLabelCount(self_: *const TypeCode, index: ZR_UINT32) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetLabel(
+        self_: *const TypeCode,
+        memberIdx: ZR_UINT32,
+        labelIdx: ZR_UINT32,
+        expCode: *mut TypeCodeExceptionCode,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetDefaultIndex(self_: *const TypeCode) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetEnumVal(
+        self_: *const TypeCode,
+        memberIdx: ZR_UINT32,
+        expCode: *mut TypeCodeExceptionCode,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetEnumString(
+        self_: *const TypeCode,
+        enumVal: ZR_UINT32,
+        expCode: *mut TypeCodeExceptionCode,
+    ) -> *const ZR_INT8;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeIsMemberKey(
+        self_: *const TypeCode,
+        index: ZR_UINT32,
+        expCode: *mut TypeCodeExceptionCode,
+    ) -> ZR_BOOLEAN;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetArrayDimensionCount(self_: *const TypeCode) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetArrayDimension(self_: *const TypeCode, index: ZR_UINT32) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetMaxLength(self_: *const TypeCodeHeader) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetArrayElementCount(self_: *const TypeCode) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeAddMemberToEnum(
+        self_: *mut TypeCode,
+        index: ZR_UINT32,
+        name: *const ZR_INT8,
+        value: ZR_UINT32,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeAddMemberToUnion(
+        self_: *mut TypeCode,
+        index: ZR_UINT32,
+        name: *const ZR_INT8,
+        labelCount: ZR_UINT32,
+        labels: *mut ZR_UINT32,
+        tc: *const TypeCode,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeAddMemberToStruct(
+        self_: *mut TypeCode,
+        index: ZR_UINT32,
+        memberId: ZR_UINT32,
+        name: *const ZR_INT8,
+        tc: *const TypeCode,
+        isKey: ZR_BOOLEAN,
+        isOption: ZR_BOOLEAN,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeAddMemberToValueType(
+        self_: *mut TypeCode,
+        index: ZR_UINT32,
+        memberId: ZR_UINT32,
+        name: *const ZR_INT8,
+        tc: *const TypeCode,
+        isKey: ZR_BOOLEAN,
+        isOption: ZR_BOOLEAN,
+    ) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeGetTypePrintableString(self_: *const TypeCodeHeader) -> *mut ZR_INT8;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeReleasePrintableString(buffer: *mut ZR_INT8);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodePrintIDL(self_: *const TypeCode) -> ZR_INT32;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryGetInstance() -> *mut TypeCodeFactory;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryFinalize() -> ZR_BOOLEAN;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryGetPrimitiveTC(
+        self_: *mut TypeCodeFactory,
+        kind: TCTypeKind,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateStructTC(
+        self_: *mut TypeCodeFactory,
+        name: *const ZR_INT8,
+        kind: ExtensibilityKind,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateValueTypeTC(
+        self_: *mut TypeCodeFactory,
+        name: *const ZR_INT8,
+        modifierKind: TypeCodeModifierKind,
+        kind: ExtensibilityKind,
+        baseTC: *const TypeCode,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateEnumTC(
+        self_: *mut TypeCodeFactory,
+        name: *const ZR_INT8,
+        bitBound: ZR_UINT32,
+        kind: ExtensibilityKind,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateUnionTC(
+        self_: *mut TypeCodeFactory,
+        name: *const ZR_INT8,
+        switchTC: *const TypeCode,
+        defaultIdx: ZR_UINT32,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateStringTC(
+        self_: *mut TypeCodeFactory,
+        length: ZR_UINT32,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateSequenceTC(
+        self_: *mut TypeCodeFactory,
+        maxLength: ZR_UINT32,
+        tc: *const TypeCode,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCreateArrayTC(
+        self_: *mut TypeCodeFactory,
+        dimensionCount: ZR_UINT32,
+        dimensions: *const ZR_UINT32,
+        tc: *const TypeCode,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryCloneTC(
+        self_: *mut TypeCodeFactory,
+        tc: *const TypeCode,
+    ) -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn TypeCodeFactoryDeleteTC(self_: *mut TypeCodeFactory, tc: *mut TypeCode) -> ZR_BOOLEAN;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ChatModule_ChatMessage {
+    pub username: *mut DDS_Char,
+    pub message: *mut DDS_Char,
+    pub target_user: *mut DDS_Char,
+    pub timestamp: DDS_Long,
+    pub color: *mut DDS_Char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of ChatModule_ChatMessage"][::std::mem::size_of::<ChatModule_ChatMessage>() - 40usize];
+    ["Alignment of ChatModule_ChatMessage"]
+        [::std::mem::align_of::<ChatModule_ChatMessage>() - 8usize];
+    ["Offset of field: ChatModule_ChatMessage::username"]
+        [::std::mem::offset_of!(ChatModule_ChatMessage, username) - 0usize];
+    ["Offset of field: ChatModule_ChatMessage::message"]
+        [::std::mem::offset_of!(ChatModule_ChatMessage, message) - 8usize];
+    ["Offset of field: ChatModule_ChatMessage::target_user"]
+        [::std::mem::offset_of!(ChatModule_ChatMessage, target_user) - 16usize];
+    ["Offset of field: ChatModule_ChatMessage::timestamp"]
+        [::std::mem::offset_of!(ChatModule_ChatMessage, timestamp) - 24usize];
+    ["Offset of field: ChatModule_ChatMessage::color"]
+        [::std::mem::offset_of!(ChatModule_ChatMessage, color) - 32usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ChatModule_ChatMessageSeq {
+    pub _owned: DDS_Boolean,
+    pub _contiguousBuffer: *mut ChatModule_ChatMessage,
+    pub _discontiguousBuffer: *mut *mut ChatModule_ChatMessage,
+    pub _maximum: DDS_ULong,
+    pub _length: DDS_ULong,
+    pub _sequenceInit: DDS_Long,
+    pub _readerPtr: *mut ::std::os::raw::c_void,
+    pub _dataPtr: *mut ::std::os::raw::c_void,
+    pub _mempool: *mut ZRMemPool,
+    pub _allocMemory: DDS_Boolean,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of ChatModule_ChatMessageSeq"]
+        [::std::mem::size_of::<ChatModule_ChatMessageSeq>() - 72usize];
+    ["Alignment of ChatModule_ChatMessageSeq"]
+        [::std::mem::align_of::<ChatModule_ChatMessageSeq>() - 8usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_owned"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _owned) - 0usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_contiguousBuffer"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _contiguousBuffer) - 8usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_discontiguousBuffer"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _discontiguousBuffer) - 16usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_maximum"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _maximum) - 24usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_length"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _length) - 28usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_sequenceInit"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _sequenceInit) - 32usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_readerPtr"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _readerPtr) - 40usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_dataPtr"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _dataPtr) - 48usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_mempool"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _mempool) - 56usize];
+    ["Offset of field: ChatModule_ChatMessageSeq::_allocMemory"]
+        [::std::mem::offset_of!(ChatModule_ChatMessageSeq, _allocMemory) - 64usize];
+};
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_is_initialized(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_set(
+        self_: *mut ChatModule_ChatMessageSeq,
+        index: DDS_ULong,
+        newValue: *const ChatModule_ChatMessage,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_initialize(self_: *mut ChatModule_ChatMessageSeq);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_new(newMax: DDS_ULong) -> *mut ChatModule_ChatMessageSeq;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_maximum(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_set_maximum(
+        self_: *mut ChatModule_ChatMessageSeq,
+        newMax: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_length(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_set_length(
+        self_: *mut ChatModule_ChatMessageSeq,
+        newLength: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_ensure_length(
+        self_: *mut ChatModule_ChatMessageSeq,
+        length: DDS_ULong,
+        max: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_reference(
+        self_: *const ChatModule_ChatMessageSeq,
+        index: DDS_ULong,
+    ) -> *mut ChatModule_ChatMessage;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_append(
+        self_: *mut ChatModule_ChatMessageSeq,
+        newValue: *const ChatModule_ChatMessage,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_append_autosize(
+        self_: *mut ChatModule_ChatMessageSeq,
+        newValue: *const ChatModule_ChatMessage,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_copy_no_alloc(
+        self_: *mut ChatModule_ChatMessageSeq,
+        src: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_copy(
+        self_: *mut ChatModule_ChatMessageSeq,
+        src: *const ChatModule_ChatMessageSeq,
+    ) -> *mut ChatModule_ChatMessageSeq;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_compare(
+        self_: *const ChatModule_ChatMessageSeq,
+        src: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_from_array(
+        self_: *mut ChatModule_ChatMessageSeq,
+        array: *const ChatModule_ChatMessage,
+        length: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_to_array(
+        self_: *const ChatModule_ChatMessageSeq,
+        array: *mut ChatModule_ChatMessage,
+        length: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_loan_contiguous(
+        self_: *mut ChatModule_ChatMessageSeq,
+        buffer: *mut ChatModule_ChatMessage,
+        newLength: DDS_ULong,
+        newMax: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_loan_discontiguous(
+        self_: *mut ChatModule_ChatMessageSeq,
+        buffer: *mut *mut ChatModule_ChatMessage,
+        newLength: DDS_ULong,
+        newMax: DDS_ULong,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_unloan(self_: *mut ChatModule_ChatMessageSeq) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_contiguous_buffer(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> *mut ChatModule_ChatMessage;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_discontiguous_buffer(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> *mut *mut ChatModule_ChatMessage;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_get_reader_and_data_ptr(
+        self_: *const ChatModule_ChatMessageSeq,
+        readerPtr: *mut *mut ::std::os::raw::c_void,
+        dataPtr: *mut *mut ::std::os::raw::c_void,
+    );
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_set_reader_and_data_ptr(
+        self_: *mut ChatModule_ChatMessageSeq,
+        readerPtr: *mut ::std::os::raw::c_void,
+        dataPtr: *mut ::std::os::raw::c_void,
+    );
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_has_ownership(
+        self_: *const ChatModule_ChatMessageSeq,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_clear(self_: *mut ChatModule_ChatMessageSeq) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_finalize(self_: *mut ChatModule_ChatMessageSeq)
+    -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSeq_initialize_ex(
+        self_: *mut ChatModule_ChatMessageSeq,
+        mempool: *mut ZRMemPool,
+        allocateMemory: DDS_Boolean,
+    );
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageInitialize(self_: *mut ChatModule_ChatMessage) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageInitializeEx(
+        self_: *mut ChatModule_ChatMessage,
+        pool: *mut ZRMemPool,
+        allocateMemory: DDS_Boolean,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageFinalize(self_: *mut ChatModule_ChatMessage);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageFinalizeEx(
+        self_: *mut ChatModule_ChatMessage,
+        pool: *mut ZRMemPool,
+        deletePointers: DDS_Boolean,
+    );
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageCopy(
+        dst: *mut ChatModule_ChatMessage,
+        src: *const ChatModule_ChatMessage,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageCopyEx(
+        dst: *mut ChatModule_ChatMessage,
+        src: *const ChatModule_ChatMessage,
+        pool: *mut ZRMemPool,
+    ) -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessagePrintData(sample: *const ChatModule_ChatMessage);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetTypeCode() -> *mut TypeCode;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageCreateSample(
+        pool: *mut ZRMemPool,
+        allocMutable: DDS_Boolean,
+    ) -> *mut ChatModule_ChatMessage;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDestroySample(
+        pool: *mut ZRMemPool,
+        sample: *mut ChatModule_ChatMessage,
+    );
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetSerializedSampleMaxSize() -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetSerializedSampleSize(
+        sample: *const ChatModule_ChatMessage,
+        currentAlignment: DDS_ULong,
+    ) -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSerialize(
+        sample: *const ChatModule_ChatMessage,
+        cdr: *mut CDRSerializer,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDeserialize(
+        sample: *mut ChatModule_ChatMessage,
+        cdr: *mut CDRDeserializer,
+        pool: *mut ZRMemPool,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetSerializedKeyMaxSize() -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetSerializedKeySize(
+        sample: *const ChatModule_ChatMessage,
+        currentAlignment: DDS_ULong,
+    ) -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageSerializeKey(
+        sample: *const ChatModule_ChatMessage,
+        cdr: *mut CDRSerializer,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDeserializeKey(
+        sample: *mut ChatModule_ChatMessage,
+        cdr: *mut CDRDeserializer,
+        pool: *mut ZRMemPool,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetKeyHash(
+        sample: *const ChatModule_ChatMessage,
+        cdr: *mut CDRSerializer,
+        result: *mut DDS_KeyHash_t,
+    ) -> DDS_Long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageHasKey() -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageGetInnerTypeCode() -> *mut TypeCodeHeader;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageNoSerializingSupported() -> DDS_Boolean;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageFixedHeaderLength() -> DDS_ULong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageOnSiteDeserialize(
+        cdr: *mut CDRDeserializer,
+        sample: *mut ChatModule_ChatMessage,
+        offset: DDS_ULong,
+        totalSize: DDS_ULong,
+        payload: *mut DDS_Char,
+        payloadLen: DDS_ULong,
+        fixedHeaderLen: DDS_ULong,
+    ) -> DDS_Long;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ChatModule_ChatMessageDataReader {
+    _unused: [u8; 0],
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_read(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
     ) -> DDS_ReturnCode_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn DDS_ContentFilteredTopic_set_expression_paramters(
-        self_: *mut DDS_ContentFilteredTopic,
-        para: *const DDS_StringSeq,
+    pub fn ChatModule_ChatMessageDataReader_take(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
     ) -> DDS_ReturnCode_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn DDS_ContentFilteredTopic_get_filter_expression(
-        self_: *mut DDS_ContentFilteredTopic,
-    ) -> *const DDS_Char;
+    pub fn ChatModule_ChatMessageDataReader_read_next_sample(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValue: *mut ChatModule_ChatMessage,
+        sampleInfo: *mut DDS_SampleInfo,
+    ) -> DDS_ReturnCode_t;
 }
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_take_next_sample(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValue: *mut ChatModule_ChatMessage,
+        sampleInfo: *mut DDS_SampleInfo,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_read_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        handle: *const DDS_InstanceHandle_t,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_take_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        handle: *const DDS_InstanceHandle_t,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_read_next_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        previousHandle: *const DDS_InstanceHandle_t,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_take_next_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        previousHandle: *const DDS_InstanceHandle_t,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_return_loan(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_return_recv_buffer(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        sampleInfo: *mut DDS_SampleInfo,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_loan_recv_buffer(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        sampleInfo: *mut DDS_SampleInfo,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_key_value(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        keyHolder: *mut ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_lookup_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        instance: *const ChatModule_ChatMessage,
+    ) -> DDS_InstanceHandle_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_data_instance(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataHandles: *mut DDS_InstanceHandleSeq,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_read_next_instance_w_condition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        previousHandle: *const DDS_InstanceHandle_t,
+        condition: *mut DDS_ReadCondition,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_take_next_instance_w_condition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        previousHandle: *const DDS_InstanceHandle_t,
+        condition: *mut DDS_ReadCondition,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_read_w_condition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        condition: *mut DDS_ReadCondition,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_take_w_condition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        dataValues: *mut ChatModule_ChatMessageSeq,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        maxSamples: DDS_Long,
+        condition: *mut DDS_ReadCondition,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_create_readcondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> *mut DDS_ReadCondition;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_delete_readcondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        condition: *mut DDS_ReadCondition,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_delete_contained_entities(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_create_querycondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+        queryExpression: *const DDS_Char,
+        queryParameters: *const DDS_StringSeq,
+    ) -> *mut DDS_QueryCondition;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_set_qos(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        qoslist: *const DDS_DataReaderQos,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_qos(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        qoslist: *mut DDS_DataReaderQos,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_set_listener(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        listener: *mut DDS_DataReaderListener,
+        mask: DDS_StatusKindMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_enable(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_as_entity(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> *mut DDS_Entity;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_listener(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> *mut DDS_DataReaderListener;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_liveliness_changed_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_LivelinessChangedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_requested_deadline_missed_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_RequestedDeadlineMissedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_subscription_matched_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_SubscriptionMatchedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_matched_publication_data(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        publicationData: *mut DDS_PublicationBuiltinTopicData,
+        publicationHandle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_matched_publications(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        publicationHandles: *mut DDS_InstanceHandleSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_sample_lost_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_SampleLostStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_sample_rejected_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_SampleRejectedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_subscriber(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> *mut DDS_Subscriber;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_topicdescription(
+        self_: *mut ChatModule_ChatMessageDataReader,
+    ) -> *mut DDS_TopicDescription;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_requested_incompatible_qos_status(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        status: *mut DDS_RequestedIncompatibleQosStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_wait_for_historical_data(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        maxWait: *const DDS_Duration_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_set_qos_with_profile(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        library_name: *const DDS_Char,
+        profile_name: *const DDS_Char,
+        qos_name: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_create_named_readcondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        name: *const DDS_Char,
+        sampleMask: DDS_SampleStateMask,
+        viewMask: DDS_ViewStateMask,
+        instanceMask: DDS_InstanceStateMask,
+    ) -> *mut DDS_ReadCondition;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_delete_named_readcondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        name: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_get_named_readcondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        name: *const DDS_Char,
+    ) -> *mut DDS_ReadCondition;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_create_named_querycondition(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        name: *const DDS_Char,
+        sample_mask: DDS_SampleStateMask,
+        view_mask: DDS_ViewStateMask,
+        instance_mask: DDS_InstanceStateMask,
+        query_expression: *const DDS_Char,
+        query_parameters: *const DDS_StringSeq,
+    ) -> *mut DDS_QueryCondition;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataReader_record_data(
+        self_: *mut ChatModule_ChatMessageDataReader,
+        sampleInfos: *mut DDS_SampleInfoSeq,
+        finish: ZR_BOOLEAN,
+    ) -> DDS_ReturnCode_t;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_OfferedIncompatibleQosStatus {
+    pub total_count: DDS_Long,
+    pub total_count_change: DDS_Long,
+    pub last_policy_id: DDS_QosPolicyId_t,
+    pub policies: DDS_QosPolicyCountSeq,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_OfferedIncompatibleQosStatus"]
+        [::std::mem::size_of::<DDS_OfferedIncompatibleQosStatus>() - 88usize];
+    ["Alignment of DDS_OfferedIncompatibleQosStatus"]
+        [::std::mem::align_of::<DDS_OfferedIncompatibleQosStatus>() - 8usize];
+    ["Offset of field: DDS_OfferedIncompatibleQosStatus::total_count"]
+        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, total_count) - 0usize];
+    ["Offset of field: DDS_OfferedIncompatibleQosStatus::total_count_change"]
+        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, total_count_change) - 4usize];
+    ["Offset of field: DDS_OfferedIncompatibleQosStatus::last_policy_id"]
+        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, last_policy_id) - 8usize];
+    ["Offset of field: DDS_OfferedIncompatibleQosStatus::policies"]
+        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, policies) - 16usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_OfferedDeadlineMissedStatus {
+    pub total_count: DDS_Long,
+    pub total_count_change: DDS_Long,
+    pub last_instance_handle: DDS_InstanceHandle_t,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_OfferedDeadlineMissedStatus"]
+        [::std::mem::size_of::<DDS_OfferedDeadlineMissedStatus>() - 28usize];
+    ["Alignment of DDS_OfferedDeadlineMissedStatus"]
+        [::std::mem::align_of::<DDS_OfferedDeadlineMissedStatus>() - 4usize];
+    ["Offset of field: DDS_OfferedDeadlineMissedStatus::total_count"]
+        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, total_count) - 0usize];
+    ["Offset of field: DDS_OfferedDeadlineMissedStatus::total_count_change"]
+        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, total_count_change) - 4usize];
+    ["Offset of field: DDS_OfferedDeadlineMissedStatus::last_instance_handle"]
+        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, last_instance_handle) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_PublicationMatchedStatus {
+    pub total_count: DDS_Long,
+    pub total_count_change: DDS_Long,
+    pub current_count: DDS_Long,
+    pub current_count_change: DDS_Long,
+    pub last_subscription_handle: DDS_InstanceHandle_t,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_PublicationMatchedStatus"]
+        [::std::mem::size_of::<DDS_PublicationMatchedStatus>() - 36usize];
+    ["Alignment of DDS_PublicationMatchedStatus"]
+        [::std::mem::align_of::<DDS_PublicationMatchedStatus>() - 4usize];
+    ["Offset of field: DDS_PublicationMatchedStatus::total_count"]
+        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, total_count) - 0usize];
+    ["Offset of field: DDS_PublicationMatchedStatus::total_count_change"]
+        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, total_count_change) - 4usize];
+    ["Offset of field: DDS_PublicationMatchedStatus::current_count"]
+        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, current_count) - 8usize];
+    ["Offset of field: DDS_PublicationMatchedStatus::current_count_change"]
+        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, current_count_change) - 12usize];
+    ["Offset of field: DDS_PublicationMatchedStatus::last_subscription_handle"]
+        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, last_subscription_handle) - 16usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_LivelinessLostStatus {
+    pub total_count: DDS_Long,
+    pub total_count_change: DDS_Long,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_LivelinessLostStatus"]
+        [::std::mem::size_of::<DDS_LivelinessLostStatus>() - 8usize];
+    ["Alignment of DDS_LivelinessLostStatus"]
+        [::std::mem::align_of::<DDS_LivelinessLostStatus>() - 4usize];
+    ["Offset of field: DDS_LivelinessLostStatus::total_count"]
+        [::std::mem::offset_of!(DDS_LivelinessLostStatus, total_count) - 0usize];
+    ["Offset of field: DDS_LivelinessLostStatus::total_count_change"]
+        [::std::mem::offset_of!(DDS_LivelinessLostStatus, total_count_change) - 4usize];
+};
+pub type DataWriterListenerOfferedDeadlineMissedCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        writer: *mut DDS_DataWriter,
+        status: *const DDS_OfferedDeadlineMissedStatus,
+    ),
+>;
+pub type DataWriterListenerLivelinessLostCallback = ::std::option::Option<
+    unsafe extern "C" fn(writer: *mut DDS_DataWriter, status: *const DDS_LivelinessLostStatus),
+>;
+pub type DataWriterListenerOfferedIncompatibleQosCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        writer: *mut DDS_DataWriter,
+        status: *const DDS_OfferedIncompatibleQosStatus,
+    ),
+>;
+pub type DataWriterListenerPublicationMatchedCallback = ::std::option::Option<
+    unsafe extern "C" fn(writer: *mut DDS_DataWriter, status: *const DDS_PublicationMatchedStatus),
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_DataWriterListener {
+    pub listener: DDS_Listener,
+    pub on_offered_deadline_missed: DataWriterListenerOfferedDeadlineMissedCallback,
+    pub on_offered_incompatible_qos: DataWriterListenerOfferedIncompatibleQosCallback,
+    pub on_liveliness_lost: DataWriterListenerLivelinessLostCallback,
+    pub on_publication_matched: DataWriterListenerPublicationMatchedCallback,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_DataWriterListener"][::std::mem::size_of::<DDS_DataWriterListener>() - 40usize];
+    ["Alignment of DDS_DataWriterListener"]
+        [::std::mem::align_of::<DDS_DataWriterListener>() - 8usize];
+    ["Offset of field: DDS_DataWriterListener::listener"]
+        [::std::mem::offset_of!(DDS_DataWriterListener, listener) - 0usize];
+    ["Offset of field: DDS_DataWriterListener::on_offered_deadline_missed"]
+        [::std::mem::offset_of!(DDS_DataWriterListener, on_offered_deadline_missed) - 8usize];
+    ["Offset of field: DDS_DataWriterListener::on_offered_incompatible_qos"]
+        [::std::mem::offset_of!(DDS_DataWriterListener, on_offered_incompatible_qos) - 16usize];
+    ["Offset of field: DDS_DataWriterListener::on_liveliness_lost"]
+        [::std::mem::offset_of!(DDS_DataWriterListener, on_liveliness_lost) - 24usize];
+    ["Offset of field: DDS_DataWriterListener::on_publication_matched"]
+        [::std::mem::offset_of!(DDS_DataWriterListener, on_publication_matched) - 32usize];
+};
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct DDS_WriterDataLifecycleQosPolicy {
@@ -15323,92 +16451,6 @@ const _: () = {
         [::std::mem::offset_of!(DDS_DataWriterQos, receive_addresses) - 312usize];
     ["Offset of field: DDS_DataWriterQos::property"]
         [::std::mem::offset_of!(DDS_DataWriterQos, property) - 384usize];
-};
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DDS_LivelinessLostStatus {
-    pub total_count: DDS_Long,
-    pub total_count_change: DDS_Long,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of DDS_LivelinessLostStatus"]
-        [::std::mem::size_of::<DDS_LivelinessLostStatus>() - 8usize];
-    ["Alignment of DDS_LivelinessLostStatus"]
-        [::std::mem::align_of::<DDS_LivelinessLostStatus>() - 4usize];
-    ["Offset of field: DDS_LivelinessLostStatus::total_count"]
-        [::std::mem::offset_of!(DDS_LivelinessLostStatus, total_count) - 0usize];
-    ["Offset of field: DDS_LivelinessLostStatus::total_count_change"]
-        [::std::mem::offset_of!(DDS_LivelinessLostStatus, total_count_change) - 4usize];
-};
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DDS_OfferedDeadlineMissedStatus {
-    pub total_count: DDS_Long,
-    pub total_count_change: DDS_Long,
-    pub last_instance_handle: DDS_InstanceHandle_t,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of DDS_OfferedDeadlineMissedStatus"]
-        [::std::mem::size_of::<DDS_OfferedDeadlineMissedStatus>() - 28usize];
-    ["Alignment of DDS_OfferedDeadlineMissedStatus"]
-        [::std::mem::align_of::<DDS_OfferedDeadlineMissedStatus>() - 4usize];
-    ["Offset of field: DDS_OfferedDeadlineMissedStatus::total_count"]
-        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, total_count) - 0usize];
-    ["Offset of field: DDS_OfferedDeadlineMissedStatus::total_count_change"]
-        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, total_count_change) - 4usize];
-    ["Offset of field: DDS_OfferedDeadlineMissedStatus::last_instance_handle"]
-        [::std::mem::offset_of!(DDS_OfferedDeadlineMissedStatus, last_instance_handle) - 8usize];
-};
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DDS_OfferedIncompatibleQosStatus {
-    pub total_count: DDS_Long,
-    pub total_count_change: DDS_Long,
-    pub last_policy_id: DDS_QosPolicyId_t,
-    pub policies: DDS_QosPolicyCountSeq,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of DDS_OfferedIncompatibleQosStatus"]
-        [::std::mem::size_of::<DDS_OfferedIncompatibleQosStatus>() - 88usize];
-    ["Alignment of DDS_OfferedIncompatibleQosStatus"]
-        [::std::mem::align_of::<DDS_OfferedIncompatibleQosStatus>() - 8usize];
-    ["Offset of field: DDS_OfferedIncompatibleQosStatus::total_count"]
-        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, total_count) - 0usize];
-    ["Offset of field: DDS_OfferedIncompatibleQosStatus::total_count_change"]
-        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, total_count_change) - 4usize];
-    ["Offset of field: DDS_OfferedIncompatibleQosStatus::last_policy_id"]
-        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, last_policy_id) - 8usize];
-    ["Offset of field: DDS_OfferedIncompatibleQosStatus::policies"]
-        [::std::mem::offset_of!(DDS_OfferedIncompatibleQosStatus, policies) - 16usize];
-};
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DDS_PublicationMatchedStatus {
-    pub total_count: DDS_Long,
-    pub total_count_change: DDS_Long,
-    pub current_count: DDS_Long,
-    pub current_count_change: DDS_Long,
-    pub last_subscription_handle: DDS_InstanceHandle_t,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of DDS_PublicationMatchedStatus"]
-        [::std::mem::size_of::<DDS_PublicationMatchedStatus>() - 36usize];
-    ["Alignment of DDS_PublicationMatchedStatus"]
-        [::std::mem::align_of::<DDS_PublicationMatchedStatus>() - 4usize];
-    ["Offset of field: DDS_PublicationMatchedStatus::total_count"]
-        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, total_count) - 0usize];
-    ["Offset of field: DDS_PublicationMatchedStatus::total_count_change"]
-        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, total_count_change) - 4usize];
-    ["Offset of field: DDS_PublicationMatchedStatus::current_count"]
-        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, current_count) - 8usize];
-    ["Offset of field: DDS_PublicationMatchedStatus::current_count_change"]
-        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, current_count_change) - 12usize];
-    ["Offset of field: DDS_PublicationMatchedStatus::last_subscription_handle"]
-        [::std::mem::offset_of!(DDS_PublicationMatchedStatus, last_subscription_handle) - 16usize];
 };
 pub const DDS_TransportKind_DDS_TRANSPORT_KIND_RESERVED: DDS_TransportKind = 0;
 pub const DDS_TransportKind_DDS_TRANSPORT_KIND_UDPv4: DDS_TransportKind = 1;
@@ -16401,49 +17443,547 @@ unsafe extern "C" {
         allocateMemory: DDS_Boolean,
     );
 }
-pub type DataWriterListenerOfferedDeadlineMissedCallback = ::std::option::Option<
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ChatModule_ChatMessageDataWriter {
+    _unused: [u8; 0],
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_write(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        sample: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_write_w_timestamp(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        sample: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+        timestamp: *const DDS_Time_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_write_w_dst(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        sample: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+        timestamp: *const DDS_Time_t,
+        dst_handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_register_instance(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *mut ChatModule_ChatMessage,
+    ) -> DDS_InstanceHandle_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_register_instance_w_timestamp(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+        timestamp: *const DDS_Time_t,
+    ) -> DDS_InstanceHandle_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_unregister_instance(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_unregister_instance_w_timestamp(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+        timestamp: *const DDS_Time_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_dispose(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_dispose_w_timestamp(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+        timestamp: *const DDS_Time_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_key_value(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        keyHolder: *mut ChatModule_ChatMessage,
+        handle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_lookup_instance(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        instance: *const ChatModule_ChatMessage,
+    ) -> DDS_InstanceHandle_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_assert_liveliness(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_liveliness_lost_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_LivelinessLostStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_offered_deadline_missed_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_OfferedDeadlineMissedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_publication_matched_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_PublicationMatchedStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_matched_subscription_data(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        subscriptionData: *mut DDS_SubscriptionBuiltinTopicData,
+        subscriptionHandle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_matched_subscriptions(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        subscriptionHandles: *mut DDS_InstanceHandleSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_set_qos(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        qoslist: *const DDS_DataWriterQos,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_qos(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        qoslist: *mut DDS_DataWriterQos,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_as_entity(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> *mut DDS_Entity;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_set_listener(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        listener: *mut DDS_DataWriterListener,
+        mask: DDS_StatusKindMask,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_enable(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_listener(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> *mut DDS_DataWriterListener;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_topic(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> *mut DDS_Topic;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_publisher(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+    ) -> *mut DDS_Publisher;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_offered_incompatible_qos_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_OfferedIncompatibleQosStatus,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_wait_for_acknowledgments(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        maxWait: *const DDS_Duration_t,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_set_qos_with_profile(
+        dw: *mut ChatModule_ChatMessageDataWriter,
+        library_name: *const DDS_Char,
+        profile_name: *const DDS_Char,
+        qos_name: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_send_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_PublicationSendStatusSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_print_send_status(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_PublicationSendStatusSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageDataWriter_get_send_status_w_handle(
+        self_: *mut ChatModule_ChatMessageDataWriter,
+        status: *mut DDS_PublicationSendStatus,
+        subscriptionHandle: *const DDS_InstanceHandle_t,
+    ) -> DDS_ReturnCode_t;
+}
+pub type TypePluginCreateSampleFunction = ::std::option::Option<
     unsafe extern "C" fn(
-        writer: *mut DDS_DataWriter,
-        status: *const DDS_OfferedDeadlineMissedStatus,
+        pool: *mut ZRMemPool,
+        allocMutable: ZR_BOOLEAN,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> *mut ::std::os::raw::c_void,
+>;
+pub type TypePluginDestroySampleFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        mempool: *mut ZRMemPool,
+        sample: *mut ::std::os::raw::c_void,
+        typeSupport: *const ::std::os::raw::c_void,
     ),
 >;
-pub type DataWriterListenerLivelinessLostCallback = ::std::option::Option<
-    unsafe extern "C" fn(writer: *mut DDS_DataWriter, status: *const DDS_LivelinessLostStatus),
->;
-pub type DataWriterListenerOfferedIncompatibleQosCallback = ::std::option::Option<
+pub type TypePluginCopySampleFunction = ::std::option::Option<
     unsafe extern "C" fn(
-        writer: *mut DDS_DataWriter,
-        status: *const DDS_OfferedIncompatibleQosStatus,
-    ),
+        dst: *mut ::std::os::raw::c_void,
+        src: *const ::std::os::raw::c_void,
+        pool: *mut ZRMemPool,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_BOOLEAN,
 >;
-pub type DataWriterListenerPublicationMatchedCallback = ::std::option::Option<
-    unsafe extern "C" fn(writer: *mut DDS_DataWriter, status: *const DDS_PublicationMatchedStatus),
+pub type TypePluginGetMaxSizeFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
+>;
+pub type TypePluginGetSizeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *const ::std::os::raw::c_void,
+        currentAlignment: ZR_UINT32,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_UINT32,
+>;
+pub type TypePluginSerializeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *const ::std::os::raw::c_void,
+        cdr: *mut CDRSerializer,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginDeserializeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *mut ::std::os::raw::c_void,
+        cdr: *mut CDRDeserializer,
+        pool: *mut ZRMemPool,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginGetMaxKeySizeFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
+>;
+pub type TypePluginGetKeySizeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *const ::std::os::raw::c_void,
+        currentAlignment: ZR_UINT32,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_UINT32,
+>;
+pub type TypePluginSerializeKeyFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *const ::std::os::raw::c_void,
+        cdr: *mut CDRSerializer,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginDeserializeKeyFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *mut ::std::os::raw::c_void,
+        cdr: *mut CDRDeserializer,
+        pool: *mut ZRMemPool,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginGetKeyHashFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        sample: *const ::std::os::raw::c_void,
+        cdr: *mut CDRSerializer,
+        result: *mut DDS_KeyHash_t,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginHasKeyFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_BOOLEAN,
+>;
+pub type TypePluginCreateDataReaderFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        impl_: *mut ::std::os::raw::c_void,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> *mut ::std::os::raw::c_void,
+>;
+pub type TypePluginDestroyDataReaderFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        reader: *mut ::std::os::raw::c_void,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginCreateDataWriterFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        impl_: *mut ::std::os::raw::c_void,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> *mut ::std::os::raw::c_void,
+>;
+pub type TypePluginDestroyDataWriterFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        writer: *mut ::std::os::raw::c_void,
+        typeSupport: *const ::std::os::raw::c_void,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginGetTypeCodeFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> *mut TypeCodeHeader,
+>;
+pub type TypePluginNoSerializingSupportedFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_BOOLEAN,
+>;
+pub type TypePluginFixedHeaderLengthFunction = ::std::option::Option<
+    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
+>;
+pub type TypePluginOnSiteDeserializeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        cdr: *mut CDRDeserializer,
+        sample: *mut ::std::os::raw::c_void,
+        offset: ZR_UINT32,
+        totalSize: ZR_UINT32,
+        payload: *mut ZR_INT8,
+        payloadLen: ZR_UINT32,
+        fixedHeaderLen: ZR_UINT32,
+    ) -> ZR_INT32,
+>;
+pub type TypePluginLoanContiguousDeserializeFunction = ::std::option::Option<
+    unsafe extern "C" fn(
+        cdr: *mut CDRDeserializer,
+        sample: *mut ::std::os::raw::c_void,
+    ) -> ZR_INT32,
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct DDS_DataWriterListener {
-    pub listener: DDS_Listener,
-    pub on_offered_deadline_missed: DataWriterListenerOfferedDeadlineMissedCallback,
-    pub on_offered_incompatible_qos: DataWriterListenerOfferedIncompatibleQosCallback,
-    pub on_liveliness_lost: DataWriterListenerLivelinessLostCallback,
-    pub on_publication_matched: DataWriterListenerPublicationMatchedCallback,
+pub struct ZRDDSTypePlugin {
+    pub m_createSampleFunc: TypePluginCreateSampleFunction,
+    pub m_destroySampleFunc: TypePluginDestroySampleFunction,
+    pub m_copySampleFunc: TypePluginCopySampleFunction,
+    pub m_getMaxSizeFunc: TypePluginGetMaxSizeFunction,
+    pub m_getSizeFunc: TypePluginGetSizeFunction,
+    pub m_serializeFunc: TypePluginSerializeFunction,
+    pub m_deserializeFunc: TypePluginDeserializeFunction,
+    pub m_getMaxKeySizeFunc: TypePluginGetMaxKeySizeFunction,
+    pub m_getKeySizeFunc: TypePluginGetKeySizeFunction,
+    pub m_serializeKeyFunc: TypePluginSerializeKeyFunction,
+    pub m_deserializeKeyFunc: TypePluginDeserializeKeyFunction,
+    pub m_getKeyHashFunc: TypePluginGetKeyHashFunction,
+    pub m_hasKeyFunc: TypePluginHasKeyFunction,
+    pub m_createDataReaderFunc: TypePluginCreateDataReaderFunction,
+    pub m_destroyDataReaderFunc: TypePluginDestroyDataReaderFunction,
+    pub m_createDataWriterFunc: TypePluginCreateDataWriterFunction,
+    pub m_destroyDataWriterFunc: TypePluginDestroyDataWriterFunction,
+    pub m_typecodeFunc: TypePluginGetTypeCodeFunction,
+    pub m_onSiteDeserializeFunc: TypePluginOnSiteDeserializeFunction,
+    pub m_fixedHeaderLengthFunc: TypePluginFixedHeaderLengthFunction,
+    pub m_noSerializingSupportedFunc: TypePluginNoSerializingSupportedFunction,
+    pub m_loanCongitiousDeserializeFunc: TypePluginLoanContiguousDeserializeFunction,
+    pub m_typeSupport: *mut ::std::os::raw::c_void,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of DDS_DataWriterListener"][::std::mem::size_of::<DDS_DataWriterListener>() - 40usize];
-    ["Alignment of DDS_DataWriterListener"]
-        [::std::mem::align_of::<DDS_DataWriterListener>() - 8usize];
-    ["Offset of field: DDS_DataWriterListener::listener"]
-        [::std::mem::offset_of!(DDS_DataWriterListener, listener) - 0usize];
-    ["Offset of field: DDS_DataWriterListener::on_offered_deadline_missed"]
-        [::std::mem::offset_of!(DDS_DataWriterListener, on_offered_deadline_missed) - 8usize];
-    ["Offset of field: DDS_DataWriterListener::on_offered_incompatible_qos"]
-        [::std::mem::offset_of!(DDS_DataWriterListener, on_offered_incompatible_qos) - 16usize];
-    ["Offset of field: DDS_DataWriterListener::on_liveliness_lost"]
-        [::std::mem::offset_of!(DDS_DataWriterListener, on_liveliness_lost) - 24usize];
-    ["Offset of field: DDS_DataWriterListener::on_publication_matched"]
-        [::std::mem::offset_of!(DDS_DataWriterListener, on_publication_matched) - 32usize];
+    ["Size of ZRDDSTypePlugin"][::std::mem::size_of::<ZRDDSTypePlugin>() - 184usize];
+    ["Alignment of ZRDDSTypePlugin"][::std::mem::align_of::<ZRDDSTypePlugin>() - 8usize];
+    ["Offset of field: ZRDDSTypePlugin::m_createSampleFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createSampleFunc) - 0usize];
+    ["Offset of field: ZRDDSTypePlugin::m_destroySampleFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroySampleFunc) - 8usize];
+    ["Offset of field: ZRDDSTypePlugin::m_copySampleFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_copySampleFunc) - 16usize];
+    ["Offset of field: ZRDDSTypePlugin::m_getMaxSizeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getMaxSizeFunc) - 24usize];
+    ["Offset of field: ZRDDSTypePlugin::m_getSizeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getSizeFunc) - 32usize];
+    ["Offset of field: ZRDDSTypePlugin::m_serializeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_serializeFunc) - 40usize];
+    ["Offset of field: ZRDDSTypePlugin::m_deserializeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_deserializeFunc) - 48usize];
+    ["Offset of field: ZRDDSTypePlugin::m_getMaxKeySizeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getMaxKeySizeFunc) - 56usize];
+    ["Offset of field: ZRDDSTypePlugin::m_getKeySizeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getKeySizeFunc) - 64usize];
+    ["Offset of field: ZRDDSTypePlugin::m_serializeKeyFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_serializeKeyFunc) - 72usize];
+    ["Offset of field: ZRDDSTypePlugin::m_deserializeKeyFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_deserializeKeyFunc) - 80usize];
+    ["Offset of field: ZRDDSTypePlugin::m_getKeyHashFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getKeyHashFunc) - 88usize];
+    ["Offset of field: ZRDDSTypePlugin::m_hasKeyFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_hasKeyFunc) - 96usize];
+    ["Offset of field: ZRDDSTypePlugin::m_createDataReaderFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createDataReaderFunc) - 104usize];
+    ["Offset of field: ZRDDSTypePlugin::m_destroyDataReaderFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroyDataReaderFunc) - 112usize];
+    ["Offset of field: ZRDDSTypePlugin::m_createDataWriterFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createDataWriterFunc) - 120usize];
+    ["Offset of field: ZRDDSTypePlugin::m_destroyDataWriterFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroyDataWriterFunc) - 128usize];
+    ["Offset of field: ZRDDSTypePlugin::m_typecodeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_typecodeFunc) - 136usize];
+    ["Offset of field: ZRDDSTypePlugin::m_onSiteDeserializeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_onSiteDeserializeFunc) - 144usize];
+    ["Offset of field: ZRDDSTypePlugin::m_fixedHeaderLengthFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_fixedHeaderLengthFunc) - 152usize];
+    ["Offset of field: ZRDDSTypePlugin::m_noSerializingSupportedFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_noSerializingSupportedFunc) - 160usize];
+    ["Offset of field: ZRDDSTypePlugin::m_loanCongitiousDeserializeFunc"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_loanCongitiousDeserializeFunc) - 168usize];
+    ["Offset of field: ZRDDSTypePlugin::m_typeSupport"]
+        [::std::mem::offset_of!(ZRDDSTypePlugin, m_typeSupport) - 176usize];
 };
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DomainParticipantRegisterType(
+        self_: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+        typePlugin: *mut ZRDDSTypePlugin,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DomainParticipantUnRegisterType(
+        self_: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+pub type ZRDDSTypeSupportRegisterTypeFunc = ::std::option::Option<
+    unsafe extern "C" fn(
+        participant: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+    ) -> DDS_ReturnCode_t,
+>;
+pub type ZRDDSTypeSupportUnRegisterTypeFunc = ::std::option::Option<
+    unsafe extern "C" fn(
+        participant: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+    ) -> DDS_ReturnCode_t,
+>;
+pub type ZRDDSTypeSupportGetTypeNameFunc =
+    ::std::option::Option<unsafe extern "C" fn() -> *const DDS_Char>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DDS_TypeSupport {
+    pub register_type_func: ZRDDSTypeSupportRegisterTypeFunc,
+    pub unregister_type_func: ZRDDSTypeSupportUnRegisterTypeFunc,
+    pub get_typename_func: ZRDDSTypeSupportGetTypeNameFunc,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DDS_TypeSupport"][::std::mem::size_of::<DDS_TypeSupport>() - 24usize];
+    ["Alignment of DDS_TypeSupport"][::std::mem::align_of::<DDS_TypeSupport>() - 8usize];
+    ["Offset of field: DDS_TypeSupport::register_type_func"]
+        [::std::mem::offset_of!(DDS_TypeSupport, register_type_func) - 0usize];
+    ["Offset of field: DDS_TypeSupport::unregister_type_func"]
+        [::std::mem::offset_of!(DDS_TypeSupport, unregister_type_func) - 8usize];
+    ["Offset of field: DDS_TypeSupport::get_typename_func"]
+        [::std::mem::offset_of!(DDS_TypeSupport, get_typename_func) - 16usize];
+};
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageTypeSupport_register_type(
+        participant: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageTypeSupport_unregister_type(
+        participant: *mut DDS_DomainParticipant,
+        typeName: *const DDS_Char,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn ChatModule_ChatMessageTypeSupport_get_type_name() -> *const DDS_Char;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub static mut ChatModule_ChatMessageTypeSupport_instance: DDS_TypeSupport;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DDS_ContentFilterTopic_get_related_topic(
+        self_: *mut DDS_ContentFilteredTopic,
+    ) -> *mut DDS_Topic;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DDS_ContentFilteredTopic_get_expression_paramters(
+        self_: *mut DDS_ContentFilteredTopic,
+        para: *mut DDS_StringSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DDS_ContentFilteredTopic_set_expression_paramters(
+        self_: *mut DDS_ContentFilteredTopic,
+        para: *const DDS_StringSeq,
+    ) -> DDS_ReturnCode_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn DDS_ContentFilteredTopic_get_filter_expression(
+        self_: *mut DDS_ContentFilteredTopic,
+    ) -> *const DDS_Char;
+}
 pub type DDS_DomainId_t = DDS_ULong;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -16751,264 +18291,6 @@ const _: () = {
         [::std::mem::offset_of!(DDS_DomainParticipantListener, publisherlistener) - 16usize];
     ["Offset of field: DDS_DomainParticipantListener::subscriberlistener"]
         [::std::mem::offset_of!(DDS_DomainParticipantListener, subscriberlistener) - 56usize];
-};
-pub type TypePluginCreateSampleFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        pool: *mut ZRMemPool,
-        allocMutable: ZR_BOOLEAN,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type TypePluginDestroySampleFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        mempool: *mut ZRMemPool,
-        sample: *mut ::std::os::raw::c_void,
-        typeSupport: *const ::std::os::raw::c_void,
-    ),
->;
-pub type TypePluginCopySampleFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        dst: *mut ::std::os::raw::c_void,
-        src: *const ::std::os::raw::c_void,
-        pool: *mut ZRMemPool,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_BOOLEAN,
->;
-pub type TypePluginGetMaxSizeFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
->;
-pub type TypePluginGetSizeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *const ::std::os::raw::c_void,
-        currentAlignment: ZR_UINT32,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_UINT32,
->;
-pub type TypePluginSerializeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *const ::std::os::raw::c_void,
-        cdr: *mut CDRSerializer,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginDeserializeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *mut ::std::os::raw::c_void,
-        cdr: *mut CDRDeserializer,
-        pool: *mut ZRMemPool,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginGetMaxKeySizeFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
->;
-pub type TypePluginGetKeySizeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *const ::std::os::raw::c_void,
-        currentAlignment: ZR_UINT32,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_UINT32,
->;
-pub type TypePluginSerializeKeyFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *const ::std::os::raw::c_void,
-        cdr: *mut CDRSerializer,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginDeserializeKeyFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *mut ::std::os::raw::c_void,
-        cdr: *mut CDRDeserializer,
-        pool: *mut ZRMemPool,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginGetKeyHashFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        sample: *const ::std::os::raw::c_void,
-        cdr: *mut CDRSerializer,
-        result: *mut DDS_KeyHash_t,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginHasKeyFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_BOOLEAN,
->;
-pub type TypePluginCreateDataReaderFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        impl_: *mut ::std::os::raw::c_void,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type TypePluginDestroyDataReaderFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        reader: *mut ::std::os::raw::c_void,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginCreateDataWriterFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        impl_: *mut ::std::os::raw::c_void,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type TypePluginDestroyDataWriterFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        writer: *mut ::std::os::raw::c_void,
-        typeSupport: *const ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-pub type TypePluginGetTypeCodeFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> *mut TypeCodeHeader,
->;
-pub type TypePluginNoSerializingSupportedFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_BOOLEAN,
->;
-pub type TypePluginFixedHeaderLengthFunction = ::std::option::Option<
-    unsafe extern "C" fn(typeSupport: *const ::std::os::raw::c_void) -> ZR_UINT32,
->;
-pub type TypePluginOnSiteDeserializeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        cdr: *mut CDRDeserializer,
-        sample: *mut ::std::os::raw::c_void,
-        offset: ZR_UINT32,
-        totalSize: ZR_UINT32,
-        payload: *mut ZR_INT8,
-        payloadLen: ZR_UINT32,
-        fixedHeaderLen: ZR_UINT32,
-    ) -> ZR_INT32,
->;
-pub type TypePluginLoanContiguousDeserializeFunction = ::std::option::Option<
-    unsafe extern "C" fn(
-        cdr: *mut CDRDeserializer,
-        sample: *mut ::std::os::raw::c_void,
-    ) -> ZR_INT32,
->;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ZRDDSTypePlugin {
-    pub m_createSampleFunc: TypePluginCreateSampleFunction,
-    pub m_destroySampleFunc: TypePluginDestroySampleFunction,
-    pub m_copySampleFunc: TypePluginCopySampleFunction,
-    pub m_getMaxSizeFunc: TypePluginGetMaxSizeFunction,
-    pub m_getSizeFunc: TypePluginGetSizeFunction,
-    pub m_serializeFunc: TypePluginSerializeFunction,
-    pub m_deserializeFunc: TypePluginDeserializeFunction,
-    pub m_getMaxKeySizeFunc: TypePluginGetMaxKeySizeFunction,
-    pub m_getKeySizeFunc: TypePluginGetKeySizeFunction,
-    pub m_serializeKeyFunc: TypePluginSerializeKeyFunction,
-    pub m_deserializeKeyFunc: TypePluginDeserializeKeyFunction,
-    pub m_getKeyHashFunc: TypePluginGetKeyHashFunction,
-    pub m_hasKeyFunc: TypePluginHasKeyFunction,
-    pub m_createDataReaderFunc: TypePluginCreateDataReaderFunction,
-    pub m_destroyDataReaderFunc: TypePluginDestroyDataReaderFunction,
-    pub m_createDataWriterFunc: TypePluginCreateDataWriterFunction,
-    pub m_destroyDataWriterFunc: TypePluginDestroyDataWriterFunction,
-    pub m_typecodeFunc: TypePluginGetTypeCodeFunction,
-    pub m_onSiteDeserializeFunc: TypePluginOnSiteDeserializeFunction,
-    pub m_fixedHeaderLengthFunc: TypePluginFixedHeaderLengthFunction,
-    pub m_noSerializingSupportedFunc: TypePluginNoSerializingSupportedFunction,
-    pub m_loanCongitiousDeserializeFunc: TypePluginLoanContiguousDeserializeFunction,
-    pub m_typeSupport: *mut ::std::os::raw::c_void,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of ZRDDSTypePlugin"][::std::mem::size_of::<ZRDDSTypePlugin>() - 184usize];
-    ["Alignment of ZRDDSTypePlugin"][::std::mem::align_of::<ZRDDSTypePlugin>() - 8usize];
-    ["Offset of field: ZRDDSTypePlugin::m_createSampleFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createSampleFunc) - 0usize];
-    ["Offset of field: ZRDDSTypePlugin::m_destroySampleFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroySampleFunc) - 8usize];
-    ["Offset of field: ZRDDSTypePlugin::m_copySampleFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_copySampleFunc) - 16usize];
-    ["Offset of field: ZRDDSTypePlugin::m_getMaxSizeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getMaxSizeFunc) - 24usize];
-    ["Offset of field: ZRDDSTypePlugin::m_getSizeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getSizeFunc) - 32usize];
-    ["Offset of field: ZRDDSTypePlugin::m_serializeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_serializeFunc) - 40usize];
-    ["Offset of field: ZRDDSTypePlugin::m_deserializeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_deserializeFunc) - 48usize];
-    ["Offset of field: ZRDDSTypePlugin::m_getMaxKeySizeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getMaxKeySizeFunc) - 56usize];
-    ["Offset of field: ZRDDSTypePlugin::m_getKeySizeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getKeySizeFunc) - 64usize];
-    ["Offset of field: ZRDDSTypePlugin::m_serializeKeyFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_serializeKeyFunc) - 72usize];
-    ["Offset of field: ZRDDSTypePlugin::m_deserializeKeyFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_deserializeKeyFunc) - 80usize];
-    ["Offset of field: ZRDDSTypePlugin::m_getKeyHashFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_getKeyHashFunc) - 88usize];
-    ["Offset of field: ZRDDSTypePlugin::m_hasKeyFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_hasKeyFunc) - 96usize];
-    ["Offset of field: ZRDDSTypePlugin::m_createDataReaderFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createDataReaderFunc) - 104usize];
-    ["Offset of field: ZRDDSTypePlugin::m_destroyDataReaderFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroyDataReaderFunc) - 112usize];
-    ["Offset of field: ZRDDSTypePlugin::m_createDataWriterFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_createDataWriterFunc) - 120usize];
-    ["Offset of field: ZRDDSTypePlugin::m_destroyDataWriterFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_destroyDataWriterFunc) - 128usize];
-    ["Offset of field: ZRDDSTypePlugin::m_typecodeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_typecodeFunc) - 136usize];
-    ["Offset of field: ZRDDSTypePlugin::m_onSiteDeserializeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_onSiteDeserializeFunc) - 144usize];
-    ["Offset of field: ZRDDSTypePlugin::m_fixedHeaderLengthFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_fixedHeaderLengthFunc) - 152usize];
-    ["Offset of field: ZRDDSTypePlugin::m_noSerializingSupportedFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_noSerializingSupportedFunc) - 160usize];
-    ["Offset of field: ZRDDSTypePlugin::m_loanCongitiousDeserializeFunc"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_loanCongitiousDeserializeFunc) - 168usize];
-    ["Offset of field: ZRDDSTypePlugin::m_typeSupport"]
-        [::std::mem::offset_of!(ZRDDSTypePlugin, m_typeSupport) - 176usize];
-};
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn DomainParticipantRegisterType(
-        self_: *mut DDS_DomainParticipant,
-        typeName: *const DDS_Char,
-        typePlugin: *mut ZRDDSTypePlugin,
-    ) -> DDS_ReturnCode_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn DomainParticipantUnRegisterType(
-        self_: *mut DDS_DomainParticipant,
-        typeName: *const DDS_Char,
-    ) -> DDS_ReturnCode_t;
-}
-pub type ZRDDSTypeSupportRegisterTypeFunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        participant: *mut DDS_DomainParticipant,
-        typeName: *const DDS_Char,
-    ) -> DDS_ReturnCode_t,
->;
-pub type ZRDDSTypeSupportUnRegisterTypeFunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        participant: *mut DDS_DomainParticipant,
-        typeName: *const DDS_Char,
-    ) -> DDS_ReturnCode_t,
->;
-pub type ZRDDSTypeSupportGetTypeNameFunc =
-    ::std::option::Option<unsafe extern "C" fn() -> *const DDS_Char>;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DDS_TypeSupport {
-    pub register_type_func: ZRDDSTypeSupportRegisterTypeFunc,
-    pub unregister_type_func: ZRDDSTypeSupportUnRegisterTypeFunc,
-    pub get_typename_func: ZRDDSTypeSupportGetTypeNameFunc,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of DDS_TypeSupport"][::std::mem::size_of::<DDS_TypeSupport>() - 24usize];
-    ["Alignment of DDS_TypeSupport"][::std::mem::align_of::<DDS_TypeSupport>() - 8usize];
-    ["Offset of field: DDS_TypeSupport::register_type_func"]
-        [::std::mem::offset_of!(DDS_TypeSupport, register_type_func) - 0usize];
-    ["Offset of field: DDS_TypeSupport::unregister_type_func"]
-        [::std::mem::offset_of!(DDS_TypeSupport, unregister_type_func) - 8usize];
-    ["Offset of field: DDS_TypeSupport::get_typename_func"]
-        [::std::mem::offset_of!(DDS_TypeSupport, get_typename_func) - 16usize];
 };
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -19208,241 +20490,6 @@ unsafe extern "C" {
         status: *mut DDS_PublicationSendStatus,
         dst_handle: *const DDS_InstanceHandle_t,
     ) -> DDS_ReturnCode_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetKind(self_: *const TypeCode) -> TCTypeKind;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeCompare(typeCode1: *const TypeCode, typeCode2: *const TypeCode) -> ZR_BOOLEAN;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetName(self_: *const TypeCode) -> *const ZR_INT8;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetMemberCount(self_: *const TypeCode) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetMemberName(self_: *const TypeCode, index: ZR_UINT32) -> *const ZR_INT8;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetBaseType(self_: *const TypeCodeHeader) -> *const TypeCodeHeader;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetElementType(self_: *const TypeCode) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetIndexByName(self_: *const TypeCode, name: *const ZR_INT8) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetMemberType(self_: *const TypeCode, index: ZR_UINT32) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetLabelCount(self_: *const TypeCode, index: ZR_UINT32) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetLabel(
-        self_: *const TypeCode,
-        memberIdx: ZR_UINT32,
-        labelIdx: ZR_UINT32,
-        expCode: *mut TypeCodeExceptionCode,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetDefaultIndex(self_: *const TypeCode) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetEnumVal(
-        self_: *const TypeCode,
-        memberIdx: ZR_UINT32,
-        expCode: *mut TypeCodeExceptionCode,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetEnumString(
-        self_: *const TypeCode,
-        enumVal: ZR_UINT32,
-        expCode: *mut TypeCodeExceptionCode,
-    ) -> *const ZR_INT8;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeIsMemberKey(
-        self_: *const TypeCode,
-        index: ZR_UINT32,
-        expCode: *mut TypeCodeExceptionCode,
-    ) -> ZR_BOOLEAN;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetArrayDimensionCount(self_: *const TypeCode) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetArrayDimension(self_: *const TypeCode, index: ZR_UINT32) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetMaxLength(self_: *const TypeCodeHeader) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetArrayElementCount(self_: *const TypeCode) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeAddMemberToEnum(
-        self_: *mut TypeCode,
-        index: ZR_UINT32,
-        name: *const ZR_INT8,
-        value: ZR_UINT32,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeAddMemberToUnion(
-        self_: *mut TypeCode,
-        index: ZR_UINT32,
-        name: *const ZR_INT8,
-        labelCount: ZR_UINT32,
-        labels: *mut ZR_UINT32,
-        tc: *const TypeCode,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeAddMemberToStruct(
-        self_: *mut TypeCode,
-        index: ZR_UINT32,
-        memberId: ZR_UINT32,
-        name: *const ZR_INT8,
-        tc: *const TypeCode,
-        isKey: ZR_BOOLEAN,
-        isOption: ZR_BOOLEAN,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeAddMemberToValueType(
-        self_: *mut TypeCode,
-        index: ZR_UINT32,
-        memberId: ZR_UINT32,
-        name: *const ZR_INT8,
-        tc: *const TypeCode,
-        isKey: ZR_BOOLEAN,
-        isOption: ZR_BOOLEAN,
-    ) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeGetTypePrintableString(self_: *const TypeCodeHeader) -> *mut ZR_INT8;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeReleasePrintableString(buffer: *mut ZR_INT8);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodePrintIDL(self_: *const TypeCode) -> ZR_INT32;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryGetInstance() -> *mut TypeCodeFactory;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryFinalize() -> ZR_BOOLEAN;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryGetPrimitiveTC(
-        self_: *mut TypeCodeFactory,
-        kind: TCTypeKind,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateStructTC(
-        self_: *mut TypeCodeFactory,
-        name: *const ZR_INT8,
-        kind: ExtensibilityKind,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateValueTypeTC(
-        self_: *mut TypeCodeFactory,
-        name: *const ZR_INT8,
-        modifierKind: TypeCodeModifierKind,
-        kind: ExtensibilityKind,
-        baseTC: *const TypeCode,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateEnumTC(
-        self_: *mut TypeCodeFactory,
-        name: *const ZR_INT8,
-        bitBound: ZR_UINT32,
-        kind: ExtensibilityKind,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateUnionTC(
-        self_: *mut TypeCodeFactory,
-        name: *const ZR_INT8,
-        switchTC: *const TypeCode,
-        defaultIdx: ZR_UINT32,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateStringTC(
-        self_: *mut TypeCodeFactory,
-        length: ZR_UINT32,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateSequenceTC(
-        self_: *mut TypeCodeFactory,
-        maxLength: ZR_UINT32,
-        tc: *const TypeCode,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCreateArrayTC(
-        self_: *mut TypeCodeFactory,
-        dimensionCount: ZR_UINT32,
-        dimensions: *const ZR_UINT32,
-        tc: *const TypeCode,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryCloneTC(
-        self_: *mut TypeCodeFactory,
-        tc: *const TypeCode,
-    ) -> *mut TypeCode;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn TypeCodeFactoryDeleteTC(self_: *mut TypeCodeFactory, tc: *mut TypeCode) -> ZR_BOOLEAN;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {

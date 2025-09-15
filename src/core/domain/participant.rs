@@ -6,6 +6,11 @@ use crate::core::topic::Topic;
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
+use crate::core::topic_listener::TopicListener;
+use crate::core::{PublisherQos, SubscriberQos, TopicQos, Writer};
+use crate::core::publisher_listener::PublisherListener;
+use crate::core::subscriber_listener::SubscriberListener;
+use crate::core::type_support::TypeSupport;
 
 /// 统一的DomainParticipant结构体，同时支持高级API和底层API
 pub struct DomainParticipant {
@@ -17,13 +22,13 @@ impl DomainParticipant {
     pub fn publish(
         &self,
         topic_name: &str,
-        type_support: *mut DDS_TypeSupport,
+        type_support: &TypeSupport,
         qos_name: &str,
-    ) -> crate::core::publication::Writer {
+    ) -> Writer {
         unsafe {
             let topic_name = CString::new(topic_name).unwrap();
             let qos_name = CString::new(qos_name).unwrap();
-            let type_support = type_support as *mut DDS_TypeSupport;
+            let type_support = type_support.raw;
             let writer = DDS_PubTopic(
                 self.raw,
                 topic_name.as_ptr(),
@@ -31,7 +36,7 @@ impl DomainParticipant {
                 qos_name.as_ptr(),
                 std::ptr::null_mut(),
             );
-            crate::core::publication::Writer::new(writer)
+            Writer::new(writer)
         }
     }
 
@@ -44,8 +49,8 @@ impl DomainParticipant {
         self_: &DomainParticipant,
         topic_name: &str,
         type_name: &str,
-        qoslist: *const DDS_TopicQos,
-        listener: *mut DDS_TopicListener,
+        qoslist: &TopicQos,
+        listener: &TopicListener,
         mask: u32,
     ) -> Option<Topic> {
         let topicName = CString::new(topic_name).unwrap();
@@ -57,8 +62,8 @@ impl DomainParticipant {
                     self_.raw,
                     topicName.as_ptr(),
                     typeName.as_ptr(),
-                    qoslist,
-                    listener,
+                    qoslist.raw,
+                    listener.raw,
                     mask,
                 )
             },
@@ -79,12 +84,12 @@ impl DomainParticipant {
     pub fn create_subscriber(
         &self,
         self_: &DomainParticipant,
-        qoslist: *const DDS_SubscriberQos,
-        listener: *mut DDS_SubscriberListener,
+        qoslist: &SubscriberQos,
+        listener: &SubscriberListener,
         mask: u32,
     ) -> Option<Subscriber> {
         let subscriber =
-            unsafe { DDS_DomainParticipant_create_subscriber(self_.raw, qoslist, listener, mask) };
+            unsafe { DDS_DomainParticipant_create_subscriber(self_.raw, qoslist.raw, listener.raw, mask) };
 
         if subscriber.is_null() {
             None
@@ -103,12 +108,12 @@ impl DomainParticipant {
     pub fn create_publisher(
         &self,
         self_: &DomainParticipant,
-        qoslist: *const DDS_PublisherQos,
-        listener: *mut DDS_PublisherListener,
+        qoslist: &PublisherQos,
+        listener: &PublisherListener,
         mask: u32,
     ) -> Option<Publisher> {
         let publisher =
-            unsafe { DDS_DomainParticipant_create_publisher(self_.raw, qoslist, listener, mask) };
+            unsafe { DDS_DomainParticipant_create_publisher(self_.raw, qoslist.raw, listener.raw, mask) };
 
         if publisher.is_null() {
             None

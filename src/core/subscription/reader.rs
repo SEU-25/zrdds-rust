@@ -1,11 +1,12 @@
 use crate::bindings::*;
 use crate::core::subscription::Subscriber;
 use std::marker::PhantomData;
+use crate::core::ReaderListener;
 
 /// 统一的Reader结构体，同时支持高级API和底层API
 pub struct Reader<'a, 'b> {
-    pub(crate) raw: *mut DDS_DataReader,
-    pub(crate) _marker: PhantomData<&'b Subscriber<'a>>,
+    pub raw: *mut DDS_DataReader,
+    pub _marker: PhantomData<&'b Subscriber<'a>>,
 }
 
 /// 简化构造函数，用于高级API
@@ -23,8 +24,8 @@ impl Reader<'_, '_> {
 
     本方法将覆盖原有监听器，如果设置空对象表示清除原先设置的监听器。
     */
-    pub fn set_listener(self_: Reader, listener: *mut DDS_DataReaderListener, mask: u32) -> i32 {
-        unsafe { DDS_BytesDataReader_set_listener(self_.raw.cast(), listener, mask) }
+    pub fn set_listener(self_: Reader, listener: &mut ReaderListener, mask: u32) -> i32 {
+        unsafe { DDS_BytesDataReader_set_listener(self_.raw.cast(), listener.as_mut_ptr(), mask) }
     }
 }
 

@@ -42,6 +42,8 @@ pub struct DioxusAppState {
     pub app_state: AppState, // 应用当前状态
     pub domain_id: Option<u32>, // DDS域号
     pub domain_input: String, // 域号输入字段
+    pub private_chat_enabled: bool, // 私聊模式开关
+    pub selected_user: Option<String>, // 选中的私聊用户
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -69,6 +71,8 @@ impl Default for DioxusAppState {
             app_state: AppState::DomainInput,
             domain_id: None,
             domain_input: String::new(),
+            private_chat_enabled: false,
+            selected_user: None,
         }
     }
 }
@@ -575,6 +579,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                     chat_writer: chat_writer.clone(),
                     writer: writer.clone(),
                     danmaku_messages,
+                    mouse_positions,
                 }
             }
 
@@ -796,12 +801,16 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         div {
                             "style": "display: flex; gap: 8px; flex-wrap: wrap;",
                             {
-                                let has_media = !images.read().is_empty();
+                                let has_media = !images.read().is_empty() || !videos.read().is_empty();
                                 let has_queue = !app_state.read().image_queue.is_empty();
                                 
-                                let queue_button_style = "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;";
+                                let queue_button_style = if has_media || has_queue {
+                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                } else {
+                                    "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                };
                                 
-                                let video_button_style = if has_media {
+                                let video_button_style = if has_media || has_queue {
                                     "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
                                 } else {
                                     "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
@@ -823,9 +832,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                         "style": video_button_style,
                                         disabled: has_media||has_queue,
                                         onclick: move |_| {
-                                            if !has_media {
-                                                upload_video(video_writer.clone());
-                                            }
+                                            upload_video(video_writer.clone());
                                         },
                                         "🎥 上传视频"
                                     }
@@ -1195,6 +1202,7 @@ struct ChatPanelProps {
     chat_writer: Arc<Mutex<Writer>>,
     writer: Arc<Mutex<Writer>>,
     danmaku_messages: Signal<Vec<DioxusDanmakuMessage>>,
+    mouse_positions: Signal<HashMap<String, MouseState>>,
 }
 
 impl PartialEq for ChatPanelProps {
@@ -1219,6 +1227,7 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
         chat_writer,
         writer,
         danmaku_messages,
+        mouse_positions,
     } = props;
     rsx! {
         div {
@@ -1318,7 +1327,13 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                     if !message.trim().is_empty() {
                                         let _danmaku_clone = danmaku_messages.clone();
                                         let current_color = app_state.read().current_color;
+
                                         send_chat_message(message, current_color, chat_writer_clone.clone());
+
+                                        let private_chat_enabled = app_state.read().private_chat_enabled;
+                                        let selected_user = app_state.read().selected_user.clone();
+                                        send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
+
                                         app_state.write().chat_input.clear();
                                     }
                                 }
@@ -1337,12 +1352,97 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                 if !message.trim().is_empty() {
                                     let _danmaku_clone = danmaku_messages.clone();
                                     let current_color = app_state.read().current_color;
+
                                     send_chat_message(message, current_color, chat_writer_clone.clone());
+
+                                    let private_chat_enabled = app_state.read().private_chat_enabled;
+                                    let selected_user = app_state.read().selected_user.clone();
+                                    send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
+
                                     app_state.write().chat_input.clear();
                                 }
                             }
                         },
                         "发送"
+                    }
+                }
+                
+                // 私聊控制区域
+                div {
+                    "style": "padding: 10px; border-top: 1px solid #eee; background-color: #f8f9fa;",
+                    
+                    // 私聊模式开关
+                    div {
+                        "style": "display: flex; align-items: center; gap: 8px; margin-bottom: 8px;",
+                        
+                        // 开关组件
+                        div {
+                            "style": format!(
+                                "width: 40px; height: 20px; border-radius: 10px; background-color: {}; position: relative; cursor: pointer; transition: background-color 0.2s;",
+                                if app_state.read().private_chat_enabled { "#007bff" } else { "#ccc" }
+                            ),
+                            onclick: move |_| {
+                                let current = app_state.read().private_chat_enabled;
+                                app_state.write().private_chat_enabled = !current;
+                                if !current == false {
+                                    app_state.write().selected_user = None;
+                                }
+                            },
+                            
+                            // 开关圆点
+                            div {
+                                "style": format!(
+                                    "width: 16px; height: 16px; border-radius: 50%; background-color: white; position: absolute; top: 2px; left: {}; transition: left 0.2s;",
+                                    if app_state.read().private_chat_enabled { "22px" } else { "2px" }
+                                )
+                            }
+                        }
+                        
+                        span {
+                            "style": "font-size: 14px; color: #333;",
+                            "私聊模式"
+                        }
+                    }
+                    
+                    // 用户选择下拉框（仅在私聊模式开启时显示）
+                    if app_state.read().private_chat_enabled {
+                        div {
+                            "style": "margin-top: 8px;",
+                            
+                            label {
+                                "style": "display: block; font-size: 12px; color: #666; margin-bottom: 4px;",
+                                "选择私聊用户:"
+                            }
+                            
+                            select {
+                                "style": "width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background-color: white;",
+                                value: app_state.read().selected_user.clone().unwrap_or_default(),
+                                onchange: move |evt| {
+                                    let selected = evt.value();
+                                    if selected.is_empty() {
+                                        app_state.write().selected_user = None;
+                                    } else {
+                                        app_state.write().selected_user = Some(selected);
+                                    }
+                                },
+                                
+                                option {
+                                    value: "",
+                                    "请选择用户"
+                                }
+                                
+                                // 显示在线用户列表（过滤掉自己）
+                                for (username, _) in mouse_positions.read().iter() {
+                                    if username != &get_username() {
+                                        option {
+                                            key: "{username}",
+                                            value: "{username}",
+                                            "{username}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1509,6 +1609,58 @@ fn send_chat_message(
             "a": color.a()
         }
     });
+
+    send_dds_message(&json_message.to_string(), &chat_writer);
+
+    // 不在这里添加弹幕，让DDS接收处理统一处理
+    // 这样可以避免重复添加弹幕的问题
+}
+
+// 支持私聊的消息发送函数
+fn send_chat_message_with_private(
+    message: String,
+    color: egui::Color32,
+    chat_writer: Arc<Mutex<Writer>>,
+    danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>,
+    danmaku_enabled: bool,
+    private_chat_enabled: bool,
+    selected_user: Option<String>,
+) {
+    if message.trim().is_empty() {
+        return;
+    }
+
+    let chat_message = ChatMessage {
+        username: get_username(),
+        message: message.clone(),
+        timestamp: get_current_timestamp(),
+        color: color,
+    };
+
+    let mut json_message = json!({
+        "type": "Chat",
+        "username": chat_message.username,
+        "message": chat_message.message,
+        "timestamp": chat_message.timestamp,
+        "color": {
+            "r": color.r(),
+            "g": color.g(),
+            "b": color.b(),
+            "a": color.a()
+        }
+    });
+
+    // 如果启用私聊模式且选择了用户，添加私聊标志
+    if private_chat_enabled {
+        if let Some(target_user) = selected_user {
+            if !target_user.is_empty() {
+                json_message["private_chat"] = json!({
+                    "enabled": true,
+                    "target_user": target_user
+                });
+            }
+        }
+    }
 
     send_dds_message(&json_message.to_string(), &chat_writer);
 

@@ -298,9 +298,10 @@ fn start_app(domain_id: u32, user_type: u32) {
 
     // datawriter qos的可靠性为可靠、持久化
     let mut writer_qos = WriterQos::new();
-    let writer_qos_default = WriterQos::new();
+    let mut writer_qos_default = WriterQos::new();
 
     publisher.publisher_get_default_writer_qos(&mut writer_qos);
+    publisher.publisher_get_default_writer_qos(&mut writer_qos_default);
 
     writer_qos = writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
         let mut inner = p.inner.unwrap();
@@ -437,9 +438,9 @@ fn start_app(domain_id: u32, user_type: u32) {
         .unwrap();
 
     let mut reader_qos = ReaderQos::new();
-    let reader_qos_default = ReaderQos::new();
-
+    let mut reader_qos_default = ReaderQos::new();
     subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+    subscriber.subscriber_get_default_reader_qos(&mut reader_qos_default);
     reader_qos = reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
         let mut inner = p.inner.unwrap();
         inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;

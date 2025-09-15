@@ -1325,10 +1325,10 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                 if evt.key() == Key::Enter {
                                     let message = app_state.read().chat_input.clone();
                                     if !message.trim().is_empty() {
-                                        let _danmaku_clone = danmaku_messages.clone();
+                                        let mut danmaku_clone = danmaku_messages.clone();
                                         let current_color = app_state.read().current_color;
 
-                                        send_chat_message(message, current_color, chat_writer_clone.clone());
+                                        send_chat_message(message.clone(), current_color, chat_writer_clone.clone());
 
                                         let private_chat_enabled = app_state.read().private_chat_enabled;
                                         let selected_user = app_state.read().selected_user.clone();
@@ -1350,10 +1350,10 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                             move |_| {
                                 let message = app_state.read().chat_input.clone();
                                 if !message.trim().is_empty() {
-                                    let _danmaku_clone = danmaku_messages.clone();
+                                    let mut danmaku_clone = danmaku_messages.clone();
                                     let current_color = app_state.read().current_color;
 
-                                    send_chat_message(message, current_color, chat_writer_clone.clone());
+                                    send_chat_message(message.clone(), current_color, chat_writer_clone.clone());
 
                                     let private_chat_enabled = app_state.read().private_chat_enabled;
                                     let selected_user = app_state.read().selected_user.clone();

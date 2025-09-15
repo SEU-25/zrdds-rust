@@ -164,9 +164,9 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         image_delete_writer,
         video_delete_writer,
         image_queue_writer,
-        ref image_queue_delete_writer,
+        image_queue_delete_writer: _,
         chat_writer,
-        danmaku_writer,
+        danmaku_writer: _,
         color_writer,
     } = props;
 
@@ -193,8 +193,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     let mut videos = use_signal(|| HashMap::<String, CustomVideoData>::new());
     let mut strokes = use_signal(|| Vec::<DrawStroke>::new());
     let mut local_strokes = use_signal(|| Vec::<DrawStroke>::new());
-    let mut is_drawing = use_signal(|| false);
-    let mut last_mouse_pos = use_signal(|| (0.0f32, 0.0f32));
+    let is_drawing = use_signal(|| false);
+    let last_mouse_pos = use_signal(|| (0.0f32, 0.0f32));
 
     // 定期更新数据（从DDS接收数据）
     use_future(move || {
@@ -662,7 +662,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
         image_delete_writer,
         video_delete_writer,
         image_queue_writer,
-        ref image_queue_delete_writer,
+        image_queue_delete_writer: _,
         color_writer,
     } = props;
 
@@ -916,12 +916,12 @@ fn Canvas(props: CanvasProps) -> Element {
     // 解构props
     let CanvasProps {
         app_state,
-        mouse_positions,
+        mouse_positions: _,
         images,
         videos,
         mut strokes,
         mut local_strokes,
-        danmaku_messages,
+        danmaku_messages: _,
         mut is_drawing,
         mut last_mouse_pos,
         writer,
@@ -929,7 +929,7 @@ fn Canvas(props: CanvasProps) -> Element {
         erase_writer,
         image_delete_writer,
         video_delete_writer,
-        ref image_queue_delete_writer,
+        image_queue_delete_writer: _,
     } = props;
     let state = app_state.read();
 
@@ -1316,9 +1316,9 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                 if evt.key() == Key::Enter {
                                     let message = app_state.read().chat_input.clone();
                                     if !message.trim().is_empty() {
-                                        let mut danmaku_clone = danmaku_messages.clone();
+                                        let _danmaku_clone = danmaku_messages.clone();
                                         let current_color = app_state.read().current_color;
-                                        send_chat_message(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
+                                        send_chat_message(message, current_color, chat_writer_clone.clone());
                                         app_state.write().chat_input.clear();
                                     }
                                 }
@@ -1335,9 +1335,9 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                             move |_| {
                                 let message = app_state.read().chat_input.clone();
                                 if !message.trim().is_empty() {
-                                    let mut danmaku_clone = danmaku_messages.clone();
+                                    let _danmaku_clone = danmaku_messages.clone();
                                     let current_color = app_state.read().current_color;
-                                    send_chat_message(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled);
+                                    send_chat_message(message, current_color, chat_writer_clone.clone());
                                     app_state.write().chat_input.clear();
                                 }
                             }
@@ -1485,8 +1485,6 @@ fn send_chat_message(
     message: String,
     color: egui::Color32,
     chat_writer: Arc<Mutex<Writer>>,
-    danmaku_messages: &mut Signal<Vec<DioxusDanmakuMessage>>,
-    danmaku_enabled: bool,
 ) {
     if message.trim().is_empty() {
         return;
@@ -1761,7 +1759,6 @@ fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_wri
             for file in files {
                 match tokio::fs::read(file.path()).await {
                     Ok(image_data) => {
-                        let filename = file.file_name();
                         let timestamp = get_current_timestamp_millis();
                         
                         // 获取图片尺寸
@@ -1889,11 +1886,8 @@ fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
             buffer.len() as u32,
         );
 
-    unsafe {
-        let writer_ptr = writer.lock().unwrap().raw;
         let handle = writer.lock().unwrap().writer_register_instance(&mut data);
         writer.lock().unwrap().write(&data, &handle);
-    }
 }
 
 fn get_username() -> String {

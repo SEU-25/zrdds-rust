@@ -6,8 +6,8 @@ pub struct PublisherQos {
 
 impl PublisherQos {
     pub fn default_qos() -> Self {
-        PublisherQos {
-            raw: unsafe {&raw mut DDS_PUBLISHER_QOS_DEFAULT},
-        }
+            PublisherQos {
+                raw: unsafe { &raw mut DDS_PUBLISHER_QOS_DEFAULT },
+            }
     }
 }

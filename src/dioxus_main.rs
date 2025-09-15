@@ -43,7 +43,7 @@ fn app_wrapper() -> Element {
 }
 
 // 启动应用的主要逻辑
-fn start_app(domain_id: u32) {
+fn start_app(domain_id: u32, user_type: u32) {
     // 初始化共享状态
     let received: Arc<Mutex<HashMap<String, MouseState>>> = Arc::new(Mutex::new(HashMap::new()));
     let received_images: Arc<Mutex<HashMap<String, CustomImageData>>> =
@@ -892,6 +892,7 @@ fn start_app(domain_id: u32) {
         unsafe {
             DIOXUS_PROPS = Some(DioxusAppProps {
                 domain_id,
+                user_type,
                 received: received.clone(),
                 received_images: received_images.clone(),
                 received_videos: received_videos.clone(),
@@ -924,14 +925,20 @@ fn start_app(domain_id: u32) {
 }
 
 fn main() {
-    // 从命令行参数读取域号，如果没有参数则使用默认域号0
+    // 从命令行参数读取域号和用户类型，如果没有参数则使用默认值
     let args: Vec<String> = std::env::args().collect();
     let domain_id = if args.len() > 1 {
         args[1].parse::<u32>().unwrap_or(0)
     } else {
         0
     };
+    
+    let user_type = if args.len() > 2 {
+        args[2].parse::<u32>().unwrap_or(1)
+    } else {
+        1
+    };
 
-    // 使用域号启动应用，域号为0时会显示域号输入界面
-    start_app(domain_id);
+    // 使用域号和用户类型启动应用，域号为0时会显示域号输入界面
+    start_app(domain_id, user_type);
 }

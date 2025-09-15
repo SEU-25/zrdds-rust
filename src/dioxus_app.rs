@@ -60,6 +60,7 @@ pub struct DioxusAppState {
     pub domain_input: String, // 域号输入字段
     pub private_chat_enabled: bool, // 私聊模式开关
     pub selected_user: Option<String>, // 选中的私聊用户
+    pub user_type: u32, // 用户类型：0=学生端，1=教师端
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -89,6 +90,7 @@ impl Default for DioxusAppState {
             domain_input: String::new(),
             private_chat_enabled: false,
             selected_user: None,
+            user_type: 1, // 默认为教师端
         }
     }
 }
@@ -111,6 +113,7 @@ pub struct DioxusDanmakuMessage {
 #[derive(Clone)]
 pub struct DioxusAppProps {
     pub domain_id: u32,
+    pub user_type: u32,
     pub received: Arc<Mutex<HashMap<String, MouseState>>>,
     pub received_images: Arc<Mutex<HashMap<String, CustomImageData>>>,
     pub received_videos: Arc<Mutex<HashMap<String, CustomVideoData>>>,
@@ -165,6 +168,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     // 解构props
     let DioxusAppProps {
         domain_id,
+        user_type,
         received,
         received_images,
         received_videos,
@@ -193,8 +197,9 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
     // 应用状态
     let mut app_state = use_signal(|| {
         let mut state = DioxusAppState::default();
-        // 设置域号
+        // 设置域号和用户类型
         state.domain_id = Some(domain_id);
+        state.user_type = user_type;
         // 根据域号决定应用状态：域号为0时显示输入界面，否则显示主界面
         if domain_id == 0 {
             state.app_state = AppState::DomainInput;
@@ -494,6 +499,48 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             "请输入1-150之间的域号"
                         }
                         
+                        // 用户类型选择
+                        div {
+                            "style": "margin-bottom: 20px;",
+                            
+                            p {
+                                "style": "color: #666; margin-bottom: 10px; font-size: 14px;",
+                                "选择用户类型"
+                            }
+                            
+                            div {
+                                "style": "display: flex; gap: 10px; justify-content: center;",
+                                
+                                button {
+                                    "style": if app_state.read().user_type == 0 {
+                                        "background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
+                                    } else {
+                                        "background: #f0f0f0; color: #333; border: 1px solid #ccc; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
+                                    },
+                                    onclick: move |_| {
+                                        println!("点击学生端按钮，设置user_type为0");
+                                        app_state.write().user_type = 0;
+                                        println!("设置后user_type值: {}", app_state.read().user_type);
+                                    },
+                                    "学生端"
+                                }
+                                
+                                button {
+                                    "style": if app_state.read().user_type == 1 {
+                                        "background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
+                                    } else {
+                                        "background: #f0f0f0; color: #333; border: 1px solid #ccc; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
+                                    },
+                                    onclick: move |_| {
+                                        println!("点击教师端按钮，设置user_type为1");
+                                        app_state.write().user_type = 1;
+                                        println!("设置后user_type值: {}", app_state.read().user_type);
+                                    },
+                                    "教师端"
+                                }
+                            }
+                        }
+                        
                         input {
                             "type": "number",
                             "min": "1",
@@ -513,14 +560,16 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             onclick: move |_| {
                                 let binding = app_state.read();
                                 let input_value = binding.domain_input.trim();
+                                let current_user_type = binding.user_type;
                                 if let Ok(domain) = input_value.parse::<u32>() {
                                     if domain >= 1 && domain <= 150 {
                                         drop(binding);
                                         
-                                        // 重新启动应用并传递新的域号
+                                        // 重新启动应用并传递新的域号和用户类型
                                         let current_exe = std::env::current_exe().unwrap();
                                         std::process::Command::new(current_exe)
                                             .arg(domain.to_string())
+                                            .arg(current_user_type.to_string())
                                             .spawn()
                                             .expect("Failed to restart application");
                                         
@@ -717,6 +766,8 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         let cur_hex = format!("#{:02x}{:02x}{:02x}", cur.r(), cur.g(), cur.b());
                         let rgb_str = format!("RGB({}, {}, {})", cur.r(), cur.g(), cur.b());
 
+                        
+
                         rsx! {
                             div {
                                 "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
@@ -807,63 +858,70 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                         }
                     }
 
-                    // 媒体上传按钮
-                    div {
-                        "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
-                        label {
-                            "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                            "媒体上传:"
-                        }
-                        div {
-                            "style": "display: flex; gap: 8px; flex-wrap: wrap;",
-                            {
-                                let has_media = !images.read().is_empty() || !videos.read().is_empty();
-                                let has_queue = !app_state.read().image_queue.is_empty();
-                                
-                                let queue_button_style = if has_media || has_queue {
-                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
-                                } else {
-                                    "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                };
-                                
-                                let video_button_style = if has_media || has_queue {
-                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
-                                } else {
-                                    "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                };
 
-                                rsx! {
-                                    button {
-                                        "style": queue_button_style,
-                                        disabled: has_media||has_queue,
-                                        onclick: {
-                                        let image_queue_writer = image_queue_writer.clone();
-                                        move |_| {
-                                            upload_images_to_queue(app_state, image_queue_writer.clone());
-                                        }
-                                    },
-                                        "📁 上传图片"
-                                    }
-                                    button {
-                                        "style": video_button_style,
-                                        disabled: has_media||has_queue,
-                                        onclick: move |_| {
-                                            upload_video(video_writer.clone());
+
+                    
+                    if (app_state.read().user_type == 1) {
+                        div {
+                            "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
+                            label {
+                                "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                                "媒体上传:"
+                            }
+                            div {
+                                "style": "display: flex; gap: 8px; flex-wrap: wrap;",
+                                {
+                                    let has_media = !images.read().is_empty() || !videos.read().is_empty();
+                                    let has_queue = !app_state.read().image_queue.is_empty();
+                                    
+                                    let queue_button_style = if has_media || has_queue {
+                                        "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                    } else {
+                                        "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                    };
+                                    
+                                    let video_button_style = if has_media || has_queue {
+                                        "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                    } else {
+                                        "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                    };
+
+                                    rsx! {
+                                        button {
+                                            "style": queue_button_style,
+                                            disabled: has_media||has_queue,
+                                            onclick: {
+                                            let image_queue_writer = image_queue_writer.clone();
+                                            move |_| {
+                                                upload_images_to_queue(app_state, image_queue_writer.clone());
+                                            }
                                         },
-                                        "🎥 上传视频"
+                                            "📁 上传图片"
+                                        }
+                                        button {
+                                            "style": video_button_style,
+                                            disabled: has_media||has_queue,
+                                            onclick: move |_| {
+                                                upload_video(video_writer.clone());
+                                            },
+                                            "🎥 上传视频"
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    div {  
-                        "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
-                        label {
-                            "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                            "屏幕共享:"
+                        // 屏幕共享（仅教师端显示）
+                        if (app_state.read().user_type == 1) {
+                            div {  
+                                "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
+                                label {
+                                    "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                                    "屏幕共享:"
+                                }
+                                ToggleSwitch{}
+                            }
                         }
-                        ToggleSwitch{}
                     }
                     // ToggleSwitch{}
                 }
@@ -2337,8 +2395,8 @@ fn send_private_message(target_id:String,message: String,
             buffer.len() as u32,
         );//?
 
-        let handle = chat_writer.lock().unwrap().writer_register_instance(&mut data);
-        chat_writer.lock().unwrap().write(&data, &handle);
+        // let handle = chat_writer.lock().unwrap().writer_register_instance(&mut data);
+        // chat_writer.lock().unwrap().write(&data, &handle);
 }
 }
 

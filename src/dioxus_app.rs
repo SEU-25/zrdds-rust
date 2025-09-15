@@ -12,10 +12,26 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
+    ptr
 };
 use tokio;
 use crate::core::bytes::bytes::Bytes;
 use crate::core::Writer;
+
+use crate::core::dp_listener::DPListener;
+use crate::core::publisher_listener::PublisherListener;
+use crate::core::subscriber_listener::SubscriberListener;
+use crate::core::topic_listener::TopicListener;
+use crate::core::type_support::{type_support_get_name, type_support_register_type};
+use crate::core::writer_listener::WriterListener;
+use crate::core::{
+    DPFactory, PublisherQos, ReaderListener, ReaderQos, SubscriberQos, TopicQos, WriterQos,
+};
+
+use crate::dds_handlers::*;
+
+use crate::bindings::*;
+use std::pin::Pin;
 
 // 应用状态枚举
 #[derive(Clone, Debug, PartialEq)]
@@ -1332,8 +1348,9 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
 
                                         let private_chat_enabled = app_state.read().private_chat_enabled;
                                         let selected_user = app_state.read().selected_user.clone();
-                                        send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
+                                        //send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
 
+                                        
                                         app_state.write().chat_input.clear();
                                     }
                                 }
@@ -1353,12 +1370,13 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                     let mut danmaku_clone = danmaku_messages.clone();
                                     let current_color = app_state.read().current_color;
 
-                                    send_chat_message(message.clone(), current_color, chat_writer_clone.clone());
+                                    //send_chat_message(message.clone(), current_color, chat_writer_clone.clone());
 
                                     let private_chat_enabled = app_state.read().private_chat_enabled;
                                     let selected_user = app_state.read().selected_user.clone();
-                                    send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
+                                    // send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
 
+                                    send_private_message(selected_user.unwrap(),message.clone(),current_color);
                                     app_state.write().chat_input.clear();
                                 }
                             }
@@ -2160,6 +2178,168 @@ fn send_image_queue_delete(
     
     send_dds_message(&json_message.to_string(), &image_queue_delete_writer);
     println!("发送图片队列删除消息: {}", username);
+}
+
+fn send_private_message(target_id:String,message: String,
+    color: egui::Color32,){
+
+     unsafe {
+        let factory = DPFactory::instance().unwrap();
+
+        let dp_qos = factory.default_qos();
+        println!("1");
+
+        let participant = factory
+            .create_dp(
+                &factory,
+                156,
+                &dp_qos,
+                &DPListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        let type_name = type_support_get_name();
+        type_support_register_type(&participant, type_name.as_str());
+
+        println!("2");
+    // 创建 Topic
+    let mut private_topic_name = String::from("mouse_topic");
+    private_topic_name.push_str(target_id.as_str());
+    let topic_qos = TopicQos::default_qos();
+    let chat_topic = participant
+            .create_topic(
+                &participant,
+                private_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+            println!("3");
+    // 创建 Publisher / Writer
+    let publisher_qos = PublisherQos::default_qos();
+        let publisher = participant
+            .create_publisher(
+                &participant,
+                &publisher_qos,
+                &PublisherListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+            println!("4");
+    let mut writer_qos = WriterQos::new();
+    let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
+
+        writer_qos =
+            writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
+                inner
+            }));
+            println!("5");
+    let chat_writer = publisher
+            .create_writer(
+                &chat_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+            println!("6");
+    // 创建 Subscriber / Reader
+    let subscriber_qos = SubscriberQos::default_qos();
+
+        let subscriber = participant
+            .create_subscriber(
+                &participant,
+                &subscriber_qos,
+                &SubscriberListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+
+            println!("7");
+    let mut reader_qos = ReaderQos::new();
+    let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        reader_qos =
+            reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
+                inner
+            }));
+            println!("8");
+    let mut chat_listener = ReaderListener::new();
+        chat_listener.set_on_data_available(chat_on_data_available);
+
+        let _chat_reader = subscriber.create_reader(
+            &chat_topic.get_description(),
+            &reader_qos,
+            &mut chat_listener,
+            DDS_STATUS_MASK_ALL,
+        );
+
+        println!("9");
+    //let foo = Arc::new(Mutex::new(chat_writer));
+    //send_chat_message(message,color,foo);
+    if message.trim().is_empty() {
+        return;
+    }
+
+    println!("10");
+    let chat_message = ChatMessage {
+        username: get_username(),
+        message: message.clone(),
+        timestamp: get_current_timestamp(),
+        color: color,
+    };
+
+    let json_message = json!({
+        "type": "Chat",
+        "username": chat_message.username,
+        "message": chat_message.message,
+        "timestamp": chat_message.timestamp,
+        "color": {
+            "r": color.r(),
+            "g": color.g(),
+            "b": color.b(),
+            "a": color.a()
+        }
+    });
+
+    println!("11");
+    //send_dds_message(&json_message.to_string(), &chat_writer);
+    let buffer = message.as_bytes();
+    let mut data = Bytes::new();
+    data.octet_seq_initialize();
+
+    println!("12");
+        data.octet_seq_loan_contiguous(
+            buffer,
+            buffer.len() as u32,
+            buffer.len() as u32,
+        );//?
+
+        let handle = chat_writer.lock().unwrap().writer_register_instance(&mut data);
+        chat_writer.lock().unwrap().write(&data, &handle);
+}
 }
 
 

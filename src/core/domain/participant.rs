@@ -96,7 +96,7 @@ impl DomainParticipant {
         } else {
             Some(Subscriber {
                 raw: subscriber,
-                _marker: PhantomData,
+                // _marker: PhantomData,
             })
         }
     }
@@ -120,7 +120,7 @@ impl DomainParticipant {
         } else {
             Some(Publisher {
                 raw: publisher,
-                _marker: PhantomData,
+                // _marker: PhantomData,
             })
         }
     }
@@ -144,7 +144,7 @@ impl DomainParticipant {
     pub fn builtin_subscriber(self_: &DomainParticipant) -> Subscriber {
         Subscriber {
             raw: unsafe { DDS_DomainParticipant_get_builtin_subscriber(self_.raw) },
-            _marker: PhantomData,
+            // _marker: PhantomData,
         }
     }
 }

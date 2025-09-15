@@ -2,6 +2,28 @@ use eframe::egui;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 
+// Color32 序列化支持
+mod color32_serde {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use eframe::egui::Color32;
+
+    pub fn serialize<S>(color: &Color32, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let [r, g, b, a] = color.to_array();
+        (r, g, b, a).serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Color32, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let (r, g, b, a) = <(u8, u8, u8, u8)>::deserialize(deserializer)?;
+        Ok(Color32::from_rgba_unmultiplied(r, g, b, a))
+    }
+}
+
 // 消息类型枚举
 #[derive(Clone, Debug)]
 pub enum MessageType {
@@ -103,11 +125,12 @@ pub struct VideoDeleteOperation {
 }
 
 // 聊天消息数据结构
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct ChatMessage {
     pub username: String,
     pub message: String,
     pub timestamp: String, // 时间戳
+    #[serde(with = "color32_serde")]
     pub color: egui::Color32, // 用户选择的颜色
 }
 

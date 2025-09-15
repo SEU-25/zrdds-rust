@@ -4,22 +4,22 @@ use std::marker::PhantomData;
 use crate::core::ReaderListener;
 
 /// 统一的Reader结构体，同时支持高级API和底层API
-pub struct Reader<'a, 'b> {
+pub struct Reader {
     pub raw: *mut DDS_DataReader,
-    pub _marker: PhantomData<&'b Subscriber<'a>>,
+    // pub _marker: PhantomData<&Subscriber>,
 }
 
 /// 简化构造函数，用于高级API
-impl Reader<'static, 'static> {
+impl Reader {
     pub fn new(raw: *mut DDS_DataReader) -> Self {
         Reader {
             raw,
-            _marker: PhantomData,
+            // _marker: PhantomData,
         }
     }
 }
 
-impl Reader<'_, '_> {
+impl Reader {
     /** 设置该数据读者的监听器。
 
     本方法将覆盖原有监听器，如果设置空对象表示清除原先设置的监听器。

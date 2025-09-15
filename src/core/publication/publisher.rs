@@ -7,12 +7,12 @@ use crate::core::writer_listener::WriterListener;
 use crate::core::{PublisherQos, ReturnCode, WriterQos};
 use std::marker::PhantomData;
 
-pub struct Publisher<'a> {
+pub struct Publisher {
     pub raw: *mut DDS_Publisher,
-    pub _marker: PhantomData<&'a DomainParticipant>,
+    // pub _marker: PhantomData<&'a DomainParticipant>,
 }
 
-impl Publisher<'_> {
+impl Publisher {
     /** 获取默认qos
      */
     pub fn default_qos() -> PublisherQos {

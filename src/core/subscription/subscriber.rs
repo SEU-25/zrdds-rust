@@ -6,12 +6,12 @@ use std::marker::PhantomData;
 use crate::core::{ReaderListener, ReaderQos, ReturnCode, SubscriberQos};
 use crate::core::topic_description::TopicDescription;
 
-pub struct Subscriber<'a> {
+pub struct Subscriber {
     pub raw: *mut DDS_Subscriber,
-    pub _marker: PhantomData<&'a DomainParticipant>,
+    // pub _marker: PhantomData<&'a DomainParticipant>,
 }
 
-impl Subscriber<'_> {
+impl Subscriber {
     /** 获取默认qos
      */
     pub fn default_qos() -> SubscriberQos {
@@ -31,7 +31,7 @@ impl Subscriber<'_> {
     ) -> Option<Reader> {
         let reader = Reader {
             raw: unsafe { DDS_Subscriber_create_datareader(self.raw, topic.raw, qos.as_ptr(), listener.as_mut_ptr(), mask) },
-            _marker: PhantomData,
+            // _marker: PhantomData,
         };
 
         if reader.raw.is_null() {
@@ -47,12 +47,12 @@ impl Subscriber<'_> {
 
     返回None表示没有满足条件的数据读者，否则返回相应的数据读者。
     */
-    pub fn lookup_reader<'a>(self_: Subscriber, topic_name: &str) -> Option<Reader<'a, 'a>> {
+    pub fn lookup_reader<'a>(self_: Subscriber, topic_name: &str) -> Option<Reader> {
         let topicName = CString::new(topic_name).unwrap();
 
         let reader = Reader {
             raw: unsafe { DDS_Subscriber_lookup_datareader(self_.raw, topicName.as_ptr()) },
-            _marker: PhantomData,
+        //  _marker: PhantomData,
         };
 
         if reader.raw.is_null() {

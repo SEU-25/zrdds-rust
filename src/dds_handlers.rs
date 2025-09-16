@@ -10,6 +10,7 @@ use egui::Color32;
 use serde_json::Value;
 use std::borrow::Cow;
 use crate::core::sample::sample_info::SampleInfo;
+use crate::dioxus_app::get_username;
 // for .decode()
 
 /// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
@@ -415,12 +416,42 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
         return;
     };
 
-    // 基本字段
-    let username = chat_msg
+    // 基本字段 - 先获取发送者用户名
+    let sender_username = chat_msg
         .get("username")
         .and_then(|v| v.as_str())
         .unwrap_or("unknown")
         .to_string();
+    
+    let current_user = get_username();
+
+    // 检查是否为私聊消息
+    let is_private_chat = chat_msg
+        .get("private_chat")
+        .and_then(|v| v.as_object())
+        .and_then(|obj| obj.get("enabled"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    // 如果是私聊消息，检查是否应该显示该消息
+    if is_private_chat {
+        let target_user = chat_msg
+            .get("private_chat")
+            .and_then(|v| v.as_object())
+            .and_then(|obj| obj.get("target_user"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        
+        // 只有以下情况才显示私聊消息：
+        // 1. 自己发出的消息 (sender_username == current_user)
+        // 2. 目标是自己的消息 (target_user == current_user)
+        if sender_username != current_user && target_user != current_user {
+            return;
+        }
+    }
+
+    // 其他字段
+    let username = sender_username; // 使用之前获取的发送者用户名
     let message = chat_msg
         .get("message")
         .and_then(|v| v.as_str())

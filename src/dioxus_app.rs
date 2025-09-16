@@ -1480,9 +1480,9 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
 
                                     let private_chat_enabled = app_state.read().private_chat_enabled;
                                     let selected_user = app_state.read().selected_user.clone();
-                                    // send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
+                                    send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
 
-                                    send_private_message(selected_user.unwrap(),message.clone(),current_color);
+                                    // send_private_message(selected_user.unwrap(),message.clone(),current_color);
                                     app_state.write().chat_input.clear();
                                 }
                             }
@@ -2194,7 +2194,7 @@ fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
         writer.lock().unwrap().write(&data, &handle);
 }
 
-fn get_username() -> String {
+pub fn get_username() -> String {
     whoami::username()
 }
 

@@ -8,10 +8,9 @@ pub struct DPFactory {
 }
 
 impl DPFactory {
-    /** 创建域参与者工厂单例。
-
-       成功返回Some()，失败返回None
-    */
+    /// 创建域参与者工厂单例。
+    ///
+    /// 成功返回Some(),失败返回None
     pub fn instance() -> Option<DPFactory> {
         let factory = unsafe { DDS_DomainParticipantFactory_get_instance() };
         if factory.is_null() {
@@ -21,10 +20,9 @@ impl DPFactory {
         }
     }
 
-    /** 创建一个新的域参与者实体，并设置QoS以及监听器，域参与者的创建表明应用程序打算加入domainId 指定的域中进行通信。
-
-       成功返回Some()，失败返回None
-    */
+    /// 创建一个新的域参与者实体，并设置QoS以及监听器，域参与者的创建表明应用程序打算加入domainId 指定的域中进行通信。
+    ///
+    /// 成功返回Some(),失败返回None
     pub fn create_dp(
         &self,
         self_: &DPFactory,

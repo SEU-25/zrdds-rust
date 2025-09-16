@@ -13,8 +13,11 @@ use crate::core::sample::sample_info::SampleInfo;
 use crate::dioxus_app::get_username;
 // for .decode()
 
+#[cfg(test)]
+mod tests;
+
 /// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
-fn parse_color32_from_json(value: &Value) -> Color32 {
+pub fn parse_color32_from_json(value: &Value) -> Color32 {
     // 空数组常量，具有 'static 生命周期，不会被临时丢弃
     const EMPTY: [Value; 0] = [];
     let arr: &[Value] = value.as_array().map(|v| v.as_slice()).unwrap_or(&EMPTY);
@@ -167,7 +170,12 @@ fn handle_one_danmaku_sample(sample: &Bytes, _info: &SampleInfo) {
 }
 
 // 解析弹幕消息的辅助函数
-fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessage> {
+pub fn parse_danmaku_message(json_value: &serde_json::Value) -> Option<DanmakuMessage> {
+    // 检查type字段是否为"Danmaku"
+    if json_value["type"].as_str() != Some("Danmaku") {
+        return None;
+    }
+
     let username = json_value["username"]
         .as_str()
         .unwrap_or("unknown")

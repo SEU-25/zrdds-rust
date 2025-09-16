@@ -43,6 +43,19 @@ log = "0.4"
 dioxus_components = { path = "./dioxus_components" }
 paste = "1.0.15"
 
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+serial_test = "3.0"
+tempfile = "3.8"
+rstest = "0.18"
+proptest = "1.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "performance_benchmarks"
+harness = false
+
 
 [build-dependencies]
 cc = "1.0"

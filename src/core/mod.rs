@@ -13,6 +13,9 @@ pub mod bytes;
 pub mod sample;
 mod chat_message;
 
+#[cfg(test)]
+mod tests;
+
 // Re-export all public items from submodules
 pub use domain::*;
 pub use publication::*;

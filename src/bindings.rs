@@ -31,83 +31,64 @@ pub const DDS_STATUS_MASK_NONE: u32 = 0;
 pub const PID_LIST_END: u32 = 16130;
 pub const BUFFERED_PROPERTY_NUM: u32 = 16;
 pub const TypeObjectSize: u32 = 64;
-pub const __MINGW64_VERSION_MAJOR: u32 = 12;
-pub const __MINGW64_VERSION_MINOR: u32 = 0;
-pub const __MINGW64_VERSION_BUGFIX: u32 = 0;
-pub const __MINGW64_VERSION_RC: u32 = 0;
-pub const __MINGW64_VERSION_STATE: &[u8; 6] = b"alpha\0";
-pub const __MINGW32_MAJOR_VERSION: u32 = 3;
-pub const __MINGW32_MINOR_VERSION: u32 = 11;
-pub const __: u32 = 1;
-pub const __MINGW_USE_UNDERSCORE_PREFIX: u32 = 0;
-pub const __MINGW_HAVE_ANSI_C99_PRINTF: u32 = 1;
-pub const __MINGW_HAVE_WIDE_C99_PRINTF: u32 = 1;
-pub const __MINGW_HAVE_ANSI_C99_SCANF: u32 = 1;
-pub const __MINGW_HAVE_WIDE_C99_SCANF: u32 = 1;
-pub const __MINGW_GCC_VERSION: u32 = 0;
-pub const __MINGW_SEC_WARN_STR : & [u8 ; 92] = b"This function or variable may be unsafe, use _CRT_SECURE_NO_WARNINGS to disable deprecation\0" ;
-pub const __MINGW_MSVC2005_DEPREC_STR : & [u8 ; 117] = b"This POSIX function is deprecated beginning in Visual C++ 2005, use _CRT_NONSTDC_NO_DEPRECATE to disable deprecation\0" ;
-pub const __MINGW_FORTIFY_LEVEL: u32 = 0;
-pub const __MINGW_FORTIFY_VA_ARG: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY: u32 = 0;
-pub const USE___UUIDOF: u32 = 1;
-pub const __CRT__NO_INLINE: u32 = 1;
-pub const __MSVCRT_VERSION__: u32 = 3584;
-pub const _WIN32_WINNT: u32 = 1537;
-pub const MINGW_HAS_SECURE_API: u32 = 1;
+pub const _VCRT_COMPILER_PREPROCESSOR: u32 = 1;
+pub const _SAL_VERSION: u32 = 20;
+pub const __SAL_H_VERSION: u32 = 180000000;
+pub const _USE_DECLSPECS_FOR_SAL: u32 = 0;
+pub const _USE_ATTRIBUTES_FOR_SAL: u32 = 0;
+pub const _CRT_PACKING: u32 = 8;
+pub const _HAS_EXCEPTIONS: u32 = 1;
+pub const _STL_LANG: u32 = 0;
+pub const _HAS_CXX17: u32 = 0;
+pub const _HAS_CXX20: u32 = 0;
+pub const _HAS_CXX23: u32 = 0;
+pub const _HAS_NODISCARD: u32 = 0;
+pub const _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE: u32 = 1;
+pub const _CRT_BUILD_DESKTOP_APP: u32 = 1;
+pub const _ARGMAX: u32 = 100;
+pub const _CRT_INT_MAX: u32 = 2147483647;
+pub const _CRT_FUNCTIONS_REQUIRED: u32 = 1;
+pub const _CRT_HAS_CXX17: u32 = 0;
+pub const _CRT_HAS_C11: u32 = 1;
+pub const _CRT_INTERNAL_NONSTDC_NAMES: u32 = 1;
 pub const __STDC_SECURE_LIB__: u32 = 200411;
 pub const __GOT_SECURE_LIB__: u32 = 200411;
-pub const MINGW_HAS_DDK_H: u32 = 1;
-pub const _CRT_PACKING: u32 = 8;
-pub const _SECURECRT_FILL_BUFFER_PATTERN: u32 = 253;
-pub const _ARGMAX: u32 = 100;
-pub const __USE_MINGW_ANSI_STDIO: u32 = 0;
+pub const __STDC_WANT_SECURE_LIB__: u32 = 1;
+pub const _SECURECRT_FILL_BUFFER_PATTERN: u32 = 254;
+pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES: u32 = 0;
+pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT: u32 = 0;
+pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES: u32 = 1;
+pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY: u32 = 0;
+pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY: u32 = 0;
+pub const _CRT_INTERNAL_STDIO_SYMBOL_PREFIX: &[u8; 1] = b"\0";
 pub const _CRT_INTERNAL_PRINTF_LEGACY_VSPRINTF_NULL_TERMINATION: u32 = 1;
 pub const _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR: u32 = 2;
 pub const _CRT_INTERNAL_PRINTF_LEGACY_WIDE_SPECIFIERS: u32 = 4;
 pub const _CRT_INTERNAL_PRINTF_LEGACY_MSVCRT_COMPATIBILITY: u32 = 8;
 pub const _CRT_INTERNAL_PRINTF_LEGACY_THREE_DIGIT_EXPONENTS: u32 = 16;
+pub const _CRT_INTERNAL_PRINTF_STANDARD_ROUNDING: u32 = 32;
 pub const _CRT_INTERNAL_SCANF_SECURECRT: u32 = 1;
 pub const _CRT_INTERNAL_SCANF_LEGACY_WIDE_SPECIFIERS: u32 = 2;
 pub const _CRT_INTERNAL_SCANF_LEGACY_MSVCRT_COMPATIBILITY: u32 = 4;
-pub const _CRT_INTERNAL_LOCAL_PRINTF_OPTIONS: u32 = 4;
-pub const _CRT_INTERNAL_LOCAL_SCANF_OPTIONS: u32 = 2;
 pub const BUFSIZ: u32 = 512;
 pub const _NSTREAM_: u32 = 512;
-pub const _IOB_ENTRIES: u32 = 20;
+pub const _IOB_ENTRIES: u32 = 3;
 pub const EOF: i32 = -1;
-pub const _P_tmpdir: &[u8; 2] = b"\\\0";
-pub const _wP_tmpdir: &[u8; 2] = b"\\\0";
+pub const _IOFBF: u32 = 0;
+pub const _IOLBF: u32 = 64;
+pub const _IONBF: u32 = 4;
 pub const L_tmpnam: u32 = 260;
+pub const L_tmpnam_s: u32 = 260;
 pub const SEEK_CUR: u32 = 1;
 pub const SEEK_END: u32 = 2;
 pub const SEEK_SET: u32 = 0;
-pub const STDIN_FILENO: u32 = 0;
-pub const STDOUT_FILENO: u32 = 1;
-pub const STDERR_FILENO: u32 = 2;
 pub const FILENAME_MAX: u32 = 260;
 pub const FOPEN_MAX: u32 = 20;
 pub const _SYS_OPEN: u32 = 20;
 pub const TMP_MAX: u32 = 2147483647;
-pub const _IOFBF: u32 = 0;
-pub const _IOLBF: u32 = 64;
-pub const _IONBF: u32 = 4;
-pub const P_tmpdir: &[u8; 2] = b"\\\0";
-pub const SYS_OPEN: u32 = 20;
-pub const _P_WAIT: u32 = 0;
-pub const _P_NOWAIT: u32 = 1;
-pub const _OLD_P_OVERLAY: u32 = 2;
-pub const _P_NOWAITO: u32 = 3;
-pub const _P_DETACH: u32 = 4;
-pub const _P_OVERLAY: u32 = 2;
-pub const _WAIT_CHILD: u32 = 0;
-pub const _WAIT_GRANDCHILD: u32 = 1;
-pub const L_tmpnam_s: u32 = 260;
 pub const TMP_MAX_S: u32 = 2147483647;
+pub const _TMP_MAX_S: u32 = 2147483647;
+pub const SYS_OPEN: u32 = 20;
 pub const DDS_QUALITY_EVAL_LATENCY_RESERVED_NUM: u32 = 16;
 pub const DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED: i32 = -1;
 pub const DYNAMIC_DATA_BUFFER_MEMBER_FIXED_PART_SIZE: u32 = 64;
@@ -8207,82 +8188,105 @@ pub struct DataWriterListenerImpl {
 pub type va_list = *mut ::std::os::raw::c_char;
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_get_crt_info() -> *const ::std::os::raw::c_char;
+    pub fn __va_start(arg1: *mut *mut ::std::os::raw::c_char, ...);
 }
-pub type rsize_t = usize;
+pub type __vcrt_bool = bool;
 pub type wchar_t = ::std::os::raw::c_ushort;
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __security_init_cookie();
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __security_check_cookie(_StackCookie: usize);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __report_gsfailure(_StackCookie: usize) -> !;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub static mut __security_cookie: usize;
+}
+pub type __crt_bool = bool;
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _invalid_parameter_noinfo();
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _invalid_parameter_noinfo_noreturn() -> !;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _invoke_watson(
+        _Expression: *const wchar_t,
+        _FunctionName: *const wchar_t,
+        _FileName: *const wchar_t,
+        _LineNo: ::std::os::raw::c_uint,
+        _Reserved: usize,
+    ) -> !;
+}
+pub type errno_t = ::std::os::raw::c_int;
 pub type wint_t = ::std::os::raw::c_ushort;
 pub type wctype_t = ::std::os::raw::c_ushort;
-pub type errno_t = ::std::os::raw::c_int;
 pub type __time32_t = ::std::os::raw::c_long;
 pub type __time64_t = ::std::os::raw::c_longlong;
-pub type time_t = __time64_t;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct threadmbcinfostruct {
-    _unused: [u8; 0],
-}
-pub type pthreadlocinfo = *mut threadlocaleinfostruct;
-pub type pthreadmbcinfo = *mut threadmbcinfostruct;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __lc_time_data {
-    _unused: [u8; 0],
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct localeinfo_struct {
-    pub locinfo: pthreadlocinfo,
-    pub mbcinfo: pthreadmbcinfo,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of localeinfo_struct"][::std::mem::size_of::<localeinfo_struct>() - 16usize];
-    ["Alignment of localeinfo_struct"][::std::mem::align_of::<localeinfo_struct>() - 8usize];
-    ["Offset of field: localeinfo_struct::locinfo"]
-        [::std::mem::offset_of!(localeinfo_struct, locinfo) - 0usize];
-    ["Offset of field: localeinfo_struct::mbcinfo"]
-        [::std::mem::offset_of!(localeinfo_struct, mbcinfo) - 8usize];
-};
-pub type _locale_tstruct = localeinfo_struct;
-pub type _locale_t = *mut localeinfo_struct;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct tagLC_ID {
-    pub wLanguage: ::std::os::raw::c_ushort,
-    pub wCountry: ::std::os::raw::c_ushort,
-    pub wCodePage: ::std::os::raw::c_ushort,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of tagLC_ID"][::std::mem::size_of::<tagLC_ID>() - 6usize];
-    ["Alignment of tagLC_ID"][::std::mem::align_of::<tagLC_ID>() - 2usize];
-    ["Offset of field: tagLC_ID::wLanguage"][::std::mem::offset_of!(tagLC_ID, wLanguage) - 0usize];
-    ["Offset of field: tagLC_ID::wCountry"][::std::mem::offset_of!(tagLC_ID, wCountry) - 2usize];
-    ["Offset of field: tagLC_ID::wCodePage"][::std::mem::offset_of!(tagLC_ID, wCodePage) - 4usize];
-};
-pub type LC_ID = tagLC_ID;
-pub type LPLC_ID = *mut tagLC_ID;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct threadlocaleinfostruct {
+pub struct __crt_locale_data_public {
     pub _locale_pctype: *const ::std::os::raw::c_ushort,
     pub _locale_mb_cur_max: ::std::os::raw::c_int,
     pub _locale_lc_codepage: ::std::os::raw::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of threadlocaleinfostruct"][::std::mem::size_of::<threadlocaleinfostruct>() - 16usize];
-    ["Alignment of threadlocaleinfostruct"]
-        [::std::mem::align_of::<threadlocaleinfostruct>() - 8usize];
-    ["Offset of field: threadlocaleinfostruct::_locale_pctype"]
-        [::std::mem::offset_of!(threadlocaleinfostruct, _locale_pctype) - 0usize];
-    ["Offset of field: threadlocaleinfostruct::_locale_mb_cur_max"]
-        [::std::mem::offset_of!(threadlocaleinfostruct, _locale_mb_cur_max) - 8usize];
-    ["Offset of field: threadlocaleinfostruct::_locale_lc_codepage"]
-        [::std::mem::offset_of!(threadlocaleinfostruct, _locale_lc_codepage) - 12usize];
+    ["Size of __crt_locale_data_public"]
+        [::std::mem::size_of::<__crt_locale_data_public>() - 16usize];
+    ["Alignment of __crt_locale_data_public"]
+        [::std::mem::align_of::<__crt_locale_data_public>() - 8usize];
+    ["Offset of field: __crt_locale_data_public::_locale_pctype"]
+        [::std::mem::offset_of!(__crt_locale_data_public, _locale_pctype) - 0usize];
+    ["Offset of field: __crt_locale_data_public::_locale_mb_cur_max"]
+        [::std::mem::offset_of!(__crt_locale_data_public, _locale_mb_cur_max) - 8usize];
+    ["Offset of field: __crt_locale_data_public::_locale_lc_codepage"]
+        [::std::mem::offset_of!(__crt_locale_data_public, _locale_lc_codepage) - 12usize];
 };
-pub type threadlocinfo = threadlocaleinfostruct;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __crt_locale_pointers {
+    pub locinfo: *mut __crt_locale_data,
+    pub mbcinfo: *mut __crt_multibyte_data,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of __crt_locale_pointers"][::std::mem::size_of::<__crt_locale_pointers>() - 16usize];
+    ["Alignment of __crt_locale_pointers"]
+        [::std::mem::align_of::<__crt_locale_pointers>() - 8usize];
+    ["Offset of field: __crt_locale_pointers::locinfo"]
+        [::std::mem::offset_of!(__crt_locale_pointers, locinfo) - 0usize];
+    ["Offset of field: __crt_locale_pointers::mbcinfo"]
+        [::std::mem::offset_of!(__crt_locale_pointers, mbcinfo) - 8usize];
+};
+pub type _locale_t = *mut __crt_locale_pointers;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _Mbstatet {
+    pub _Wchar: ::std::os::raw::c_ulong,
+    pub _Byte: ::std::os::raw::c_ushort,
+    pub _State: ::std::os::raw::c_ushort,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of _Mbstatet"][::std::mem::size_of::<_Mbstatet>() - 8usize];
+    ["Alignment of _Mbstatet"][::std::mem::align_of::<_Mbstatet>() - 4usize];
+    ["Offset of field: _Mbstatet::_Wchar"][::std::mem::offset_of!(_Mbstatet, _Wchar) - 0usize];
+    ["Offset of field: _Mbstatet::_Byte"][::std::mem::offset_of!(_Mbstatet, _Byte) - 4usize];
+    ["Offset of field: _Mbstatet::_State"][::std::mem::offset_of!(_Mbstatet, _State) - 6usize];
+};
+pub type mbstate_t = _Mbstatet;
+pub type time_t = __time64_t;
+pub type rsize_t = usize;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _iobuf {
@@ -8296,354 +8300,310 @@ const _: () = {
         [::std::mem::offset_of!(_iobuf, _Placeholder) - 0usize];
 };
 pub type FILE = _iobuf;
-pub type _off_t = ::std::os::raw::c_long;
-pub type off32_t = ::std::os::raw::c_long;
-pub type _off64_t = ::std::os::raw::c_longlong;
-pub type off64_t = ::std::os::raw::c_longlong;
-pub type off_t = off32_t;
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __acrt_iob_func(index: ::std::os::raw::c_uint) -> *mut FILE;
+    pub fn __acrt_iob_func(_Ix: ::std::os::raw::c_uint) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __iob_func() -> *mut FILE;
-}
-pub type fpos_t = ::std::os::raw::c_longlong;
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_sscanf(
-        _Src: *const ::std::os::raw::c_char,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn fgetwc(_Stream: *mut FILE) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vsscanf(
-        _Str: *const ::std::os::raw::c_char,
-        Format: *const ::std::os::raw::c_char,
-        argp: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _fgetwchar() -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_scanf(_Format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn fputwc(_Character: wchar_t, _Stream: *mut FILE) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vscanf(
-        Format: *const ::std::os::raw::c_char,
-        argp: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _fputwchar(_Character: wchar_t) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_fscanf(
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn getwc(_Stream: *mut FILE) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vfscanf(
-        fp: *mut FILE,
-        Format: *const ::std::os::raw::c_char,
-        argp: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn getwchar() -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vsnprintf(
-        _DstBuf: *mut ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn fgetws(
+        _Buffer: *mut wchar_t,
+        _BufferCount: ::std::os::raw::c_int,
+        _Stream: *mut FILE,
+    ) -> *mut wchar_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_snprintf(
-        s: *mut ::std::os::raw::c_char,
-        n: usize,
-        format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn fputws(_Buffer: *const wchar_t, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_printf(arg1: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn _getws_s(_Buffer: *mut wchar_t, _BufferCount: usize) -> *mut wchar_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vprintf(
-        arg1: *const ::std::os::raw::c_char,
-        arg2: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn putwc(_Character: wchar_t, _Stream: *mut FILE) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_fprintf(
-        arg1: *mut FILE,
-        arg2: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn putwchar(_Character: wchar_t) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vfprintf(
-        arg1: *mut FILE,
-        arg2: *const ::std::os::raw::c_char,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _putws(_Buffer: *const wchar_t) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_sprintf(
-        arg1: *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn ungetwc(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vsprintf(
-        arg1: *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _wfdopen(_FileHandle: ::std::os::raw::c_int, _Mode: *const wchar_t) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_asprintf(
-        arg1: *mut *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn _wfopen(_FileName: *const wchar_t, _Mode: *const wchar_t) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vasprintf(
-        arg1: *mut *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _wfopen_s(
+        _Stream: *mut *mut FILE,
+        _FileName: *const wchar_t,
+        _Mode: *const wchar_t,
+    ) -> errno_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __ms_sscanf(
-        _Src: *const ::std::os::raw::c_char,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn _wfreopen(
+        _FileName: *const wchar_t,
+        _Mode: *const wchar_t,
+        _OldStream: *mut FILE,
+    ) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __ms_scanf(_Format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn _wfreopen_s(
+        _Stream: *mut *mut FILE,
+        _FileName: *const wchar_t,
+        _Mode: *const wchar_t,
+        _OldStream: *mut FILE,
+    ) -> errno_t;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __ms_fscanf(
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_printf(arg1: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_vprintf(
-        arg1: *const ::std::os::raw::c_char,
-        arg2: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_fprintf(
-        arg1: *mut FILE,
-        arg2: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_vfprintf(
-        arg1: *mut FILE,
-        arg2: *const ::std::os::raw::c_char,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_sprintf(
-        arg1: *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_vsprintf(
-        arg1: *mut ::std::os::raw::c_char,
-        arg2: *const ::std::os::raw::c_char,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsprintf(
-        options: ::std::os::raw::c_ulonglong,
-        str_: *mut ::std::os::raw::c_char,
-        len: usize,
-        format: *const ::std::os::raw::c_char,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfprintf(
-        options: ::std::os::raw::c_ulonglong,
-        file: *mut FILE,
-        format: *const ::std::os::raw::c_char,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsscanf(
-        options: ::std::os::raw::c_ulonglong,
-        input: *const ::std::os::raw::c_char,
-        length: usize,
-        format: *const ::std::os::raw::c_char,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfscanf(
-        options: ::std::os::raw::c_ulonglong,
-        file: *mut FILE,
-        format: *const ::std::os::raw::c_char,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fprintf(
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn printf(_Format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn sprintf(
-        _Dest: *mut ::std::os::raw::c_char,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vfprintf(
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _ArgList: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vprintf(
-        _Format: *const ::std::os::raw::c_char,
-        _ArgList: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vsprintf(
-        _Dest: *mut ::std::os::raw::c_char,
-        _Format: *const ::std::os::raw::c_char,
-        _Args: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fscanf(
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn scanf(_Format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn sscanf(
-        _Src: *const ::std::os::raw::c_char,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vfscanf(
-        __stream: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
-        __local_argv: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vsscanf(
-        __source: *const ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
-        __local_argv: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn vscanf(
-        __format: *const ::std::os::raw::c_char,
-        __local_argv: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _filbuf(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _flsbuf(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fsopen(
-        _Filename: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
+    pub fn _wfsopen(
+        _FileName: *const wchar_t,
+        _Mode: *const wchar_t,
         _ShFlag: ::std::os::raw::c_int,
     ) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn clearerr(_File: *mut FILE);
+    pub fn _wperror(_ErrorMessage: *const wchar_t);
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fclose(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn _wpopen(_Command: *const wchar_t, _Mode: *const wchar_t) -> *mut FILE;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _wremove(_FileName: *const wchar_t) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _wtempnam(_Directory: *const wchar_t, _FilePrefix: *const wchar_t) -> *mut wchar_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _wtmpnam_s(_Buffer: *mut wchar_t, _BufferCount: usize) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _wtmpnam(_Buffer: *mut wchar_t) -> *mut wchar_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fgetwc_nolock(_Stream: *mut FILE) -> wint_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fputwc_nolock(_Character: wchar_t, _Stream: *mut FILE) -> wint_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _getwc_nolock(_Stream: *mut FILE) -> wint_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _putwc_nolock(_Character: wchar_t, _Stream: *mut FILE) -> wint_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _ungetwc_nolock(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vfwprintf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vfwprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vfwprintf_p(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vfwscanf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vswprintf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut wchar_t,
+        _BufferCount: usize,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vswprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut wchar_t,
+        _BufferCount: usize,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vsnwprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut wchar_t,
+        _BufferCount: usize,
+        _MaxCount: usize,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vswprintf_p(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut wchar_t,
+        _BufferCount: usize,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vswscanf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *const wchar_t,
+        _BufferCount: usize,
+        _Format: *const wchar_t,
+        _Locale: _locale_t,
+        _ArgList: va_list,
+    ) -> ::std::os::raw::c_int;
+}
+pub type fpos_t = ::std::os::raw::c_longlong;
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _get_stream_buffer_pointers(
+        _Stream: *mut FILE,
+        _Base: *mut *mut *mut ::std::os::raw::c_char,
+        _Pointer: *mut *mut *mut ::std::os::raw::c_char,
+        _Count: *mut *mut ::std::os::raw::c_int,
+    ) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn clearerr_s(_Stream: *mut FILE) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn fopen_s(
+        _Stream: *mut *mut FILE,
+        _FileName: *const ::std::os::raw::c_char,
+        _Mode: *const ::std::os::raw::c_char,
+    ) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn fread_s(
+        _Buffer: *mut ::std::os::raw::c_void,
+        _BufferSize: usize,
+        _ElementSize: usize,
+        _ElementCount: usize,
+        _Stream: *mut FILE,
+    ) -> usize;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn freopen_s(
+        _Stream: *mut *mut FILE,
+        _FileName: *const ::std::os::raw::c_char,
+        _Mode: *const ::std::os::raw::c_char,
+        _OldStream: *mut FILE,
+    ) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn gets_s(
+        _Buffer: *mut ::std::os::raw::c_char,
+        _Size: rsize_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn tmpfile_s(_Stream: *mut *mut FILE) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn tmpnam_s(_Buffer: *mut ::std::os::raw::c_char, _Size: rsize_t) -> errno_t;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn clearerr(_Stream: *mut FILE);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn fclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8658,19 +8618,19 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn feof(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn feof(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn ferror(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ferror(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fflush(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fflush(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fgetc(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fgetc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8678,30 +8638,19 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fgetpos(_File: *mut FILE, _Pos: *mut fpos_t) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fgetpos64(_File: *mut FILE, _Pos: *mut fpos_t) -> ::std::os::raw::c_int;
+    pub fn fgetpos(_Stream: *mut FILE, _Position: *mut fpos_t) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn fgets(
-        _Buf: *mut ::std::os::raw::c_char,
+        _Buffer: *mut ::std::os::raw::c_char,
         _MaxCount: ::std::os::raw::c_int,
-        _File: *mut FILE,
+        _Stream: *mut FILE,
     ) -> *mut ::std::os::raw::c_char;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _fileno(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _tempnam(
-        _DirName: *const ::std::os::raw::c_char,
-        _FilePrefix: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn _fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8710,90 +8659,90 @@ unsafe extern "C" {
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn fopen(
-        _Filename: *const ::std::os::raw::c_char,
+        _FileName: *const ::std::os::raw::c_char,
         _Mode: *const ::std::os::raw::c_char,
     ) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fopen64(
-        filename: *const ::std::os::raw::c_char,
-        mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
+    pub fn fputc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fputc(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn _fputchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _fputchar(_Ch: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fputs(_Str: *const ::std::os::raw::c_char, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fputs(
+        _Buffer: *const ::std::os::raw::c_char,
+        _Stream: *mut FILE,
+    ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn fread(
-        _DstBuf: *mut ::std::os::raw::c_void,
+        _Buffer: *mut ::std::os::raw::c_void,
         _ElementSize: ::std::os::raw::c_ulonglong,
-        _Count: ::std::os::raw::c_ulonglong,
-        _File: *mut FILE,
+        _ElementCount: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
     ) -> ::std::os::raw::c_ulonglong;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn freopen(
-        _Filename: *const ::std::os::raw::c_char,
+        _FileName: *const ::std::os::raw::c_char,
         _Mode: *const ::std::os::raw::c_char,
-        _File: *mut FILE,
+        _Stream: *mut FILE,
     ) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fsetpos(_File: *mut FILE, _Pos: *const fpos_t) -> ::std::os::raw::c_int;
+    pub fn _fsopen(
+        _FileName: *const ::std::os::raw::c_char,
+        _Mode: *const ::std::os::raw::c_char,
+        _ShFlag: ::std::os::raw::c_int,
+    ) -> *mut FILE;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fsetpos64(_File: *mut FILE, _Pos: *const fpos_t) -> ::std::os::raw::c_int;
+    pub fn fsetpos(_Stream: *mut FILE, _Position: *const fpos_t) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn fseek(
-        _File: *mut FILE,
+        _Stream: *mut FILE,
         _Offset: ::std::os::raw::c_long,
         _Origin: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn ftell(_File: *mut FILE) -> ::std::os::raw::c_long;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
     pub fn _fseeki64(
-        _File: *mut FILE,
+        _Stream: *mut FILE,
         _Offset: ::std::os::raw::c_longlong,
         _Origin: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _ftelli64(_File: *mut FILE) -> ::std::os::raw::c_longlong;
+    pub fn ftell(_Stream: *mut FILE) -> ::std::os::raw::c_long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _ftelli64(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn fwrite(
-        _Str: *const ::std::os::raw::c_void,
-        _Size: ::std::os::raw::c_ulonglong,
-        _Count: ::std::os::raw::c_ulonglong,
-        _File: *mut FILE,
+        _Buffer: *const ::std::os::raw::c_void,
+        _ElementSize: ::std::os::raw::c_ulonglong,
+        _ElementCount: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
     ) -> ::std::os::raw::c_ulonglong;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn getc(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn getc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8805,19 +8754,15 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn gets(_Buffer: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn _getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _getw(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn perror(_ErrorMessage: *const ::std::os::raw::c_char);
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn perror(_ErrMsg: *const ::std::os::raw::c_char);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _pclose(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn _pclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8828,42 +8773,42 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn putc(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn putc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn putchar(_Ch: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn putchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn puts(_Str: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn puts(_Buffer: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _putw(_Word: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn _putw(_Word: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn remove(_Filename: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn remove(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn rename(
-        _OldFilename: *const ::std::os::raw::c_char,
-        _NewFilename: *const ::std::os::raw::c_char,
+        _OldFileName: *const ::std::os::raw::c_char,
+        _NewFileName: *const ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _unlink(_Filename: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn _unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn unlink(_Filename: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn rewind(_File: *mut FILE);
+    pub fn rewind(_Stream: *mut FILE);
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8871,48 +8816,27 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn setbuf(_File: *mut FILE, _Buffer: *mut ::std::os::raw::c_char);
+    pub fn setbuf(_Stream: *mut FILE, _Buffer: *mut ::std::os::raw::c_char);
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _setmaxstdio(_Max: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _set_output_format(_Format: ::std::os::raw::c_uint) -> ::std::os::raw::c_uint;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _get_output_format() -> ::std::os::raw::c_uint;
+    pub fn _setmaxstdio(_Maximum: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn setvbuf(
-        _File: *mut FILE,
-        _Buf: *mut ::std::os::raw::c_char,
+        _Stream: *mut FILE,
+        _Buffer: *mut ::std::os::raw::c_char,
         _Mode: ::std::os::raw::c_int,
         _Size: usize,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _scprintf(_Format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _snscanf(
-        _Src: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _vscprintf(
-        _Format: *const ::std::os::raw::c_char,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn _tempnam(
+        _DirectoryName: *const ::std::os::raw::c_char,
+        _FilePrefix: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -8924,42 +8848,137 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn ungetc(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ungetc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _vsnprintf(
-        _Dest: *mut ::std::os::raw::c_char,
-        _Count: usize,
+    pub fn _lock_file(_Stream: *mut FILE);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _unlock_file(_Stream: *mut FILE);
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fclose_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fflush_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fgetc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fputc_nolock(
+        _Character: ::std::os::raw::c_int,
+        _Stream: *mut FILE,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fread_nolock(
+        _Buffer: *mut ::std::os::raw::c_void,
+        _ElementSize: usize,
+        _ElementCount: usize,
+        _Stream: *mut FILE,
+    ) -> usize;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fread_nolock_s(
+        _Buffer: *mut ::std::os::raw::c_void,
+        _BufferSize: usize,
+        _ElementSize: usize,
+        _ElementCount: usize,
+        _Stream: *mut FILE,
+    ) -> usize;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fseek_nolock(
+        _Stream: *mut FILE,
+        _Offset: ::std::os::raw::c_long,
+        _Origin: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fseeki64_nolock(
+        _Stream: *mut FILE,
+        _Offset: ::std::os::raw::c_longlong,
+        _Origin: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _ftell_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_long;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _ftelli64_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _fwrite_nolock(
+        _Buffer: *const ::std::os::raw::c_void,
+        _ElementSize: usize,
+        _ElementCount: usize,
+        _Stream: *mut FILE,
+    ) -> usize;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _getc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _putc_nolock(
+        _Character: ::std::os::raw::c_int,
+        _Stream: *mut FILE,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn _ungetc_nolock(
+        _Character: ::std::os::raw::c_int,
+        _Stream: *mut FILE,
+    ) -> ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __p__commode() -> *mut ::std::os::raw::c_int;
+}
+#[link(name = "ZRDDSC_VS2019")]
+unsafe extern "C" {
+    pub fn __stdio_common_vfprintf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
         _Format: *const ::std::os::raw::c_char,
-        _Args: va_list,
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _snprintf(
-        _Dest: *mut ::std::os::raw::c_char,
-        _Count: usize,
+    pub fn __stdio_common_vfprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
         _Format: *const ::std::os::raw::c_char,
-        ...
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn vsnprintf(
-        __stream: *mut ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulonglong,
-        __format: *const ::std::os::raw::c_char,
-        __local_argv: __builtin_va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn snprintf(
-        __stream: *mut ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulonglong,
-        __format: *const ::std::os::raw::c_char,
-        ...
+    pub fn __stdio_common_vfprintf_p(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
@@ -8972,406 +8991,69 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_swscanf(
-        _Src: *const wchar_t,
-        _Format: *const wchar_t,
-        ...
+    pub fn __stdio_common_vfscanf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Stream: *mut FILE,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
+        _Arglist: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vswscanf(
-        _Str: *const wchar_t,
-        Format: *const wchar_t,
-        argp: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_wscanf(_Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_vwscanf(Format: *const wchar_t, argp: va_list) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_fwscanf(_File: *mut FILE, _Format: *const wchar_t, ...)
-    -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_vfwscanf(
-        fp: *mut FILE,
-        Format: *const wchar_t,
-        argp: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_fwprintf(
-        _File: *mut FILE,
-        _Format: *const wchar_t,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_wprintf(_Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_vfwprintf(
-        _File: *mut FILE,
-        _Format: *const wchar_t,
+    pub fn __stdio_common_vsprintf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut ::std::os::raw::c_char,
+        _BufferCount: usize,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
         _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __mingw_vwprintf(_Format: *const wchar_t, _ArgList: va_list) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_snwprintf(
-        s: *mut wchar_t,
-        n: usize,
-        format: *const wchar_t,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_vsnwprintf(
-        arg1: *mut wchar_t,
-        arg2: usize,
-        arg3: *const wchar_t,
-        arg4: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_swprintf(arg1: *mut wchar_t, arg2: *const wchar_t, ...)
-    -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_vswprintf(
-        arg1: *mut wchar_t,
-        arg2: *const wchar_t,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_swscanf(
-        _Src: *const wchar_t,
-        _Format: *const wchar_t,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_wscanf(_Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_fwscanf(_File: *mut FILE, _Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_fwprintf(_File: *mut FILE, _Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_wprintf(_Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_vfwprintf(
-        _File: *mut FILE,
-        _Format: *const wchar_t,
+    pub fn __stdio_common_vsprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut ::std::os::raw::c_char,
+        _BufferCount: usize,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
         _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn __ms_vwprintf(_Format: *const wchar_t, _ArgList: va_list) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_swprintf(arg1: *mut wchar_t, arg2: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __ms_vswprintf(
-        arg1: *mut wchar_t,
-        arg2: *const wchar_t,
-        arg3: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vswprintf(
-        options: ::std::os::raw::c_ulonglong,
-        str_: *mut wchar_t,
-        len: usize,
-        format: *const wchar_t,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfwprintf(
-        options: ::std::os::raw::c_ulonglong,
-        file: *mut FILE,
-        format: *const wchar_t,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vswscanf(
-        options: ::std::os::raw::c_ulonglong,
-        input: *const wchar_t,
-        length: usize,
-        format: *const wchar_t,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfwscanf(
-        options: ::std::os::raw::c_ulonglong,
-        file: *mut FILE,
-        format: *const wchar_t,
-        locale: _locale_t,
-        valist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fwprintf(_File: *mut FILE, _Format: *const wchar_t, ...) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wfsopen(
-        _Filename: *const wchar_t,
-        _Mode: *const wchar_t,
-        _ShFlag: ::std::os::raw::c_int,
-    ) -> *mut FILE;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fgetwc(_File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fgetwchar() -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fputwc(_Ch: wchar_t, _File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fputwchar(_Ch: wchar_t) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn getwc(_File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn getwchar() -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn putwc(_Ch: wchar_t, _File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn putwchar(_Ch: wchar_t) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn ungetwc(_Ch: wint_t, _File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fgetws(
-        _Dst: *mut wchar_t,
-        _SizeInWords: ::std::os::raw::c_int,
-        _File: *mut FILE,
-    ) -> *mut wchar_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fputws(_Str: *const wchar_t, _File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _getws(_String: *mut wchar_t) -> *mut wchar_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _putws(_Str: *const wchar_t) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _snwprintf(
-        _Dest: *mut wchar_t,
-        _Count: usize,
-        _Format: *const wchar_t,
-        ...
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _vsnwprintf(
-        _Dest: *mut wchar_t,
-        _Count: usize,
-        _Format: *const wchar_t,
-        _Args: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wtempnam(_Directory: *const wchar_t, _FilePrefix: *const wchar_t) -> *mut wchar_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _snwscanf(
-        _Src: *const wchar_t,
+    pub fn __stdio_common_vsnprintf_s(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut ::std::os::raw::c_char,
+        _BufferCount: usize,
         _MaxCount: usize,
-        _Format: *const wchar_t,
-        ...
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _wfdopen(_FileHandle: ::std::os::raw::c_int, _Mode: *const wchar_t) -> *mut FILE;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wfopen(_Filename: *const wchar_t, _Mode: *const wchar_t) -> *mut FILE;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wfreopen(
-        _Filename: *const wchar_t,
-        _Mode: *const wchar_t,
-        _OldFile: *mut FILE,
-    ) -> *mut FILE;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wperror(_ErrMsg: *const wchar_t);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wpopen(_Command: *const wchar_t, _Mode: *const wchar_t) -> *mut FILE;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wremove(_Filename: *const wchar_t) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wtmpnam(_Buffer: *mut wchar_t) -> *mut wchar_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fgetwc_nolock(_File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fputwc_nolock(_Ch: wchar_t, _File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _ungetwc_nolock(_Ch: wint_t, _File: *mut FILE) -> wint_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fgetc_nolock(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fputc_nolock(_Char: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _getc_nolock(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _putc_nolock(_Char: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _lock_file(_File: *mut FILE);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _unlock_file(_File: *mut FILE);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fclose_nolock(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fflush_nolock(_File: *mut FILE) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fread_nolock(
-        _DstBuf: *mut ::std::os::raw::c_void,
-        _ElementSize: usize,
-        _Count: usize,
-        _File: *mut FILE,
-    ) -> usize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fseek_nolock(
-        _File: *mut FILE,
-        _Offset: ::std::os::raw::c_long,
-        _Origin: ::std::os::raw::c_int,
+    pub fn __stdio_common_vsprintf_p(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *mut ::std::os::raw::c_char,
+        _BufferCount: usize,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn _ftell_nolock(_File: *mut FILE) -> ::std::os::raw::c_long;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fseeki64_nolock(
-        _File: *mut FILE,
-        _Offset: ::std::os::raw::c_longlong,
-        _Origin: ::std::os::raw::c_int,
+    pub fn __stdio_common_vsscanf(
+        _Options: ::std::os::raw::c_ulonglong,
+        _Buffer: *const ::std::os::raw::c_char,
+        _BufferCount: usize,
+        _Format: *const ::std::os::raw::c_char,
+        _Locale: _locale_t,
+        _ArgList: va_list,
     ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _ftelli64_nolock(_File: *mut FILE) -> ::std::os::raw::c_longlong;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fwrite_nolock(
-        _DstBuf: *const ::std::os::raw::c_void,
-        _Size: usize,
-        _Count: usize,
-        _File: *mut FILE,
-    ) -> usize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _ungetc_nolock(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -9397,7 +9079,7 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn fileno(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
@@ -9409,304 +9091,15 @@ unsafe extern "C" {
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn getw(_File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
-    pub fn putw(_Ch: ::std::os::raw::c_int, _File: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn putw(_Ch: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn rmtmp() -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_str_wide_utf8(
-        wptr: *const wchar_t,
-        mbptr: *mut *mut ::std::os::raw::c_char,
-        buflen: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_str_utf8_wide(
-        mbptr: *const ::std::os::raw::c_char,
-        wptr: *mut *mut wchar_t,
-        buflen: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __mingw_str_free(ptr: *mut ::std::os::raw::c_void);
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnl(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const wchar_t,
-        ...
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnle(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const wchar_t,
-        ...
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnlp(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const wchar_t,
-        ...
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnlpe(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const wchar_t,
-        ...
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnv(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const *const wchar_t,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnve(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const *const wchar_t,
-        _Env: *const *const wchar_t,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnvp(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const *const wchar_t,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wspawnvpe(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const wchar_t,
-        _ArgList: *const *const wchar_t,
-        _Env: *const *const wchar_t,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _spawnv(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const ::std::os::raw::c_char,
-        _ArgList: *const *const ::std::os::raw::c_char,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _spawnve(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const ::std::os::raw::c_char,
-        _ArgList: *const *const ::std::os::raw::c_char,
-        _Env: *const *const ::std::os::raw::c_char,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _spawnvp(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const ::std::os::raw::c_char,
-        _ArgList: *const *const ::std::os::raw::c_char,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _spawnvpe(
-        _Mode: ::std::os::raw::c_int,
-        _Filename: *const ::std::os::raw::c_char,
-        _ArgList: *const *const ::std::os::raw::c_char,
-        _Env: *const *const ::std::os::raw::c_char,
-    ) -> isize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn clearerr_s(_File: *mut FILE) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fread_s(
-        _DstBuf: *mut ::std::os::raw::c_void,
-        _DstSize: usize,
-        _ElementSize: usize,
-        _Count: usize,
-        _File: *mut FILE,
-    ) -> usize;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Str: *mut ::std::os::raw::c_char,
-        _Len: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Str: *mut ::std::os::raw::c_char,
-        _Len: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsnprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Str: *mut ::std::os::raw::c_char,
-        _Len: usize,
-        _MaxCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _File: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn fopen_s(
-        _File: *mut *mut FILE,
-        _Filename: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn freopen_s(
-        _File: *mut *mut FILE,
-        _Filename: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _Stream: *mut FILE,
-    ) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn gets_s(arg1: *mut ::std::os::raw::c_char, arg2: rsize_t) -> *mut ::std::os::raw::c_char;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn tmpfile_s(_File: *mut *mut FILE) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn tmpnam_s(arg1: *mut ::std::os::raw::c_char, arg2: rsize_t) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _getws_s(_Str: *mut wchar_t, _SizeInWords: usize) -> *mut wchar_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vswprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Str: *mut wchar_t,
-        _Len: usize,
-        _Format: *const wchar_t,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vsnwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Str: *mut wchar_t,
-        _Len: usize,
-        _MaxCount: usize,
-        _Format: *const wchar_t,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn __stdio_common_vfwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _File: *mut FILE,
-        _Format: *const wchar_t,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wfopen_s(
-        _File: *mut *mut FILE,
-        _Filename: *const wchar_t,
-        _Mode: *const wchar_t,
-    ) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wfreopen_s(
-        _File: *mut *mut FILE,
-        _Filename: *const wchar_t,
-        _Mode: *const wchar_t,
-        _OldFile: *mut FILE,
-    ) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _wtmpnam_s(_DstBuf: *mut wchar_t, _SizeInWords: usize) -> errno_t;
-}
-#[link(name = "ZRDDSC_VS2019")]
-unsafe extern "C" {
-    pub fn _fread_nolock_s(
-        _DstBuf: *mut ::std::os::raw::c_void,
-        _DstSize: usize,
-        _ElementSize: usize,
-        _Count: usize,
-        _File: *mut FILE,
-    ) -> usize;
 }
 pub type DataReaderListenerRequestedDeadlineMissedCallback = ::std::option::Option<
     unsafe extern "C" fn(
@@ -31826,5 +31219,15 @@ unsafe extern "C" {
 #[link(name = "ZRDDSC_VS2019")]
 unsafe extern "C" {
     pub fn InstanceHandleToString2(self_: *const DDS_InstanceHandle_t) -> *const ZR_INT8;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __crt_locale_data {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __crt_multibyte_data {
+    pub _address: u8,
 }
 pub type __builtin_va_list = *mut ::std::os::raw::c_char;

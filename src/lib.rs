@@ -1,7 +1,7 @@
 //! Rust bindings for DDS Library provided by ZRTech
 //!
 //! This library provides both high-level and low-level APIs for DDS (Data Distribution Service).
-//! 
+//!
 //! # Module Organization
 //!
 //! - `api`: High-level, user-friendly API for common DDS operations
@@ -15,10 +15,10 @@ pub mod dds_handlers;
 pub mod utils;
 
 // Dioxus modules
-pub mod dioxus_structs;
 pub mod dioxus_app;
+pub mod dioxus_structs;
 // pub mod zrdds;
 // pub use zrdds::*;
 
-pub mod core;
 pub mod components;
+pub mod core;

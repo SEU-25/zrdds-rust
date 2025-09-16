@@ -1,7 +1,9 @@
-use crate::bindings::{DDS_Bytes, DDS_Octet, DDS_OctetSeq_initialize, DDS_OctetSeq_loan_contiguous};
+use crate::bindings::{
+    DDS_Bytes, DDS_Octet, DDS_OctetSeq_initialize, DDS_OctetSeq_loan_contiguous,
+};
+use crate::core::bytes::Boolean;
 use std::pin::Pin;
 use std::{mem, ptr};
-use crate::core::bytes::Boolean;
 
 pub struct Bytes {
     pub inner: Option<Pin<Box<DDS_Bytes>>>,

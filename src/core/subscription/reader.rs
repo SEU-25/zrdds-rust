@@ -1,7 +1,7 @@
 use crate::bindings::*;
+use crate::core::ReaderListener;
 use crate::core::subscription::Subscriber;
 use std::marker::PhantomData;
-use crate::core::ReaderListener;
 
 /// 统一的Reader结构体，同时支持高级API和底层API
 pub struct Reader {
@@ -96,4 +96,3 @@ macro_rules! dds_simple_data_reader_listener {
         }
     };
 }
-

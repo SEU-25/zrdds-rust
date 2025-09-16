@@ -1,4 +1,4 @@
-use crate::bindings::{DDS_TopicQos, DDS_TOPIC_QOS_DEFAULT};
+use crate::bindings::{DDS_TOPIC_QOS_DEFAULT, DDS_TopicQos};
 
 pub struct TopicQos {
     pub raw: *mut DDS_TopicQos,

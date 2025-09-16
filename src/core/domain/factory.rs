@@ -35,7 +35,11 @@ impl DPFactory {
     ) -> Option<DomainParticipant> {
         let participant = unsafe {
             DDS_DomainParticipantFactory_create_participant(
-                self_.raw, domain_id, qos_list.raw, listener.raw, mask,
+                self_.raw,
+                domain_id,
+                qos_list.raw,
+                listener.raw,
+                mask,
             )
         };
 
@@ -47,9 +51,9 @@ impl DPFactory {
     }
 
     pub fn default_qos(&self) -> DPQos {
-            DPQos {
-                raw: &raw mut DDS_DOMAINPARTICIPANT_QOS_DEFAULT,
-            }
+        DPQos {
+            raw: &raw mut DDS_DOMAINPARTICIPANT_QOS_DEFAULT,
+        }
     }
 
     /** 析构单例，该方法同样是线程不安全的，多个线程同时调用该函数，可能会出问题。

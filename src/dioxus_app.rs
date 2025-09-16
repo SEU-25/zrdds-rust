@@ -1,6 +1,9 @@
+use crate::core::Writer;
+use crate::core::bytes::bytes::Bytes;
 use crate::dioxus_structs::{
-    ChatMessage, CLEAR_OWN_STROKES_REQUEST, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
-    VideoDeleteOperation, UserColor, ImageItem, ImageQueue, ImageQueueDeleteOperation, LOCAL_STROKES,
+    CLEAR_OWN_STROKES_REQUEST, ChatMessage, DANMAKU_ENABLED, DrawStroke, EraseOperation,
+    ImageDeleteOperation, ImageItem, ImageQueue, ImageQueueDeleteOperation, LOCAL_STROKES,
+    MouseState, UserColor, VideoDeleteOperation,
 };
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use crate::utils::*;
@@ -11,12 +14,10 @@ use serde_json::json;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
+    ptr,
     sync::{Arc, Mutex},
-    ptr
 };
 use tokio;
-use crate::core::bytes::bytes::Bytes;
-use crate::core::Writer;
 
 use crate::core::dp_listener::DPListener;
 use crate::core::publisher_listener::PublisherListener;
@@ -46,9 +47,9 @@ pub struct DioxusAppState {
     pub current_color: egui::Color32,
     pub draw_mode: DrawMode,
     pub stroke_width: f32,
-    pub is_dashed: bool,        // 虚线模式开关
-    pub dash_length: f32,       // 虚线长度
-    pub gap_length: f32,        // 虚线间隔长度
+    pub is_dashed: bool,  // 虚线模式开关
+    pub dash_length: f32, // 虚线长度
+    pub gap_length: f32,  // 虚线间隔长度
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub chat_input: String,
@@ -57,13 +58,13 @@ pub struct DioxusAppState {
     pub current_video: Option<String>, // 当前显示的视频用户名（作为视频ID）
     pub user_colors: HashMap<String, egui::Color32>, // 用户颜色映射
     pub image_queue: Vec<crate::dioxus_structs::ImageItem>, // 本地图片队列
-    pub current_image_index: usize, // 当前显示的图片索引
-    pub app_state: AppState, // 应用当前状态
-    pub domain_id: Option<u32>, // DDS域号
-    pub domain_input: String, // 域号输入字段
-    pub private_chat_enabled: bool, // 私聊模式开关
+    pub current_image_index: usize,    // 当前显示的图片索引
+    pub app_state: AppState,           // 应用当前状态
+    pub domain_id: Option<u32>,        // DDS域号
+    pub domain_input: String,          // 域号输入字段
+    pub private_chat_enabled: bool,    // 私聊模式开关
     pub selected_user: Option<String>, // 选中的私聊用户
-    pub user_type: u32, // 用户类型：0=学生端，1=教师端
+    pub user_type: u32,                // 用户类型：0=学生端，1=教师端
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -79,9 +80,9 @@ impl Default for DioxusAppState {
             current_color: egui::Color32::from_rgb(255, 0, 0),
             draw_mode: DrawMode::Mouse,
             stroke_width: 2.0,
-            is_dashed: false,       // 默认实线模式
-            dash_length: 5.0,       // 默认虚线长度
-            gap_length: 3.0,        // 默认虚线间隔
+            is_dashed: false, // 默认实线模式
+            dash_length: 5.0, // 默认虚线长度
+            gap_length: 3.0,  // 默认虚线间隔
             canvas_width: 1000,
             canvas_height: 600,
             chat_input: String::new(),
@@ -163,7 +164,10 @@ impl PartialEq for DioxusAppProps {
             && Arc::ptr_eq(&self.erase_writer, &other.erase_writer)
             && Arc::ptr_eq(&self.image_delete_writer, &other.image_delete_writer)
             && Arc::ptr_eq(&self.video_delete_writer, &other.video_delete_writer)
-            && Arc::ptr_eq(&self.image_queue_delete_writer, &other.image_queue_delete_writer)
+            && Arc::ptr_eq(
+                &self.image_queue_delete_writer,
+                &other.image_queue_delete_writer,
+            )
             && Arc::ptr_eq(&self.chat_writer, &other.chat_writer)
     }
 }
@@ -237,7 +241,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         let received_image_deletes = received_image_deletes.clone();
         let received_video_deletes = received_video_deletes.clone();
         let received_chat_messages = received_chat_messages.clone();
-        let received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>> = received_danmaku_messages.clone();
+        let received_danmaku_messages: Arc<Mutex<Vec<crate::dioxus_structs::DanmakuMessage>>> =
+            received_danmaku_messages.clone();
         let received_user_colors = received_user_colors.clone();
         let received_image_queues = received_image_queues.clone();
         let received_image_queue_deletes = received_image_queue_deletes.clone();
@@ -302,11 +307,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                 {
                     let mut q = received_image_queue_deletes.lock().unwrap();
                     for delete_op in q.drain(..) {
-                        println!(
-                            "接收到图片队列删除操作: username={}",
-                            delete_op.username
-                        );
-                        
+                        println!("接收到图片队列删除操作: username={}", delete_op.username);
+
                         // 清空本地图片队列（如果是其他用户的删除操作）
                         if delete_op.username != get_username() {
                             app_state.write().image_queue.clear();
@@ -488,10 +490,16 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                 {
                     let mut color_map = received_user_colors.lock().unwrap();
                     for (username, user_color) in color_map.drain() {
-                        println!("接收到用户颜色更新: username={}, color={:?}", username, user_color.color);
-                        
+                        println!(
+                            "接收到用户颜色更新: username={}, color={:?}",
+                            username, user_color.color
+                        );
+
                         // 更新app_state中的用户颜色映射
-                        app_state.write().user_colors.insert(username, user_color.color);
+                        app_state
+                            .write()
+                            .user_colors
+                            .insert(username, user_color.color);
                     }
                 }
 
@@ -499,8 +507,12 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                 {
                     let mut image_queue_map = received_image_queues.lock().unwrap();
                     for (username, image_queue) in image_queue_map.drain() {
-                        println!("接收到图片队列更新: username={}, images_count={}", username, image_queue.images.len());
-                        
+                        println!(
+                            "接收到图片队列更新: username={}, images_count={}",
+                            username,
+                            image_queue.images.len()
+                        );
+
                         // 更新app_state中的图片队列
                         app_state.write().image_queue = image_queue.images;
                         app_state.write().current_image_index = image_queue.current_index;
@@ -515,32 +527,32 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
             AppState::DomainInput => rsx! {
                 div {
                     "style": "display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);",
-                    
+
                     div {
                         "style": "background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; min-width: 400px;",
-                        
+
                         h1 {
                             "style": "color: #333; margin-bottom: 30px; font-size: 28px;",
                             "设置DDS域号"
                         }
-                        
+
                         p {
                             "style": "color: #666; margin-bottom: 20px; font-size: 16px;",
                             "请输入1-150之间的域号"
                         }
-                        
+
                         // 用户类型选择
                         div {
                             "style": "margin-bottom: 20px;",
-                            
+
                             p {
                                 "style": "color: #666; margin-bottom: 10px; font-size: 14px;",
                                 "选择用户类型"
                             }
-                            
+
                             div {
                                 "style": "display: flex; gap: 10px; justify-content: center;",
-                                
+
                                 button {
                                     "style": if app_state.read().user_type == 0 {
                                         "background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
@@ -554,7 +566,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                     },
                                     "学生端"
                                 }
-                                
+
                                 button {
                                     "style": if app_state.read().user_type == 1 {
                                         "background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;"
@@ -570,7 +582,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 }
                             }
                         }
-                        
+
                         input {
                             "type": "number",
                             "min": "1",
@@ -582,7 +594,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 app_state.write().domain_input = evt.value();
                             }
                         }
-                        
+
                         button {
                             "style": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: transform 0.2s;",
                             "onmouseover": "this.style.transform='scale(1.05)'",
@@ -594,7 +606,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 if let Ok(domain) = input_value.parse::<u32>() {
                                     if domain >= 1 && domain <= 150 {
                                         drop(binding);
-                                        
+
                                         // 重新启动应用并传递新的域号和用户类型
                                         let current_exe = std::env::current_exe().unwrap();
                                         std::process::Command::new(current_exe)
@@ -602,7 +614,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                             .arg(current_user_type.to_string())
                                             .spawn()
                                             .expect("Failed to restart application");
-                                        
+
                                         // 退出当前应用实例
                                         std::process::exit(0);
                                     }
@@ -620,13 +632,13 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                     // 右上角控制区域
                     div {
                         "style": "position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 10px; z-index: 1000;",
-                        
+
                         // 域号显示
                         div {
                             "style": "background: rgba(0, 0, 0, 0.7); color: white; padding: 8px 12px; border-radius: 5px; font-size: 14px;",
                             "DDS域号: {app_state.read().domain_id.unwrap_or(0)}"
                         }
-                        
+
                         // 返回域号输入界面按钮
                         button {
                             "style": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: transform 0.2s;",
@@ -767,281 +779,281 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
     } = props;
 
     rsx! {
+        div {
+            "style": "flex: 1; padding: 20px; background: white; display: flex; flex-direction: column;",
+            onmousemove: {
+                let writer_clone = writer.clone();
+                move |evt: MouseEvent| {
+                    let rect = evt.page_coordinates();
+                    let state = app_state.read();
+                    send_mouse_position(rect.x as f32, rect.y as f32, state.current_color, writer_clone.clone());
+                }
+            },
+
+            // 工具栏
             div {
-                "style": "flex: 1; padding: 20px; background: white; display: flex; flex-direction: column;",
-                onmousemove: {
-                    let writer_clone = writer.clone();
-                    move |evt: MouseEvent| {
-                        let rect = evt.page_coordinates();
-                        let state = app_state.read();
-                        send_mouse_position(rect.x as f32, rect.y as f32, state.current_color, writer_clone.clone());
-                    }
-                },
+                "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; margin-right:20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display:flex",
 
-                // 工具栏
-                div {
-                    "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; margin-right:20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display:flex",
+                // h3 {
+                //     "style": "margin: 0 0 15px 0; color: #333;",
+                //     "绘图工具"
+                // }
 
-                    // h3 {
-                    //     "style": "margin: 0 0 15px 0; color: #333;",
-                    //     "绘图工具"
-                    // }
+                // —— 颜色选择器（受控组件） ——
+                {
+                    let cur = app_state.read().current_color; // 读一次
+                    let cur_hex = format!("#{:02x}{:02x}{:02x}", cur.r(), cur.g(), cur.b());
+                    let rgb_str = format!("RGB({}, {}, {})", cur.r(), cur.g(), cur.b());
 
-                    // —— 颜色选择器（受控组件） ——
-                    {
-                        let cur = app_state.read().current_color; // 读一次
-                        let cur_hex = format!("#{:02x}{:02x}{:02x}", cur.r(), cur.g(), cur.b());
-                        let rgb_str = format!("RGB({}, {}, {})", cur.r(), cur.g(), cur.b());
 
-                        
 
-                        rsx! {
+                    rsx! {
+                        div {
+                            "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
+
+                            label {
+                                "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                                "画笔设置:" }
+                            // HoverCardUse {  }
+
                             div {
-                                "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
-
-                                label { 
-                                    "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                                    "画笔设置:" }
-                                // HoverCardUse {  }
-
-                                div {
-                                    "style": "display: flex; align-items: center; gap: 15px; margin-bottom: 8px;",
-                                    input {
-                                        r#type: "color",
-                                        value: cur_hex,
-                                        oninput: {
-                                            let color_writer_clone = color_writer.clone();
-                                            move |evt: FormEvent| {
-                                                let s = evt.value();
-                                                log::info!("color input -> {}", &s);
-                                                if let Ok(c) = parse_color(&s) {
-                                                    // 更新当前用户的颜色
-                                                    let username = get_username();
-                                                    let mut state = app_state.write();
-                                                    state.current_color = c;
-                                                    // 同时更新用户颜色映射，确保本地鼠标指针颜色立即更新
-                                                    state.user_colors.insert(username, c);
-                                                    drop(state);
-                                                    // 发送颜色更新的DDS消息
-                                                    send_user_color(c, color_writer_clone.clone());
-                                                } else {
-                                                    log::warn!("bad color: {}", s);
-                                                }
+                                "style": "display: flex; align-items: center; gap: 15px; margin-bottom: 8px;",
+                                input {
+                                    r#type: "color",
+                                    value: cur_hex,
+                                    oninput: {
+                                        let color_writer_clone = color_writer.clone();
+                                        move |evt: FormEvent| {
+                                            let s = evt.value();
+                                            log::info!("color input -> {}", &s);
+                                            if let Ok(c) = parse_color(&s) {
+                                                // 更新当前用户的颜色
+                                                let username = get_username();
+                                                let mut state = app_state.write();
+                                                state.current_color = c;
+                                                // 同时更新用户颜色映射，确保本地鼠标指针颜色立即更新
+                                                state.user_colors.insert(username, c);
+                                                drop(state);
+                                                // 发送颜色更新的DDS消息
+                                                send_user_color(c, color_writer_clone.clone());
+                                            } else {
+                                                log::warn!("bad color: {}", s);
                                             }
-                                        }
-                                    }
-                                    
-                                    // 笔迹大小控件
-                                    div {
-                                        "style": "display: flex; flex-direction: column; align-items: center; gap: 4px;",
-                                        input {
-                                            r#type: "range",
-                                            min: "1",
-                                            max: "13.5",
-                                            step: "0.5",
-                                            value: "{app_state.read().stroke_width}",
-                                            "style": "width: 80px;",
-                                            oninput: move |evt: FormEvent| {
-                                                let value = evt.value().parse::<f32>().unwrap_or(2.0);
-                                                app_state.write().stroke_width = value;
-                                            }
-                                        }
-                                        span {
-                                            "style": "color: #666; font-size: 12px; white-space: nowrap;",
-                                            "大小: {app_state.read().stroke_width:.1}"
-                                        }
-                                    }
-                                    
-                                    // 虚线模式开关
-                                    div {
-                                        "style": "display: flex; align-items: center; gap: 8px;",
-                                        input {
-                                            r#type: "checkbox",
-                                            checked: app_state.read().is_dashed,
-                                            onchange: move |evt: FormEvent| {
-                                                app_state.write().is_dashed = evt.checked();
-                                            }
-                                        }
-                                        span {
-                                            "style": "color: #666; font-size: 14px;",
-                                            "虚线"
                                         }
                                     }
                                 }
-                                
-                                // span { 
-                                // "style":"margin-bottom: 2px;",
-                                // "{rgb_str}" }
+
+                                // 笔迹大小控件
+                                div {
+                                    "style": "display: flex; flex-direction: column; align-items: center; gap: 4px;",
+                                    input {
+                                        r#type: "range",
+                                        min: "1",
+                                        max: "13.5",
+                                        step: "0.5",
+                                        value: "{app_state.read().stroke_width}",
+                                        "style": "width: 80px;",
+                                        oninput: move |evt: FormEvent| {
+                                            let value = evt.value().parse::<f32>().unwrap_or(2.0);
+                                            app_state.write().stroke_width = value;
+                                        }
+                                    }
+                                    span {
+                                        "style": "color: #666; font-size: 12px; white-space: nowrap;",
+                                        "大小: {app_state.read().stroke_width:.1}"
+                                    }
+                                }
+
+                                // 虚线模式开关
+                                div {
+                                    "style": "display: flex; align-items: center; gap: 8px;",
+                                    input {
+                                        r#type: "checkbox",
+                                        checked: app_state.read().is_dashed,
+                                        onchange: move |evt: FormEvent| {
+                                            app_state.write().is_dashed = evt.checked();
+                                        }
+                                    }
+                                    span {
+                                        "style": "color: #666; font-size: 14px;",
+                                        "虚线"
+                                    }
+                                }
+                            }
+
+                            // span {
+                            // "style":"margin-bottom: 2px;",
+                            // "{rgb_str}" }
+                        }
+                    }
+                }
+                div {
+                    "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
+                    label {
+                        "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
+                        "绘图模式:"
+                    }
+                    div {
+                        "style": "display: flex; gap: 8px;",
+                        button {
+                            class: "button",
+                            "data-style": "primary",
+                            "style": if app_state.read().draw_mode == DrawMode::Mouse {
+                                "padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,123,255,0.3);"
+                            } else {
+                                "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                            },
+                            onclick: move |_| {
+                                let mut state = app_state.write();
+                                state.draw_mode = DrawMode::Mouse;
+                            },
+                            "鼠标"
+                        }
+                        button {
+                            "style": if app_state.read().draw_mode == DrawMode::Draw {
+                                "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(40,167,69,0.3);"
+                            } else {
+                                "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                            },
+                            onclick: move |_| {
+                                let mut state = app_state.write();
+                                state.draw_mode = DrawMode::Draw;
+                            },
+                            "画笔"
+                        }
+                        button {
+                            "style": if app_state.read().draw_mode == DrawMode::Erase {
+                                "padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(220,53,69,0.3);"
+                            } else {
+                                "padding: background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                            },
+                            onclick: move |_| {
+                                let mut state = app_state.write();
+                                state.draw_mode = DrawMode::Erase;
+                            },
+                            "擦除"
+                        }
+                        // 清空画板按钮
+                        {
+                            let erase_writer_for_clear = erase_writer.clone();
+                            rsx! {
+                                button {
+                                    "style": "padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; margin-left: 8px;",
+                                    onclick: {
+                                        let strokes_clone = strokes.clone();
+                                        let local_strokes_clone = local_strokes.clone();
+                                        let erase_writer_clone = erase_writer_for_clear.clone();
+                                        move |_| {
+                                            let user_type = app_state.read().user_type;
+                                            if user_type == 1 {
+                                                // 教师端：清空所有笔迹
+                                                clear_all_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
+                                            } else {
+                                                // 学生端：只清空自己的笔迹
+                                                clear_own_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
+                                            }
+                                        }
+                                    },
+                                    if app_state.read().user_type == 1 {
+                                        "🗑️ 清空所有"
+                                    } else {
+                                        "🗑️ 清空自己"
+                                    }
+                                }
                             }
                         }
                     }
+                }
+
+
+
+
+                if (app_state.read().user_type == 1) {
                     div {
                         "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
                         label {
                             "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                            "绘图模式:"
+                            "媒体上传:"
                         }
                         div {
-                            "style": "display: flex; gap: 8px;",
-                            button {
-                                class: "button",
-                                "data-style": "primary",
-                                "style": if app_state.read().draw_mode == DrawMode::Mouse {
-                                    "padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,123,255,0.3);"
-                                } else {
-                                    "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                },
-                                onclick: move |_| {
-                                    let mut state = app_state.write();
-                                    state.draw_mode = DrawMode::Mouse;
-                                },
-                                "鼠标"
-                            }
-                            button {
-                                "style": if app_state.read().draw_mode == DrawMode::Draw {
-                                    "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(40,167,69,0.3);"
-                                } else {
-                                    "padding:  background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                },
-                                onclick: move |_| {
-                                    let mut state = app_state.write();
-                                    state.draw_mode = DrawMode::Draw;
-                                },
-                                "画笔"
-                            }
-                            button {
-                                "style": if app_state.read().draw_mode == DrawMode::Erase {
-                                    "padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(220,53,69,0.3);"
-                                } else {
-                                    "padding: background: white; color: #333; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                },
-                                onclick: move |_| {
-                                    let mut state = app_state.write();
-                                    state.draw_mode = DrawMode::Erase;
-                                },
-                                "擦除"
-                            }
-                            // 清空画板按钮
+                            "style": "display: flex; gap: 8px; flex-wrap: wrap;",
                             {
-                                let erase_writer_for_clear = erase_writer.clone();
+                                let has_media = !images.read().is_empty() || !videos.read().is_empty();
+                                let has_queue = !app_state.read().image_queue.is_empty();
+
+                                let queue_button_style = if has_media || has_queue {
+                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                } else {
+                                    "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                };
+
+                                let video_button_style = if has_media || has_queue {
+                                    "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
+                                } else {
+                                    "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
+                                };
+
                                 rsx! {
                                     button {
-                                        "style": "padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; margin-left: 8px;",
+                                        "style": queue_button_style,
+                                        disabled: has_media||has_queue,
                                         onclick: {
-                                            let strokes_clone = strokes.clone();
-                                            let local_strokes_clone = local_strokes.clone();
-                                            let erase_writer_clone = erase_writer_for_clear.clone();
-                                            move |_| {
-                                                let user_type = app_state.read().user_type;
-                                                if user_type == 1 {
-                                                    // 教师端：清空所有笔迹
-                                                    clear_all_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
-                                                } else {
-                                                    // 学生端：只清空自己的笔迹
-                                                    clear_own_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
-                                                }
-                                            }
-                                        },
-                                        if app_state.read().user_type == 1 {
-                                            "🗑️ 清空所有"
-                                        } else {
-                                            "🗑️ 清空自己"
+                                        let image_queue_writer = image_queue_writer.clone();
+                                        move |_| {
+                                            upload_images_to_queue(app_state, image_queue_writer.clone());
                                         }
+                                    },
+                                        "📁 上传图片"
+                                    }
+                                    button {
+                                        "style": video_button_style,
+                                        disabled: has_media||has_queue,
+                                        onclick: move |_| {
+                                            upload_video(video_writer.clone());
+                                        },
+                                        "🎥 上传视频"
                                     }
                                 }
                             }
                         }
                     }
 
-
-
-                    
+                    // 屏幕共享（仅教师端显示）
                     if (app_state.read().user_type == 1) {
                         div {
                             "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
                             label {
                                 "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                                "媒体上传:"
+                                "屏幕共享:"
                             }
-                            div {
-                                "style": "display: flex; gap: 8px; flex-wrap: wrap;",
-                                {
-                                    let has_media = !images.read().is_empty() || !videos.read().is_empty();
-                                    let has_queue = !app_state.read().image_queue.is_empty();
-                                    
-                                    let queue_button_style = if has_media || has_queue {
-                                        "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
-                                    } else {
-                                        "padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                    };
-                                    
-                                    let video_button_style = if has_media || has_queue {
-                                        "padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-size: 14px; transition: all 0.2s; opacity: 0.6;"
-                                    } else {
-                                        "padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s;"
-                                    };
-
-                                    rsx! {
-                                        button {
-                                            "style": queue_button_style,
-                                            disabled: has_media||has_queue,
-                                            onclick: {
-                                            let image_queue_writer = image_queue_writer.clone();
-                                            move |_| {
-                                                upload_images_to_queue(app_state, image_queue_writer.clone());
-                                            }
-                                        },
-                                            "📁 上传图片"
-                                        }
-                                        button {
-                                            "style": video_button_style,
-                                            disabled: has_media||has_queue,
-                                            onclick: move |_| {
-                                                upload_video(video_writer.clone());
-                                            },
-                                            "🎥 上传视频"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // 屏幕共享（仅教师端显示）
-                        if (app_state.read().user_type == 1) {
-                            div {  
-                                "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
-                                label {
-                                    "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                                    "屏幕共享:"
-                                }
-                                ToggleSwitch{}
-                            }
+                            ToggleSwitch{}
                         }
                     }
-                    // ToggleSwitch{}
                 }
+                // ToggleSwitch{}
+            }
 
 
-                // 画布区域
-                Canvas {
-                    app_state,
-                    mouse_positions,
-                    images,
-                    videos,
-                    strokes,
-                    local_strokes,
-                    danmaku_messages,
-                    is_drawing,
-                    last_mouse_pos,
-                    writer: writer.clone(),
-                    draw_writer,
-                    erase_writer,
-                    image_delete_writer,
-                    video_delete_writer,
-                    image_queue_delete_writer: props.image_queue_delete_writer.clone(),
-                }
+            // 画布区域
+            Canvas {
+                app_state,
+                mouse_positions,
+                images,
+                videos,
+                strokes,
+                local_strokes,
+                danmaku_messages,
+                is_drawing,
+                last_mouse_pos,
+                writer: writer.clone(),
+                draw_writer,
+                erase_writer,
+                image_delete_writer,
+                video_delete_writer,
+                image_queue_delete_writer: props.image_queue_delete_writer.clone(),
             }
         }
+    }
 }
 
 // 画布组件Props
@@ -1111,7 +1123,7 @@ fn Canvas(props: CanvasProps) -> Element {
 
     rsx! {
         div {
-            "style": "flex: 1; 
+            "style": "flex: 1;
                     position: relative; 
                     border: 2px solid #ccc;     
                     border-radius: 12px;         
@@ -1178,7 +1190,7 @@ fn Canvas(props: CanvasProps) -> Element {
                     let queue_len = state_read.image_queue.len();
                     let current_index = state_read.current_image_index;
                     drop(state_read);
-                    
+
                     rsx! {
                         div {
                             "style": "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
@@ -1197,7 +1209,7 @@ fn Canvas(props: CanvasProps) -> Element {
                             div {
                                 "style": "display: flex; align-items: center; gap: 8px; font-size: 12px;",
                                 span { "图片 {current_index + 1}/{queue_len}: {current_image_clone.id}" }
-                                
+
                                 // 左切换按钮
                                 button {
                                     "style": "background-color: #007bff; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; margin-right: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold;",
@@ -1206,7 +1218,7 @@ fn Canvas(props: CanvasProps) -> Element {
                                     },
                                     "‹"
                                 }
-                                
+
                                 // 右切换按钮
                                 button {
                                     "style": "background-color: #007bff; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; margin-right: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold;",
@@ -1215,7 +1227,7 @@ fn Canvas(props: CanvasProps) -> Element {
                                     },
                                     "›"
                                 }
-                                
+
                                 // 删除队列按钮
                                 button {
                                     "style": "background-color: #dc3545; color: white; border: none; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; z-index: 2147483647; position: relative; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events:auto;",
@@ -1283,7 +1295,7 @@ fn Canvas(props: CanvasProps) -> Element {
                                 // 视频控制面板
                                 div {
                                     "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 4px;",
-                                    span { 
+                                    span {
                                         "style": "color: #333; font-weight: bold; font-size: 14px;",
                                         "用户: {video_data_clone.username}"
                                     }
@@ -1423,12 +1435,12 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
             // 聊天标题和弹幕开关
             div {
                 "style": "padding: 10px; border-bottom: 1px solid #ccc; background-color: #e9ecef;",
-                
+
                 // 标题和域号显示
                 div {
                     "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
                     h3 { "style": "margin: 0;", "聊天室" }
-                    
+
                     // 域号显示
                     if let Some(domain_id) = app_state.read().domain_id {
                         div {
@@ -1437,7 +1449,7 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                         }
                     }
                 }
-                
+
                 label {
                     "style": "display: flex; align-items: center; gap: 5px;",
                     input {
@@ -1531,7 +1543,7 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                         let selected_user = app_state.read().selected_user.clone();
                                         //send_chat_message_with_private(message, current_color, chat_writer_clone.clone(), &mut danmaku_clone, app_state.read().danmaku_enabled, private_chat_enabled, selected_user);
 
-                                        
+
                                         app_state.write().chat_input.clear();
                                     }
                                 }
@@ -1565,15 +1577,15 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                         "发送"
                     }
                 }
-                
+
                 // 私聊控制区域
                 div {
                     "style": "padding: 10px; border-top: 1px solid #eee; background-color: #f8f9fa;",
-                    
+
                     // 私聊模式开关
                     div {
                         "style": "display: flex; align-items: center; gap: 8px; margin-bottom: 8px;",
-                        
+
                         // 开关组件
                         div {
                             "style": format!(
@@ -1587,7 +1599,7 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                     app_state.write().selected_user = None;
                                 }
                             },
-                            
+
                             // 开关圆点
                             div {
                                 "style": format!(
@@ -1596,23 +1608,23 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                 )
                             }
                         }
-                        
+
                         span {
                             "style": "font-size: 14px; color: #333;",
                             "私聊模式"
                         }
                     }
-                    
+
                     // 用户选择下拉框（仅在私聊模式开启时显示）
                     if app_state.read().private_chat_enabled {
                         div {
                             "style": "margin-top: 8px;",
-                            
+
                             label {
                                 "style": "display: block; font-size: 12px; color: #666; margin-bottom: 4px;",
                                 "选择私聊用户:"
                             }
-                            
+
                             select {
                                 "style": "width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background-color: white;",
                                 value: app_state.read().selected_user.clone().unwrap_or_default(),
@@ -1624,12 +1636,12 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                                         app_state.write().selected_user = Some(selected);
                                     }
                                 },
-                                
+
                                 option {
                                     value: "",
                                     "请选择用户"
                                 }
-                                
+
                                 // 显示在线用户列表（过滤掉自己）
                                 for (username, _) in mouse_positions.read().iter() {
                                     if username != &get_username() {
@@ -1678,13 +1690,12 @@ fn GlobalMouseOverlay(
     mouse_positions: Signal<HashMap<String, MouseState>>,
     app_state: Signal<DioxusAppState>,
 ) -> Element {
-
     // let user_color = app_state.read().user_colors.get("20141")
     //                             .copied()
     //                             .unwrap_or(egui::Color32::from_rgb(255, 0, 0)); // 默认红色
     //                         log::info!("Rendering mouse pointer for  with color rgb({},{},{})", user_color.r(), user_color.g(), user_color.b());
     rsx! {
-        
+
         div {
             "style": "position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; overflow: hidden;",
 
@@ -1780,11 +1791,7 @@ fn add_danmaku_message(
     danmaku_messages.write().push(danmaku_msg);
 }
 
-fn send_chat_message(
-    message: String,
-    color: egui::Color32,
-    chat_writer: Arc<Mutex<Writer>>,
-) {
+fn send_chat_message(message: String, color: egui::Color32, chat_writer: Arc<Mutex<Writer>>) {
     if message.trim().is_empty() {
         return;
     }
@@ -1837,7 +1844,11 @@ fn send_chat_message_with_private(
         timestamp: get_current_timestamp(),
         color: color,
         is_private: private_chat_enabled && selected_user.is_some(),
-        target_user: if private_chat_enabled { selected_user.clone() } else { None },
+        target_user: if private_chat_enabled {
+            selected_user.clone()
+        } else {
+            None
+        },
     };
 
     let mut json_message = json!({
@@ -1904,13 +1915,13 @@ fn handle_mouse_move(
                     end_y: canvas_y,
                     stroke_width: state.stroke_width,
                     is_dashed: state.is_dashed,
-                    dash_length: state.stroke_width * 3.0,  // 虚线长度与笔迹宽度成比例
-                    gap_length: state.stroke_width * 2.5,   // 间隔长度与笔迹宽度成比例
+                    dash_length: state.stroke_width * 3.0, // 虚线长度与笔迹宽度成比例
+                    gap_length: state.stroke_width * 2.5,  // 间隔长度与笔迹宽度成比例
                     timestamp: get_current_timestamp_millis(),
                 };
 
                 local_strokes.write().push(stroke.clone());
-                
+
                 // 同时更新全局LOCAL_STROKES
                 unsafe {
                     if let Some(ref global_local_strokes) = LOCAL_STROKES {
@@ -1918,7 +1929,7 @@ fn handle_mouse_move(
                         data.push(stroke.clone());
                     }
                 }
-                
+
                 send_draw_stroke(&stroke, draw_writer);
             }
             DrawMode::Erase => {
@@ -1986,7 +1997,7 @@ fn handle_erase(
                 erase_radius,
             ))
     });
-    
+
     // 同时更新全局LOCAL_STROKES
     unsafe {
         if let Some(ref global_local_strokes) = LOCAL_STROKES {
@@ -2041,12 +2052,7 @@ fn handle_erase(
     send_dds_message(&json_message.to_string(), &erase_writer);
 }
 
-fn send_mouse_position(
-    x: f32,
-    y: f32,
-    color: egui::Color32,
-    writer: Arc<Mutex<Writer>>,
-) {
+fn send_mouse_position(x: f32, y: f32, color: egui::Color32, writer: Arc<Mutex<Writer>>) {
     let mouse_state = MouseState {
         username: get_username(),
         color,
@@ -2133,10 +2139,11 @@ fn delete_video(video_id: String, video_delete_writer: Arc<Mutex<Writer>>) {
     println!("图片删除成功: {}", json_message.to_string());
 }
 
-
-
 // 新增：上传多张图片到本地队列
-fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_writer: Arc<Mutex<Writer>>) {
+fn upload_images_to_queue(
+    mut app_state: Signal<DioxusAppState>,
+    image_queue_writer: Arc<Mutex<Writer>>,
+) {
     spawn(async move {
         // 使用异步文件对话框选择多个文件
         let files = rfd::AsyncFileDialog::new()
@@ -2147,18 +2154,18 @@ fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_wri
 
         if let Some(files) = files {
             let mut new_images = Vec::new();
-            
+
             for file in files {
                 match tokio::fs::read(file.path()).await {
                     Ok(image_data) => {
                         let timestamp = get_current_timestamp_millis();
-                        
+
                         // 获取图片尺寸
                         let (width, height) = match image::open(file.path()) {
                             Ok(img) => (img.width(), img.height()),
                             Err(_) => (0, 0),
                         };
-                        
+
                         let image_item = ImageItem {
                             id: format!("{}-{}", get_username(), timestamp),
                             username: get_username(),
@@ -2167,7 +2174,7 @@ fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_wri
                             height,
                             timestamp,
                         };
-                        
+
                         new_images.push(image_item);
                         println!("成功加载图片: {}", file.file_name());
                     }
@@ -2176,16 +2183,16 @@ fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_wri
                     }
                 }
             }
-            
+
             if !new_images.is_empty() {
                 // 添加到本地队列
                 app_state.write().image_queue.extend(new_images.clone());
-                
+
                 // 如果是第一次添加图片，设置当前索引为0
                 if app_state.read().image_queue.len() == new_images.len() {
                     app_state.write().current_image_index = 0;
                 }
-                
+
                 // 发送DDS消息通知其他客户端
                 let image_queue = ImageQueue {
                     username: get_username(),
@@ -2193,8 +2200,16 @@ fn upload_images_to_queue(mut app_state: Signal<DioxusAppState>, image_queue_wri
                     current_index: app_state.read().current_image_index,
                     timestamp: get_current_timestamp_millis(),
                 };
-                send_image_queue_data(&image_queue.images, image_queue.current_index, image_queue_writer);
-                println!("成功添加 {} 张图片到队列，当前队列长度: {}", new_images.len(), app_state.read().image_queue.len());
+                send_image_queue_data(
+                    &image_queue.images,
+                    image_queue.current_index,
+                    image_queue_writer,
+                );
+                println!(
+                    "成功添加 {} 张图片到队列，当前队列长度: {}",
+                    new_images.len(),
+                    app_state.read().image_queue.len()
+                );
             }
         }
     });
@@ -2227,12 +2242,15 @@ fn switch_to_next_image(mut app_state: Signal<DioxusAppState>) {
 }
 
 // 删除整个图片队列
-fn delete_image_queue(mut app_state: Signal<DioxusAppState>, image_queue_delete_writer: Arc<Mutex<Writer>>) {
+fn delete_image_queue(
+    mut app_state: Signal<DioxusAppState>,
+    image_queue_delete_writer: Arc<Mutex<Writer>>,
+) {
     let mut state = app_state.write();
     let queue_size = state.image_queue.len();
     state.image_queue.clear();
     state.current_image_index = 0;
-    
+
     // 发送DDS删除消息
     send_image_queue_delete(image_queue_delete_writer);
     println!("删除图片队列，共删除 {} 张图片", queue_size);
@@ -2243,7 +2261,10 @@ fn upload_video(video_writer: Arc<Mutex<Writer>>) {
     spawn(async move {
         // 使用异步文件对话框
         if let Some(file_path) = rfd::AsyncFileDialog::new()
-            .add_filter("视频文件", &["mp4", "avi", "mov", "mkv", "webm", "flv", "wmv"])
+            .add_filter(
+                "视频文件",
+                &["mp4", "avi", "mov", "mkv", "webm", "flv", "wmv"],
+            )
             .set_title("选择视频文件")
             .pick_file()
             .await
@@ -2253,9 +2274,9 @@ fn upload_video(video_writer: Arc<Mutex<Writer>>) {
                 Ok(video_data) => {
                     let file_name = file_path.file_name();
                     let file_size = video_data.len() as u64;
-                    
+
                     println!("视频文件选择成功: {} ({} bytes)", file_name, file_size);
-                    
+
                     // 发送视频数据通过DDS
                     send_video_data(video_data, file_name, file_size, video_writer);
                 }
@@ -2272,14 +2293,10 @@ fn send_dds_message(message: &str, writer: &Arc<Mutex<Writer>>) {
     let mut data = Bytes::new();
     data.octet_seq_initialize();
 
-        data.octet_seq_loan_contiguous(
-            buffer,
-            buffer.len() as u32,
-            buffer.len() as u32,
-        );
+    data.octet_seq_loan_contiguous(buffer, buffer.len() as u32, buffer.len() as u32);
 
-        let handle = writer.lock().unwrap().writer_register_instance(&mut data);
-        writer.lock().unwrap().write(&data, &handle);
+    let handle = writer.lock().unwrap().writer_register_instance(&mut data);
+    writer.lock().unwrap().write(&data, &handle);
 }
 
 pub fn get_username() -> String {
@@ -2301,8 +2318,6 @@ fn get_current_timestamp_millis() -> u64 {
         .unwrap()
         .as_millis() as u64
 }
-
-
 
 fn send_video_data(
     video_data: Vec<u8>,
@@ -2330,12 +2345,7 @@ fn send_video_data(
     );
 }
 
-
-
-fn send_user_color(
-    color: egui::Color32,
-    color_writer: Arc<Mutex<Writer>>,
-) {
+fn send_user_color(color: egui::Color32, color_writer: Arc<Mutex<Writer>>) {
     let color_json = json!({
         "type": "UserColor",
         "username": get_username(),
@@ -2347,7 +2357,7 @@ fn send_user_color(
         },
         "timestamp": get_current_timestamp_millis()
     });
-    
+
     let message = color_json.to_string();
     send_dds_message(&message, &color_writer);
     println!("发送用户颜色更新: {:?}", color);
@@ -2361,20 +2371,23 @@ fn send_image_queue_data(
 ) {
     let username = get_username();
     let timestamp = get_current_timestamp_millis();
-    
+
     // 将图片数据转换为JSON格式
-    let images_json: Vec<serde_json::Value> = images.iter().map(|img| {
-        let image_data_b64 = general_purpose::STANDARD.encode(&img.image_data);
-        json!({
-            "id": img.id,
-            "username": img.username,
-            "image_data": image_data_b64,
-            "width": img.width,
-            "height": img.height,
-            "timestamp": img.timestamp
+    let images_json: Vec<serde_json::Value> = images
+        .iter()
+        .map(|img| {
+            let image_data_b64 = general_purpose::STANDARD.encode(&img.image_data);
+            json!({
+                "id": img.id,
+                "username": img.username,
+                "image_data": image_data_b64,
+                "width": img.width,
+                "height": img.height,
+                "timestamp": img.timestamp
+            })
         })
-    }).collect();
-    
+        .collect();
+
     let json_message = json!({
         "type": "ImageQueue",
         "username": username,
@@ -2382,30 +2395,30 @@ fn send_image_queue_data(
         "current_index": current_index,
         "timestamp": timestamp
     });
-    
+
     send_dds_message(&json_message.to_string(), &image_queue_writer);
-    println!("发送图片队列数据: {} 张图片，当前索引: {}", images.len(), current_index);
+    println!(
+        "发送图片队列数据: {} 张图片，当前索引: {}",
+        images.len(),
+        current_index
+    );
 }
 
 // 发送图片队列删除消息
-fn send_image_queue_delete(
-    image_queue_delete_writer: Arc<Mutex<Writer>>,
-) {
+fn send_image_queue_delete(image_queue_delete_writer: Arc<Mutex<Writer>>) {
     let username = get_username();
-    
+
     let json_message = json!({
         "type": "ImageQueueDelete",
         "username": username
     });
-    
+
     send_dds_message(&json_message.to_string(), &image_queue_delete_writer);
     println!("发送图片队列删除消息: {}", username);
 }
 
-fn send_private_message(target_id:String,message: String,
-    color: egui::Color32,){
-
-     unsafe {
+fn send_private_message(target_id: String, message: String, color: egui::Color32) {
+    unsafe {
         let factory = DPFactory::instance().unwrap();
 
         let dp_qos = factory.default_qos();
@@ -2426,11 +2439,11 @@ fn send_private_message(target_id:String,message: String,
         type_support_register_type(&participant, type_name.as_str());
 
         println!("2");
-    // 创建 Topic
-    let mut private_topic_name = String::from("mouse_topic");
-    private_topic_name.push_str(target_id.as_str());
-    let topic_qos = TopicQos::default_qos();
-    let chat_topic = participant
+        // 创建 Topic
+        let mut private_topic_name = String::from("mouse_topic");
+        private_topic_name.push_str(target_id.as_str());
+        let topic_qos = TopicQos::default_qos();
+        let chat_topic = participant
             .create_topic(
                 &participant,
                 private_topic_name.as_str(),
@@ -2443,9 +2456,9 @@ fn send_private_message(target_id:String,message: String,
             )
             .unwrap();
 
-            println!("3");
-    // 创建 Publisher / Writer
-    let publisher_qos = PublisherQos::default_qos();
+        println!("3");
+        // 创建 Publisher / Writer
+        let publisher_qos = PublisherQos::default_qos();
         let publisher = participant
             .create_publisher(
                 &participant,
@@ -2457,9 +2470,9 @@ fn send_private_message(target_id:String,message: String,
             )
             .unwrap();
 
-            println!("4");
-    let mut writer_qos = WriterQos::new();
-    let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
+        println!("4");
+        let mut writer_qos = WriterQos::new();
+        let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
 
         writer_qos =
             writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
@@ -2470,8 +2483,8 @@ fn send_private_message(target_id:String,message: String,
                 inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
                 inner
             }));
-            println!("5");
-    let chat_writer = publisher
+        println!("5");
+        let chat_writer = publisher
             .create_writer(
                 &chat_topic,
                 &writer_qos,
@@ -2480,9 +2493,9 @@ fn send_private_message(target_id:String,message: String,
             )
             .unwrap();
 
-            println!("6");
-    // 创建 Subscriber / Reader
-    let subscriber_qos = SubscriberQos::default_qos();
+        println!("6");
+        // 创建 Subscriber / Reader
+        let subscriber_qos = SubscriberQos::default_qos();
 
         let subscriber = participant
             .create_subscriber(
@@ -2495,9 +2508,9 @@ fn send_private_message(target_id:String,message: String,
             )
             .unwrap();
 
-            println!("7");
-    let mut reader_qos = ReaderQos::new();
-    let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        println!("7");
+        let mut reader_qos = ReaderQos::new();
+        let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
         reader_qos =
             reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
                 let mut inner = p.inner.unwrap();
@@ -2507,8 +2520,8 @@ fn send_private_message(target_id:String,message: String,
                 inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
                 inner
             }));
-            println!("8");
-    let mut chat_listener = ReaderListener::new();
+        println!("8");
+        let mut chat_listener = ReaderListener::new();
         chat_listener.set_on_data_available(chat_on_data_available);
 
         let _chat_reader = subscriber.create_reader(
@@ -2519,51 +2532,47 @@ fn send_private_message(target_id:String,message: String,
         );
 
         println!("9");
-    //let foo = Arc::new(Mutex::new(chat_writer));
-    //send_chat_message(message,color,foo);
-    if message.trim().is_empty() {
-        return;
-    }
-
-    println!("10");
-    let chat_message = ChatMessage {
-        username: get_username(),
-        message: message.clone(),
-        timestamp: get_current_timestamp(),
-        color: color,
-        is_private: true,
-        target_user: Some(target_id.clone()),
-    };
-
-    let json_message = json!({
-        "type": "Chat",
-        "username": chat_message.username,
-        "message": chat_message.message,
-        "timestamp": chat_message.timestamp,
-        "color": {
-            "r": color.r(),
-            "g": color.g(),
-            "b": color.b(),
-            "a": color.a()
+        //let foo = Arc::new(Mutex::new(chat_writer));
+        //send_chat_message(message,color,foo);
+        if message.trim().is_empty() {
+            return;
         }
-    });
 
-    println!("11");
-    //send_dds_message(&json_message.to_string(), &chat_writer);
-    let buffer = message.as_bytes();
-    let mut data = Bytes::new();
-    data.octet_seq_initialize();
+        println!("10");
+        let chat_message = ChatMessage {
+            username: get_username(),
+            message: message.clone(),
+            timestamp: get_current_timestamp(),
+            color: color,
+            is_private: true,
+            target_user: Some(target_id.clone()),
+        };
 
-    println!("12");
-        data.octet_seq_loan_contiguous(
-            buffer,
-            buffer.len() as u32,
-            buffer.len() as u32,
-        );//?
+        let json_message = json!({
+            "type": "Chat",
+            "username": chat_message.username,
+            "message": chat_message.message,
+            "timestamp": chat_message.timestamp,
+            "color": {
+                "r": color.r(),
+                "g": color.g(),
+                "b": color.b(),
+                "a": color.a()
+            }
+        });
+
+        println!("11");
+        //send_dds_message(&json_message.to_string(), &chat_writer);
+        let buffer = message.as_bytes();
+        let mut data = Bytes::new();
+        data.octet_seq_initialize();
+
+        println!("12");
+        data.octet_seq_loan_contiguous(buffer, buffer.len() as u32, buffer.len() as u32); //?
 
         // let handle = chat_writer.lock().unwrap().writer_register_instance(&mut data);
         // chat_writer.lock().unwrap().write(&data, &handle);
-}
+    }
 }
 
 // 清空所有笔迹（教师端功能）
@@ -2575,7 +2584,7 @@ fn clear_all_strokes(
     // 清空本地笔迹
     strokes.write().clear();
     local_strokes.write().clear();
-    
+
     // 清空全局本地笔迹存储
     unsafe {
         if let Some(ref local_strokes_global) = LOCAL_STROKES {
@@ -2584,17 +2593,17 @@ fn clear_all_strokes(
             }
         }
     }
-    
+
     // 发送清空所有笔迹的DDS消息
     let clear_all_message = json!({
         "type": "clear_all",
         "username": get_username(),
         "timestamp": get_current_timestamp_millis()
     });
-    
+
     let json_str = clear_all_message.to_string();
     send_dds_message(&json_str, &erase_writer);
-    
+
     log::info!("Teacher cleared all strokes");
 }
 
@@ -2605,11 +2614,11 @@ fn clear_own_strokes(
     erase_writer: Arc<Mutex<Writer>>,
 ) {
     let username = get_username();
-    
+
     // 只清空自己的笔迹
     strokes.write().retain(|stroke| stroke.username != username);
     local_strokes.write().clear();
-    
+
     // 同时清空全局LOCAL_STROKES
     unsafe {
         if let Some(ref local_strokes_global) = LOCAL_STROKES {
@@ -2618,20 +2627,19 @@ fn clear_own_strokes(
             }
         }
     }
-    
+
     // 发送DDS消息通知其他端清空该用户的笔迹
     let erase_data = json!({
         "type": "clear_user",
         "username": username,
         "timestamp": get_current_timestamp()
     });
-    
+
     send_dds_message(&erase_data.to_string(), &erase_writer);
     log::info!("Student {} sent clear_user message via DDS", username);
-    
+
     log::info!("Student {} cleared own strokes", username);
 }
-
 
 #[component]
 pub fn ToggleSwitch() -> Element {
@@ -2647,7 +2655,7 @@ pub fn ToggleSwitch() -> Element {
          position: relative;
          cursor: pointer;
          transition: background-color 0.2s;",
-        if checked() { "blue" } else { "#d1d5db" } 
+        if checked() { "blue" } else { "#d1d5db" }
     );
 
     // 圆点样式

@@ -1,10 +1,10 @@
 use crate::bindings::*;
 use crate::core::domain::DomainParticipant;
 use crate::core::subscription::Reader;
+use crate::core::topic_description::TopicDescription;
+use crate::core::{ReaderListener, ReaderQos, ReturnCode, SubscriberQos};
 use std::ffi::CString;
 use std::marker::PhantomData;
-use crate::core::{ReaderListener, ReaderQos, ReturnCode, SubscriberQos};
-use crate::core::topic_description::TopicDescription;
 
 pub struct Subscriber {
     pub raw: *mut DDS_Subscriber,
@@ -30,7 +30,15 @@ impl Subscriber {
         mask: u32,
     ) -> Option<Reader> {
         let reader = Reader {
-            raw: unsafe { DDS_Subscriber_create_datareader(self.raw, topic.raw, qos.as_ptr(), listener.as_mut_ptr(), mask) },
+            raw: unsafe {
+                DDS_Subscriber_create_datareader(
+                    self.raw,
+                    topic.raw,
+                    qos.as_ptr(),
+                    listener.as_mut_ptr(),
+                    mask,
+                )
+            },
             // _marker: PhantomData,
         };
 
@@ -52,7 +60,7 @@ impl Subscriber {
 
         let reader = Reader {
             raw: unsafe { DDS_Subscriber_lookup_datareader(self_.raw, topicName.as_ptr()) },
-        //  _marker: PhantomData,
+            //  _marker: PhantomData,
         };
 
         if reader.raw.is_null() {
@@ -63,7 +71,11 @@ impl Subscriber {
     }
 
     pub fn subscriber_get_default_reader_qos(&self, reader_qos: &mut ReaderQos) -> ReturnCode {
-        unsafe { ReturnCode::from(DDS_Subscriber_get_default_datareader_qos(self.raw, reader_qos.as_ptr_mut())) }
+        unsafe {
+            ReturnCode::from(DDS_Subscriber_get_default_datareader_qos(
+                self.raw,
+                reader_qos.as_ptr_mut(),
+            ))
+        }
     }
-    
 }

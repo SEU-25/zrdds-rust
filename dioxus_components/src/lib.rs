@@ -3,9 +3,9 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use dioxus::prelude::use_drop;
 use dioxus::prelude::*;
 use dioxus::prelude::{asset, manganis, Asset};
-use dioxus::prelude::use_drop;
 
 pub mod accordion;
 pub mod alert_dialog;

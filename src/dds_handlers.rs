@@ -1,7 +1,8 @@
-use std::pin::Pin;
 use crate::bindings::*;
 use crate::core::bytes::bytes::Bytes;
+use crate::core::sample::sample_info::SampleInfo;
 use crate::dds_simple_data_reader_listener;
+use crate::dioxus_app::get_username;
 use crate::dioxus_structs::*;
 use crate::dioxus_structs::{CLEAR_OWN_STROKES_REQUEST, LOCAL_STROKES};
 use crate::utils::color_from_json;
@@ -9,8 +10,7 @@ use base64::{Engine as _, engine::general_purpose};
 use egui::Color32;
 use serde_json::Value;
 use std::borrow::Cow;
-use crate::core::sample::sample_info::SampleInfo;
-use crate::dioxus_app::get_username;
+use std::pin::Pin;
 // for .decode()
 
 /// 安全地从 JSON 中解析 Color32，支持 [r,g,b] 或 [r,g,b,a]
@@ -315,12 +315,15 @@ fn handle_one_erase_sample(sample: &Bytes, _info: &SampleInfo) {
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
                 .to_string();
-            
+
             unsafe {
                 if let Some(ref received_strokes) = RECEIVED_STROKES {
                     let mut data = received_strokes.lock().unwrap();
                     data.retain(|stroke| stroke.username != target_username);
-                    println!("[DDS] 收到清空用户 {} 笔迹消息，已清空该用户的笔迹数据", target_username);
+                    println!(
+                        "[DDS] 收到清空用户 {} 笔迹消息，已清空该用户的笔迹数据",
+                        target_username
+                    );
                 }
             }
             return;
@@ -425,7 +428,7 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
         .and_then(|v| v.as_str())
         .unwrap_or("unknown")
         .to_string();
-    
+
     let current_user = get_username();
 
     // 检查是否为私聊消息
@@ -444,7 +447,7 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
             .and_then(|obj| obj.get("target_user"))
             .and_then(|v| v.as_str())
             .unwrap_or("");
-        
+
         // 只有以下情况才显示私聊消息：
         // 1. 自己发出的消息 (sender_username == current_user)
         // 2. 目标是自己的消息 (target_user == current_user)
@@ -492,7 +495,11 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
                 timestamp: timestamp.clone(),
                 color,
                 is_private: is_private_chat,
-                target_user: if is_private_chat { Some(target_user) } else { None },
+                target_user: if is_private_chat {
+                    Some(target_user)
+                } else {
+                    None
+                },
             });
         }
     }
@@ -839,7 +846,7 @@ dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_mouse_sample(sample_ref, info_ref);
 });
 
@@ -850,7 +857,7 @@ dds_simple_data_reader_listener!(draw, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_draw_sample(sample_ref, info_ref);
 });
 
@@ -861,7 +868,7 @@ dds_simple_data_reader_listener!(user_color, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_user_color_sample(sample_ref, info_ref);
 });
 
@@ -871,7 +878,7 @@ dds_simple_data_reader_listener!(danmaku, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_danmaku_sample(sample_ref, info_ref);
 });
 
@@ -881,7 +888,7 @@ dds_simple_data_reader_listener!(image, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_sample(sample_ref, info_ref);
 });
 
@@ -891,7 +898,7 @@ dds_simple_data_reader_listener!(erase, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_erase_sample(sample_ref, info_ref);
 });
 
@@ -901,7 +908,7 @@ dds_simple_data_reader_listener!(image_delete, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_delete_sample(sample_ref, info_ref);
 });
 
@@ -911,7 +918,7 @@ dds_simple_data_reader_listener!(chat, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_chat_sample(sample_ref, info_ref);
 });
 
@@ -921,7 +928,7 @@ dds_simple_data_reader_listener!(video, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_video_sample(sample_ref, info_ref);
 });
 
@@ -931,7 +938,7 @@ dds_simple_data_reader_listener!(video_delete, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_video_delete_sample(sample_ref, info_ref);
 });
 
@@ -941,7 +948,7 @@ dds_simple_data_reader_listener!(image_queue, DDS_Bytes, |_r, samp, inf| {
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_queue_sample(sample_ref, info_ref);
 });
 
@@ -951,6 +958,6 @@ dds_simple_data_reader_listener!(image_queue_delete, DDS_Bytes, |_r, samp, inf| 
         inner: Some(sample_ref_raw),
     };
     let info_ref_raw: &mut DDS_SampleInfo = unsafe { &mut *inf };
-let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
+    let info_ref: &SampleInfo = &SampleInfo { raw: info_ref_raw };
     handle_one_image_queue_delete_sample(sample_ref, info_ref);
 });

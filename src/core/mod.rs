@@ -3,15 +3,15 @@
 //! This module provides the low-level, core DDS interfaces organized by functionality.
 //! It serves as the foundation for higher-level APIs.
 
+pub mod bytes;
+mod chat_message;
 pub mod domain;
 pub mod publication;
 pub mod return_code;
+pub mod sample;
 pub mod subscription;
 pub mod topic;
 pub mod type_support;
-pub mod bytes;
-pub mod sample;
-mod chat_message;
 
 // Re-export all public items from submodules
 pub use domain::*;

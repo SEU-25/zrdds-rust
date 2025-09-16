@@ -1,16 +1,16 @@
 use crate::bindings::*;
 use crate::core::publication::Publisher;
+use crate::core::publisher_listener::PublisherListener;
 use crate::core::return_code::{DdsResult, ReturnCode};
+use crate::core::subscriber_listener::SubscriberListener;
 use crate::core::subscription::Subscriber;
 use crate::core::topic::Topic;
+use crate::core::topic_listener::TopicListener;
+use crate::core::type_support::TypeSupport;
+use crate::core::{PublisherQos, SubscriberQos, TopicQos, Writer};
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
-use crate::core::topic_listener::TopicListener;
-use crate::core::{PublisherQos, SubscriberQos, TopicQos, Writer};
-use crate::core::publisher_listener::PublisherListener;
-use crate::core::subscriber_listener::SubscriberListener;
-use crate::core::type_support::TypeSupport;
 
 /// 统一的DomainParticipant结构体，同时支持高级API和底层API
 pub struct DomainParticipant {
@@ -19,12 +19,7 @@ pub struct DomainParticipant {
 
 impl DomainParticipant {
     /// 高级API：简化的发布方法
-    pub fn publish(
-        &self,
-        topic_name: &str,
-        type_support: &TypeSupport,
-        qos_name: &str,
-    ) -> Writer {
+    pub fn publish(&self, topic_name: &str, type_support: &TypeSupport, qos_name: &str) -> Writer {
         unsafe {
             let topic_name = CString::new(topic_name).unwrap();
             let qos_name = CString::new(qos_name).unwrap();
@@ -88,8 +83,9 @@ impl DomainParticipant {
         listener: &SubscriberListener,
         mask: u32,
     ) -> Option<Subscriber> {
-        let subscriber =
-            unsafe { DDS_DomainParticipant_create_subscriber(self_.raw, qoslist.raw, listener.raw, mask) };
+        let subscriber = unsafe {
+            DDS_DomainParticipant_create_subscriber(self_.raw, qoslist.raw, listener.raw, mask)
+        };
 
         if subscriber.is_null() {
             None
@@ -112,8 +108,9 @@ impl DomainParticipant {
         listener: &PublisherListener,
         mask: u32,
     ) -> Option<Publisher> {
-        let publisher =
-            unsafe { DDS_DomainParticipant_create_publisher(self_.raw, qoslist.raw, listener.raw, mask) };
+        let publisher = unsafe {
+            DDS_DomainParticipant_create_publisher(self_.raw, qoslist.raw, listener.raw, mask)
+        };
 
         if publisher.is_null() {
             None

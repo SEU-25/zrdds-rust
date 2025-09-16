@@ -1,6 +1,8 @@
-use crate::bindings::{DDS_BytesTypeSupport_get_type_name, DDS_BytesTypeSupport_register_type, DDS_TypeSupport};
-use std::ffi::{CString, c_char};
+use crate::bindings::{
+    DDS_BytesTypeSupport_get_type_name, DDS_BytesTypeSupport_register_type, DDS_TypeSupport,
+};
 use crate::core::DomainParticipant;
+use std::ffi::{CString, c_char};
 
 pub struct TypeSupport {
     pub raw: *mut DDS_TypeSupport,
@@ -14,9 +16,8 @@ pub fn type_support_get_name() -> String {
     }
 }
 
-pub fn type_support_register_type(
-    participant: &DomainParticipant,
-    type_name: &str,
-) -> i32 {
-    unsafe { DDS_BytesTypeSupport_register_type(participant.raw, type_name.as_ptr() as *const c_char) }
+pub fn type_support_register_type(participant: &DomainParticipant, type_name: &str) -> i32 {
+    unsafe {
+        DDS_BytesTypeSupport_register_type(participant.raw, type_name.as_ptr() as *const c_char)
+    }
 }

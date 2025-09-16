@@ -1,11 +1,11 @@
 use eframe::egui;
-use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 // Color32 序列化支持
 mod color32_serde {
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use eframe::egui::Color32;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     pub fn serialize<S>(color: &Color32, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -55,21 +55,21 @@ pub struct ImageData {
 // 单个图片项结构
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ImageItem {
-    pub id: String,           // 图片唯一标识符
+    pub id: String, // 图片唯一标识符
     pub username: String,
-    pub image_data: Vec<u8>,  // PNG图片的原始字节数据
+    pub image_data: Vec<u8>, // PNG图片的原始字节数据
     pub width: u32,
     pub height: u32,
-    pub timestamp: u64,       // 上传时间戳
+    pub timestamp: u64, // 上传时间戳
 }
 
 // 图片队列数据结构
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ImageQueue {
     pub username: String,
-    pub images: Vec<ImageItem>,  // 图片列表
-    pub current_index: usize,    // 当前显示的图片索引
-    pub timestamp: u64,          // 队列更新时间戳
+    pub images: Vec<ImageItem>, // 图片列表
+    pub current_index: usize,   // 当前显示的图片索引
+    pub timestamp: u64,         // 队列更新时间戳
 }
 
 // 画笔笔迹数据结构
@@ -82,10 +82,10 @@ pub struct DrawStroke {
     pub end_x: f32,
     pub end_y: f32,
     pub stroke_width: f32,
-    pub is_dashed: bool,      // 是否为虚线模式
-    pub dash_length: f32,     // 虚线长度
-    pub gap_length: f32,      // 虚线间隔长度
-    pub timestamp: u64, // 笔迹创建时间戳（毫秒）
+    pub is_dashed: bool,  // 是否为虚线模式
+    pub dash_length: f32, // 虚线长度
+    pub gap_length: f32,  // 虚线间隔长度
+    pub timestamp: u64,   // 笔迹创建时间戳（毫秒）
 }
 
 // 擦除操作数据结构
@@ -94,7 +94,7 @@ pub struct EraseOperation {
     pub username: String,
     pub x: f32,
     pub y: f32,
-    pub radius: f32, // 擦除半径
+    pub radius: f32,    // 擦除半径
     pub timestamp: u64, // 擦除操作时间戳（毫秒）
 }
 
@@ -135,7 +135,7 @@ pub struct ChatMessage {
     pub timestamp: String, // 时间戳
     #[serde(with = "color32_serde")]
     pub color: egui::Color32, // 用户选择的颜色
-    pub is_private: bool, // 是否为私聊消息
+    pub is_private: bool,  // 是否为私聊消息
     pub target_user: Option<String>, // 私聊目标用户（如果是私聊消息）
 }
 
@@ -144,12 +144,12 @@ pub struct ChatMessage {
 pub struct DanmakuMessage {
     pub username: String,
     pub message: String,
-    pub x: f32,           // 当前x位置
-    pub y: f32,           // y位置
-    pub speed: f32,       // 移动速度
-    pub start_time: f64,  // 开始时间
+    pub x: f32,               // 当前x位置
+    pub y: f32,               // y位置
+    pub speed: f32,           // 移动速度
+    pub start_time: f64,      // 开始时间
     pub color: egui::Color32, // 弹幕颜色
-    pub id: String,       // 弹幕唯一标识符
+    pub id: String,           // 弹幕唯一标识符
 }
 
 // 用户颜色数据结构
@@ -168,7 +168,8 @@ pub static mut RECEIVED_VIDEOS: Option<Arc<Mutex<HashMap<String, VideoData>>>> =
 pub static mut RECEIVED_STROKES: Option<Arc<Mutex<Vec<DrawStroke>>>> = None;
 pub static mut RECEIVED_ERASES: Option<Arc<Mutex<Vec<EraseOperation>>>> = None;
 pub static mut RECEIVED_IMAGE_DELETES: Option<Arc<Mutex<Vec<ImageDeleteOperation>>>> = None;
-pub static mut RECEIVED_IMAGE_QUEUE_DELETES: Option<Arc<Mutex<Vec<ImageQueueDeleteOperation>>>> = None;
+pub static mut RECEIVED_IMAGE_QUEUE_DELETES: Option<Arc<Mutex<Vec<ImageQueueDeleteOperation>>>> =
+    None;
 pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation>>>> = None;
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
 pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;

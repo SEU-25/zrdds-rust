@@ -1,6 +1,6 @@
 use crate::bindings::{DDS_DataReader, DDS_DataReaderListener};
-use std::{mem, ptr};
 use std::pin::Pin;
+use std::{mem, ptr};
 
 pub struct ReaderListener {
     inner: Option<Pin<Box<DDS_DataReaderListener>>>,
@@ -34,14 +34,11 @@ impl ReaderListener {
     }
 
     /// 若当前是 None，先分配；然后设置回调
-    pub fn set_on_data_available(
-        &mut self,
-        cb: extern "C" fn(reader: *mut DDS_DataReader),
-    ) {
+    pub fn set_on_data_available(&mut self, cb: extern "C" fn(reader: *mut DDS_DataReader)) {
         if self.inner.is_none() {
             self.inner = Some(Box::pin(unsafe { mem::zeroed() }));
         }
-        
+
         unsafe {
             // 假设字段名如下，按你的真实定义替换
             self.inner

@@ -10,9 +10,7 @@ pub struct Writer {
 /// 简化构造函数，用于高级API
 impl Writer {
     pub fn new(raw: *mut DDS_DataWriter) -> Self {
-        Writer {
-            raw,
-        }
+        Writer { raw }
     }
 }
 
@@ -27,7 +25,12 @@ impl Writer {
 
     pub fn writer_register_instance(&mut self, bytes: &mut Bytes) -> InstanceHandleT {
         InstanceHandleT {
-            raw: &mut unsafe {DDS_BytesDataWriter_register_instance(self.raw as *mut DDS_BytesDataWriter, bytes.as_mut())},
+            raw: &mut unsafe {
+                DDS_BytesDataWriter_register_instance(
+                    self.raw as *mut DDS_BytesDataWriter,
+                    bytes.as_mut(),
+                )
+            },
         }
     }
 }

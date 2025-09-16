@@ -3,6 +3,7 @@ use crate::bindings::*;
 use crate::core::bytes::bytes::Bytes;
 use crate::dds_simple_data_reader_listener;
 use crate::dioxus_structs::*;
+use crate::dioxus_structs::{CLEAR_OWN_STROKES_REQUEST, LOCAL_STROKES};
 use crate::utils::color_from_json;
 use base64::{Engine as _, engine::general_purpose};
 use egui::Color32;
@@ -283,6 +284,44 @@ fn handle_one_erase_sample(sample: &Bytes, _info: &SampleInfo) {
     let Ok(erase_msg) = serde_json::from_str::<Value>(&s) else {
         return;
     };
+
+    // 检查是否为清空所有笔迹的消息
+    if let Some(msg_type) = erase_msg.get("type").and_then(|v| v.as_str()) {
+        if msg_type == "clear_all" {
+            // 清空所有接收到的笔迹数据
+            unsafe {
+                if let Some(ref received_strokes) = RECEIVED_STROKES {
+                    let mut data = received_strokes.lock().unwrap();
+                    data.clear();
+                    println!("[DDS] 收到清空所有笔迹消息，已清空接收到的笔迹数据");
+                }
+                // 设置清空自己笔迹的请求标志
+                if let Some(ref clear_request) = CLEAR_OWN_STROKES_REQUEST {
+                    if let Ok(mut request) = clear_request.lock() {
+                        *request = true;
+                        println!("[DDS] 收到清空所有笔迹消息，已设置清空自己笔迹的请求");
+                    }
+                }
+            }
+            return;
+        } else if msg_type == "clear_user" {
+            // 清空特定用户的笔迹数据
+            let target_username = erase_msg
+                .get("username")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            
+            unsafe {
+                if let Some(ref received_strokes) = RECEIVED_STROKES {
+                    let mut data = received_strokes.lock().unwrap();
+                    data.retain(|stroke| stroke.username != target_username);
+                    println!("[DDS] 收到清空用户 {} 笔迹消息，已清空该用户的笔迹数据", target_username);
+                }
+            }
+            return;
+        }
+    }
 
     let username = erase_msg
         .get("username")

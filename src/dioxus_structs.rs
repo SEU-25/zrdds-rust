@@ -168,4 +168,6 @@ pub static mut RECEIVED_VIDEO_DELETES: Option<Arc<Mutex<Vec<VideoDeleteOperation
 pub static mut RECEIVED_CHAT_MESSAGES: Option<Arc<Mutex<Vec<ChatMessage>>>> = None;
 pub static mut RECEIVED_DANMAKU_MESSAGES: Option<Arc<Mutex<Vec<DanmakuMessage>>>> = None;
 pub static mut RECEIVED_USER_COLORS: Option<Arc<Mutex<HashMap<String, UserColor>>>> = None;
+pub static mut LOCAL_STROKES: Option<Arc<Mutex<Vec<DrawStroke>>>> = None;
 pub static mut DANMAKU_ENABLED: Option<Arc<Mutex<bool>>> = None;
+pub static mut CLEAR_OWN_STROKES_REQUEST: Option<Arc<Mutex<bool>>> = None;

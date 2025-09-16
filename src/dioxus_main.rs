@@ -21,7 +21,7 @@ use zrdds::dioxus_structs::{
     ImageQueueDeleteOperation, MouseState, VideoDeleteOperation,
 };
 use zrdds::dioxus_structs::{
-    DANMAKU_ENABLED, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
+    CLEAR_OWN_STROKES_REQUEST, DANMAKU_ENABLED, LOCAL_STROKES, RECEIVED, RECEIVED_CHAT_MESSAGES, RECEIVED_DANMAKU_MESSAGES, RECEIVED_ERASES,
     RECEIVED_IMAGE_DELETES, RECEIVED_IMAGE_QUEUE_DELETES, RECEIVED_IMAGE_QUEUES, RECEIVED_IMAGES,
     RECEIVED_STROKES, RECEIVED_USER_COLORS, RECEIVED_VIDEO_DELETES, RECEIVED_VIDEOS,
 };
@@ -66,6 +66,8 @@ fn start_app(domain_id: u32, user_type: u32) {
     let received_image_queue_deletes: Arc<Mutex<Vec<ImageQueueDeleteOperation>>> =
         Arc::new(Mutex::new(Vec::new()));
     let danmaku_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
+    let local_strokes: Arc<Mutex<Vec<DrawStroke>>> = Arc::new(Mutex::new(Vec::new()));
+    let clear_own_strokes_request: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 
     unsafe {
         // 设置全局静态变量
@@ -81,7 +83,9 @@ fn start_app(domain_id: u32, user_type: u32) {
         RECEIVED_USER_COLORS = Some(received_user_colors.clone());
         RECEIVED_IMAGE_QUEUES = Some(received_image_queues.clone());
         RECEIVED_IMAGE_QUEUE_DELETES = Some(received_image_queue_deletes.clone());
+        LOCAL_STROKES = Some(local_strokes.clone());
         DANMAKU_ENABLED = Some(danmaku_enabled.clone());
+        CLEAR_OWN_STROKES_REQUEST = Some(clear_own_strokes_request.clone());
     }
 
     unsafe {

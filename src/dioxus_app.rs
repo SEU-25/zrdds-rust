@@ -1,6 +1,6 @@
 use crate::dioxus_structs::{
-    ChatMessage, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
-    VideoDeleteOperation, UserColor, ImageItem, ImageQueue, ImageQueueDeleteOperation,
+    ChatMessage, CLEAR_OWN_STROKES_REQUEST, DANMAKU_ENABLED, DrawStroke, EraseOperation, ImageDeleteOperation, MouseState,
+    VideoDeleteOperation, UserColor, ImageItem, ImageQueue, ImageQueueDeleteOperation, LOCAL_STROKES,
 };
 use crate::dioxus_structs::{ImageData as CustomImageData, VideoData as CustomVideoData};
 use crate::utils::*;
@@ -239,6 +239,25 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
         async move {
             loop {
                 tokio::time::sleep(tokio::time::Duration::from_millis(16)).await;
+
+                // 检查是否需要清空自己的笔迹
+                unsafe {
+                    if let Some(ref clear_request) = CLEAR_OWN_STROKES_REQUEST {
+                        if let Ok(mut request) = clear_request.lock() {
+                            if *request {
+                                *request = false; // 重置标志
+                                // 清空本地笔迹
+                                local_strokes.set(Vec::new());
+                                // 清空全局LOCAL_STROKES
+                                if let Some(ref local_strokes_global) = LOCAL_STROKES {
+                                    let mut data = local_strokes_global.lock().unwrap();
+                                    data.clear();
+                                }
+                                println!("[UI] 响应清空所有笔迹请求，已清空自己的笔迹");
+                            }
+                        }
+                    }
+                }
 
                 // 处理图片删除操作（✅ drain）
                 {
@@ -854,6 +873,35 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
                                     state.draw_mode = DrawMode::Erase;
                                 },
                                 "擦除"
+                            }
+                            // 清空画板按钮
+                            {
+                                let erase_writer_for_clear = erase_writer.clone();
+                                rsx! {
+                                    button {
+                                        "style": "padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; margin-left: 8px;",
+                                        onclick: {
+                                            let strokes_clone = strokes.clone();
+                                            let local_strokes_clone = local_strokes.clone();
+                                            let erase_writer_clone = erase_writer_for_clear.clone();
+                                            move |_| {
+                                                let user_type = app_state.read().user_type;
+                                                if user_type == 1 {
+                                                    // 教师端：清空所有笔迹
+                                                    clear_all_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
+                                                } else {
+                                                    // 学生端：只清空自己的笔迹
+                                                    clear_own_strokes(strokes_clone.clone(), local_strokes_clone.clone(), erase_writer_clone.clone());
+                                                }
+                                            }
+                                        },
+                                        if app_state.read().user_type == 1 {
+                                            "🗑️ 清空所有"
+                                        } else {
+                                            "🗑️ 清空自己"
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1780,6 +1828,15 @@ fn handle_mouse_move(
                 };
 
                 local_strokes.write().push(stroke.clone());
+                
+                // 同时更新全局LOCAL_STROKES
+                unsafe {
+                    if let Some(ref global_local_strokes) = LOCAL_STROKES {
+                        let mut data = global_local_strokes.lock().unwrap();
+                        data.push(stroke.clone());
+                    }
+                }
+                
                 send_draw_stroke(&stroke, draw_writer);
             }
             DrawMode::Erase => {
@@ -1847,6 +1904,25 @@ fn handle_erase(
                 erase_radius,
             ))
     });
+    
+    // 同时更新全局LOCAL_STROKES
+    unsafe {
+        if let Some(ref global_local_strokes) = LOCAL_STROKES {
+            let mut data = global_local_strokes.lock().unwrap();
+            data.retain(|stroke| {
+                !(stroke.timestamp < erase_timestamp
+                    && line_intersects_circle(
+                        stroke.start_x,
+                        stroke.start_y,
+                        stroke.end_x,
+                        stroke.end_y,
+                        x,
+                        y,
+                        erase_radius,
+                    ))
+            });
+        }
+    }
 
     // 删除远程笔迹（只删除擦除时刻之前的笔迹）
     strokes.write().retain(|stroke| {
@@ -2398,6 +2474,72 @@ fn send_private_message(target_id:String,message: String,
         // let handle = chat_writer.lock().unwrap().writer_register_instance(&mut data);
         // chat_writer.lock().unwrap().write(&data, &handle);
 }
+}
+
+// 清空所有笔迹（教师端功能）
+fn clear_all_strokes(
+    mut strokes: Signal<Vec<DrawStroke>>,
+    mut local_strokes: Signal<Vec<DrawStroke>>,
+    erase_writer: Arc<Mutex<Writer>>,
+) {
+    // 清空本地笔迹
+    strokes.write().clear();
+    local_strokes.write().clear();
+    
+    // 清空全局本地笔迹存储
+    unsafe {
+        if let Some(ref local_strokes_global) = LOCAL_STROKES {
+            if let Ok(mut local_strokes_lock) = local_strokes_global.lock() {
+                local_strokes_lock.clear();
+            }
+        }
+    }
+    
+    // 发送清空所有笔迹的DDS消息
+    let clear_all_message = json!({
+        "type": "clear_all",
+        "username": get_username(),
+        "timestamp": get_current_timestamp_millis()
+    });
+    
+    let json_str = clear_all_message.to_string();
+    send_dds_message(&json_str, &erase_writer);
+    
+    log::info!("Teacher cleared all strokes");
+}
+
+// 清空自己的笔迹（学生端功能）
+fn clear_own_strokes(
+    mut strokes: Signal<Vec<DrawStroke>>,
+    mut local_strokes: Signal<Vec<DrawStroke>>,
+    erase_writer: Arc<Mutex<Writer>>,
+) {
+    let username = get_username();
+    
+    // 只清空自己的笔迹
+    strokes.write().retain(|stroke| stroke.username != username);
+    local_strokes.write().clear();
+    
+    // 同时清空全局LOCAL_STROKES
+    unsafe {
+        if let Some(ref local_strokes_global) = LOCAL_STROKES {
+            if let Ok(mut local_strokes_lock) = local_strokes_global.lock() {
+                local_strokes_lock.clear();
+            }
+        }
+    }
+    
+    // 发送DDS消息通知其他端清空该用户的笔迹
+    let erase_data = json!({
+        "type": "clear_user",
+        "username": username,
+        "timestamp": get_current_timestamp()
+    });
+    
+    send_dds_message(&erase_data.to_string(), &erase_writer);
+    log::info!("Student {} sent clear_user message via DDS", username);
+    
+    log::info!("Student {} cleared own strokes", username);
 }
 
 

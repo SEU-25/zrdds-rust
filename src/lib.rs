@@ -8,12 +8,17 @@
 //! - `core`: Low-level, comprehensive DDS interface for advanced usage
 //! - `bindings`: Raw FFI bindings to the underlying DDS implementation
 
-pub mod api;
 pub mod bindings;
+
+pub mod dds_handlers;
+
+pub mod utils;
+
+// Dioxus modules
+pub mod dioxus_app;
+pub mod dioxus_structs;
+// pub mod zrdds;
+// pub use zrdds::*;
+
+pub mod components;
 pub mod core;
-
-// Re-export the high-level API by default for ease of use
-pub use api::*;
-
-// Provide access to core functionality when needed
-pub use core as dds_core;

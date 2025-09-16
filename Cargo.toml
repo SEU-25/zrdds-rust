@@ -21,10 +21,6 @@ include = [
 name = "zrdds"
 path = "src/lib.rs"
 
-[[bin]]
-name = "zrdds-dioxus"
-path = "src/dioxus_main.rs"
-
 [dependencies]
 eframe = "0.29"
 egui = "0.29"

@@ -10,15 +10,5 @@
 
 pub mod bindings;
 
-pub mod dds_handlers;
-
 pub mod utils;
-
-// Dioxus modules
-pub mod dioxus_app;
-pub mod dioxus_structs;
-// pub mod zrdds;
-// pub use zrdds::*;
-
-pub mod components;
 pub mod core;

@@ -504,13 +504,14 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
         }
     }
 
-    // 2) 弹幕（根据开关）
+    // 2) 弹幕（根据开关，但私信不创建弹幕）
     let danmaku_enabled = match unsafe { (&raw const DANMAKU_ENABLED).read() } {
         Some(flag) => *flag.lock().unwrap(),
         None => true, // 默认启用
     };
 
-    if danmaku_enabled {
+    // 私信消息不创建弹幕
+    if danmaku_enabled && !is_private_chat {
         unsafe {
             if let Some(ref received_danmaku_messages) = RECEIVED_DANMAKU_MESSAGES {
                 let mut list = received_danmaku_messages.lock().unwrap();

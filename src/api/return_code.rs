@@ -164,12 +164,96 @@ mod tests {
     }
 
     #[test]
+    fn test_all_return_code_conversions() {
+        // Test all enum variants for bidirectional conversion
+        let test_cases = [
+            (0, ReturnCode::Ok),
+            (1, ReturnCode::Error),
+            (2, ReturnCode::Unsupported),
+            (3, ReturnCode::BadParameter),
+            (4, ReturnCode::PreconditionNotMet),
+            (5, ReturnCode::OutOfResources),
+            (6, ReturnCode::NotEnabled),
+            (7, ReturnCode::ImmutablePolicy),
+            (8, ReturnCode::Inconsistent),
+            (9, ReturnCode::AlreadyDeleted),
+            (10, ReturnCode::Timeout),
+            (11, ReturnCode::NoData),
+            (12, ReturnCode::IllegalOperation),
+            (13, ReturnCode::NotAllowedBySec),
+        ];
+
+        for (raw_code, expected_enum) in test_cases {
+            // Test DDS_ReturnCode_t -> ReturnCode
+            assert_eq!(ReturnCode::from(raw_code), expected_enum);
+            
+            // Test ReturnCode -> DDS_ReturnCode_t
+            assert_eq!(DDS_ReturnCode_t::from(expected_enum), raw_code);
+        }
+    }
+
+    #[test]
+    fn test_unknown_return_code_conversion() {
+        // Test that unknown codes default to Error
+        assert_eq!(ReturnCode::from(999), ReturnCode::Error);
+        assert_eq!(ReturnCode::from(u32::MAX), ReturnCode::Error);
+    }
+
+    #[test]
     fn test_is_ok_is_err() {
         assert!(ReturnCode::Ok.is_ok());
         assert!(!ReturnCode::Ok.is_err());
 
         assert!(!ReturnCode::Error.is_ok());
         assert!(ReturnCode::Error.is_err());
+
+        // Test all error variants
+        let error_codes = [
+            ReturnCode::Error,
+            ReturnCode::Unsupported,
+            ReturnCode::BadParameter,
+            ReturnCode::PreconditionNotMet,
+            ReturnCode::OutOfResources,
+            ReturnCode::NotEnabled,
+            ReturnCode::ImmutablePolicy,
+            ReturnCode::Inconsistent,
+            ReturnCode::AlreadyDeleted,
+            ReturnCode::Timeout,
+            ReturnCode::NoData,
+            ReturnCode::IllegalOperation,
+            ReturnCode::NotAllowedBySec,
+        ];
+
+        for code in error_codes {
+            assert!(!code.is_ok());
+            assert!(code.is_err());
+        }
+    }
+
+    #[test]
+    fn test_description() {
+        // Test all descriptions are non-empty and meaningful
+        let test_cases = [
+            (ReturnCode::Ok, "Operation completed successfully"),
+            (ReturnCode::Error, "Generic error occurred"),
+            (ReturnCode::Unsupported, "Operation is not supported"),
+            (ReturnCode::BadParameter, "Invalid parameter provided"),
+            (ReturnCode::PreconditionNotMet, "Precondition not met for operation"),
+            (ReturnCode::OutOfResources, "Insufficient resources available"),
+            (ReturnCode::NotEnabled, "Entity is not enabled"),
+            (ReturnCode::ImmutablePolicy, "Attempt to modify immutable policy"),
+            (ReturnCode::Inconsistent, "Inconsistent QoS policies"),
+            (ReturnCode::AlreadyDeleted, "Attempt to delete already deleted entity"),
+            (ReturnCode::Timeout, "Operation timed out"),
+            (ReturnCode::NoData, "No data available"),
+            (ReturnCode::IllegalOperation, "Illegal operation attempted"),
+            (ReturnCode::NotAllowedBySec, "Operation not allowed by security"),
+        ];
+
+        for (code, expected_description) in test_cases {
+            assert_eq!(code.description(), expected_description);
+            assert!(!code.description().is_empty());
+        }
     }
 
     #[test]
@@ -179,6 +263,13 @@ mod tests {
 
         let result = dds_result(1, "error");
         assert_eq!(result, Err(ReturnCode::Error));
+
+        // Test with different value types
+        let result: DdsResult<i32> = dds_result(0, 42);
+        assert_eq!(result, Ok(42));
+
+        let result: DdsResult<String> = dds_result(3, "test".to_string());
+        assert_eq!(result, Err(ReturnCode::BadParameter));
     }
 
     #[test]
@@ -188,6 +279,12 @@ mod tests {
 
         let result = dds_result_unit(1);
         assert_eq!(result, Err(ReturnCode::Error));
+
+        // Test all error codes
+        for code in 1..=13 {
+            let result = dds_result_unit(code);
+            assert!(result.is_err());
+        }
     }
 
     #[test]
@@ -196,5 +293,95 @@ mod tests {
         let display_str = format!("{}", code);
         assert!(display_str.contains("BadParameter"));
         assert!(display_str.contains("Invalid parameter provided"));
+
+        // Test display format for all variants
+        let all_codes = [
+            ReturnCode::Ok,
+            ReturnCode::Error,
+            ReturnCode::Unsupported,
+            ReturnCode::BadParameter,
+            ReturnCode::PreconditionNotMet,
+            ReturnCode::OutOfResources,
+            ReturnCode::NotEnabled,
+            ReturnCode::ImmutablePolicy,
+            ReturnCode::Inconsistent,
+            ReturnCode::AlreadyDeleted,
+            ReturnCode::Timeout,
+            ReturnCode::NoData,
+            ReturnCode::IllegalOperation,
+            ReturnCode::NotAllowedBySec,
+        ];
+
+        for code in all_codes {
+            let display_str = format!("{}", code);
+            assert!(display_str.contains(&format!("{:?}", code)));
+            assert!(display_str.contains(code.description()));
+            assert!(display_str.contains(": "));
+        }
+    }
+
+    #[test]
+    fn test_error_trait() {
+        // Test that ReturnCode implements std::error::Error
+        let error: Box<dyn std::error::Error> = Box::new(ReturnCode::BadParameter);
+        assert!(error.to_string().contains("BadParameter"));
+    }
+
+    #[test]
+    fn test_return_code_properties() {
+        // Test Debug trait
+        let code = ReturnCode::Timeout;
+        let debug_str = format!("{:?}", code);
+        assert_eq!(debug_str, "Timeout");
+
+        // Test Clone and Copy
+        let original = ReturnCode::OutOfResources;
+        let cloned = original.clone();
+        let copied = original;
+        assert_eq!(original, cloned);
+        assert_eq!(original, copied);
+
+        // Test PartialEq and Eq
+        assert_eq!(ReturnCode::Ok, ReturnCode::Ok);
+        assert_ne!(ReturnCode::Ok, ReturnCode::Error);
+
+        // Test Hash (by using in a HashSet)
+        use std::collections::HashSet;
+        let mut set = HashSet::new();
+        set.insert(ReturnCode::Ok);
+        set.insert(ReturnCode::Error);
+        set.insert(ReturnCode::Ok); // Duplicate
+        assert_eq!(set.len(), 2);
+    }
+
+    #[test]
+    fn test_dds_result_chaining() {
+        // Test Result chaining with DdsResult
+        let success_result: DdsResult<i32> = Ok(42);
+        let mapped_result = success_result.map(|x| x * 2);
+        assert_eq!(mapped_result, Ok(84));
+
+        let error_result: DdsResult<i32> = Err(ReturnCode::Timeout);
+        let mapped_error = error_result.map(|x| x * 2);
+        assert_eq!(mapped_error, Err(ReturnCode::Timeout));
+    }
+
+    #[test]
+    fn test_return_code_as_u32() {
+        // Test that enum values match expected u32 values
+        assert_eq!(ReturnCode::Ok as u32, 0);
+        assert_eq!(ReturnCode::Error as u32, 1);
+        assert_eq!(ReturnCode::NotAllowedBySec as u32, 13);
+    }
+
+    #[test]
+    fn test_edge_cases() {
+        // Test with maximum and minimum values
+        assert_eq!(ReturnCode::from(0), ReturnCode::Ok);
+        assert_eq!(ReturnCode::from(u32::MAX), ReturnCode::Error);
+        
+        // Test boundary values around known codes
+        assert_eq!(ReturnCode::from(14), ReturnCode::Error); // Just above max known code
+        assert_eq!(ReturnCode::from(100), ReturnCode::Error); // Random unknown code
     }
 }

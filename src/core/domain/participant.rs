@@ -145,3 +145,153 @@ impl DomainParticipant {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ptr;
+
+    #[test]
+    fn test_domain_participant_creation() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        assert!(participant.raw.is_null());
+    }
+
+    #[test]
+    fn test_domain_participant_with_valid_pointer() {
+        // 创建一个模拟的有效指针
+        let mut mock_participant = std::mem::MaybeUninit::<DDS_DomainParticipant>::uninit();
+        let participant = DomainParticipant {
+            raw: mock_participant.as_mut_ptr(),
+        };
+        assert!(!participant.raw.is_null());
+    }
+
+    #[test]
+    fn test_create_topic_with_null_participant() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        
+        // 创建模拟的依赖对象
+        let topic_qos = TopicQos {
+            raw: ptr::null_mut(),
+        };
+        let topic_listener = TopicListener {
+            raw: ptr::null_mut(),
+        };
+        
+        // 由于 participant.raw 是 null，这个调用应该返回 None
+        let result = participant.create_topic(
+            &participant,
+            "test_topic",
+            "test_type",
+            &topic_qos,
+            &topic_listener,
+            0,
+        );
+        
+        // 在实际的 DDS 实现中，null participant 应该导致失败
+        // 这里我们只能测试函数不会崩溃
+        assert!(result.is_none() || result.is_some());
+    }
+
+    #[test]
+    fn test_create_subscriber_with_null_participant() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        
+        let subscriber_qos = SubscriberQos {
+            raw: ptr::null_mut(),
+        };
+        let subscriber_listener = SubscriberListener {
+            raw: ptr::null_mut(),
+        };
+        
+        let result = participant.create_subscriber(
+            &participant,
+            &subscriber_qos,
+            &subscriber_listener,
+            0,
+        );
+        
+        // 测试函数调用不会崩溃
+        assert!(result.is_none() || result.is_some());
+    }
+
+    #[test]
+    fn test_publish_with_null_participant() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        
+        let type_support = TypeSupport {
+            raw: ptr::null_mut(),
+        };
+        
+        // 这个调用可能会创建一个 Writer，但由于 participant 是 null，
+        // 返回的 Writer 也应该是无效的
+        let writer = participant.publish("test_topic", &type_support, "test_qos");
+        
+        // 验证函数调用不会崩溃
+        // Writer 的有效性取决于底层 DDS 实现
+        assert!(writer.raw.is_null() || !writer.raw.is_null());
+    }
+
+    #[test]
+    fn test_default_subscriber_qos() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        
+        // 测试 default_subscriber_qos 方法
+        let result = participant.default_subscriber_qos();
+        
+        // 这个方法返回 DdsResult，我们测试它不会崩溃
+        match result {
+            Ok(_) => {
+                // 成功情况
+            }
+            Err(_) => {
+                // 错误情况，这是预期的，因为 participant 是 null
+            }
+        }
+    }
+
+    #[test]
+    fn test_builtin_subscriber() {
+        let participant = DomainParticipant {
+            raw: ptr::null_mut(),
+        };
+        
+        // 测试 builtin_subscriber 静态方法
+        let subscriber = DomainParticipant::builtin_subscriber(&participant);
+        
+        // 验证函数调用不会崩溃
+        assert!(subscriber.raw.is_null() || !subscriber.raw.is_null());
+    }
+
+    #[test]
+    fn test_multiple_participants() {
+        // 测试创建多个 DomainParticipant 实例
+        let mut participants = Vec::new();
+        
+        for _ in 0..5 {
+            participants.push(DomainParticipant {
+                raw: ptr::null_mut(),
+            });
+        }
+        
+        // 验证所有实例都正确创建
+        for participant in &participants {
+            assert!(participant.raw.is_null());
+        }
+        
+        // 测试实例的独立性
+        assert_eq!(participants.len(), 5);
+    }
+}

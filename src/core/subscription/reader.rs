@@ -96,3 +96,136 @@ macro_rules! dds_simple_data_reader_listener {
         }
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ptr;
+
+    #[test]
+    fn test_reader_creation() {
+        let reader = Reader {
+            raw: ptr::null_mut(),
+        };
+        assert!(reader.raw.is_null());
+    }
+
+    #[test]
+    fn test_reader_new() {
+        let reader = Reader::new(ptr::null_mut());
+        assert!(reader.raw.is_null());
+        
+        // 测试非空指针
+        let mut mock_reader = std::mem::MaybeUninit::<DDS_DataReader>::uninit();
+        let reader = Reader::new(mock_reader.as_mut_ptr());
+        assert!(!reader.raw.is_null());
+    }
+
+    #[test]
+    fn test_reader_with_valid_pointer() {
+        let mut mock_reader = std::mem::MaybeUninit::<DDS_DataReader>::uninit();
+        let reader = Reader {
+            raw: mock_reader.as_mut_ptr(),
+        };
+        assert!(!reader.raw.is_null());
+    }
+
+    #[test]
+    fn test_reader_null_safety() {
+        let reader = Reader {
+            raw: ptr::null_mut(),
+        };
+        
+        // 验证空指针不会导致程序崩溃
+        assert!(reader.raw.is_null());
+        
+        // 测试多个实例
+        let mut readers = Vec::new();
+        for _ in 0..5 {
+            readers.push(Reader {
+                raw: ptr::null_mut(),
+            });
+        }
+        
+        for reader in &readers {
+            assert!(reader.raw.is_null());
+        }
+    }
+
+    #[test]
+    fn test_reader_memory_layout() {
+        let reader1 = Reader {
+            raw: ptr::null_mut(),
+        };
+        let reader2 = Reader {
+            raw: ptr::null_mut(),
+        };
+        
+        // 两个不同的实例应该有不同的内存地址
+        assert_ne!(&reader1 as *const _, &reader2 as *const _);
+        
+        // 但它们的 raw 字段值应该相同（都是 null）
+        assert_eq!(reader1.raw, reader2.raw);
+    }
+
+    #[test]
+    fn test_reader_with_different_pointers() {
+        let mut mock_reader1 = std::mem::MaybeUninit::<DDS_DataReader>::uninit();
+        let mut mock_reader2 = std::mem::MaybeUninit::<DDS_DataReader>::uninit();
+        
+        let reader1 = Reader {
+            raw: mock_reader1.as_mut_ptr(),
+        };
+        let reader2 = Reader {
+            raw: mock_reader2.as_mut_ptr(),
+        };
+        
+        // 两个 Reader 实例应该有不同的原始指针
+        assert_ne!(reader1.raw, reader2.raw);
+        assert!(!reader1.raw.is_null());
+        assert!(!reader2.raw.is_null());
+    }
+
+    #[test]
+    fn test_multiple_readers() {
+        let mut readers = Vec::new();
+        
+        // 创建多个 Reader 实例
+        for i in 0..10 {
+            if i % 2 == 0 {
+                readers.push(Reader::new(ptr::null_mut()));
+            } else {
+                let mut mock_reader = std::mem::MaybeUninit::<DDS_DataReader>::uninit();
+                readers.push(Reader::new(mock_reader.as_mut_ptr()));
+            }
+        }
+        
+        // 验证偶数索引的 Reader 有空指针
+        for (i, reader) in readers.iter().enumerate() {
+            if i % 2 == 0 {
+                assert!(reader.raw.is_null());
+            } else {
+                assert!(!reader.raw.is_null());
+            }
+        }
+    }
+
+    #[test]
+    fn test_reader_struct_size() {
+        // 验证 Reader 结构体的大小符合预期
+        assert_eq!(std::mem::size_of::<Reader>(), std::mem::size_of::<*mut DDS_DataReader>());
+    }
+
+    #[test]
+    fn test_reader_creation_patterns() {
+        // 测试不同的创建模式
+        let readers = vec![
+            Reader { raw: ptr::null_mut() },
+            Reader::new(ptr::null_mut()),
+        ];
+        
+        for reader in &readers {
+            assert!(reader.raw.is_null());
+        }
+    }
+}

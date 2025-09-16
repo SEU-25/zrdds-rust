@@ -840,6 +840,11 @@ fn handle_one_image_queue_delete_sample(sample: &Bytes, _info: &SampleInfo) {
 
 // 显式给出 $rdr/$samp/$in 的名字（想叫什么都行）
 dds_simple_data_reader_listener!(mouse, DDS_Bytes, |_r, samp, inf| {
+    // 安全检查指针有效性
+    if samp.is_null() || inf.is_null() {
+        return;
+    }
+    
     // 指针 -> 引用，然后交给安全函数
     let sample_ref_raw: Pin<Box<DDS_Bytes>> = Box::pin(unsafe { *samp });
     let sample_ref: &Bytes = &Bytes {

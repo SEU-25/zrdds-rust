@@ -55,3 +55,124 @@ impl Publisher {
         })
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ptr;
+
+    #[test]
+    fn test_publisher_creation() {
+        let publisher = Publisher {
+            raw: ptr::null_mut(),
+        };
+        assert!(publisher.raw.is_null());
+    }
+
+    #[test]
+    fn test_publisher_with_valid_pointer() {
+        let mut mock_publisher = std::mem::MaybeUninit::<DDS_Publisher>::uninit();
+        let publisher = Publisher {
+            raw: mock_publisher.as_mut_ptr(),
+        };
+        assert!(!publisher.raw.is_null());
+    }
+
+    #[test]
+    fn test_publisher_null_safety() {
+        let publisher = Publisher {
+            raw: ptr::null_mut(),
+        };
+        
+        // 验证空指针不会导致程序崩溃
+        assert!(publisher.raw.is_null());
+        
+        // 测试多个实例
+        let mut publishers = Vec::new();
+        for _ in 0..5 {
+            publishers.push(Publisher {
+                raw: ptr::null_mut(),
+            });
+        }
+        
+        for publisher in &publishers {
+            assert!(publisher.raw.is_null());
+        }
+    }
+
+    #[test]
+    fn test_publisher_memory_layout() {
+        let publisher1 = Publisher {
+            raw: ptr::null_mut(),
+        };
+        let publisher2 = Publisher {
+            raw: ptr::null_mut(),
+        };
+        
+        // 两个不同的实例应该有不同的内存地址
+        assert_ne!(&publisher1 as *const _, &publisher2 as *const _);
+        
+        // 但它们的 raw 字段值应该相同（都是 null）
+        assert_eq!(publisher1.raw, publisher2.raw);
+    }
+
+    #[test]
+    fn test_publisher_with_different_pointers() {
+        let mut mock_publisher1 = std::mem::MaybeUninit::<DDS_Publisher>::uninit();
+        let mut mock_publisher2 = std::mem::MaybeUninit::<DDS_Publisher>::uninit();
+        
+        let publisher1 = Publisher {
+            raw: mock_publisher1.as_mut_ptr(),
+        };
+        let publisher2 = Publisher {
+            raw: mock_publisher2.as_mut_ptr(),
+        };
+        
+        // 两个 Publisher 实例应该有不同的原始指针
+        assert_ne!(publisher1.raw, publisher2.raw);
+        assert!(!publisher1.raw.is_null());
+        assert!(!publisher2.raw.is_null());
+    }
+
+    #[test]
+    fn test_multiple_publishers() {
+        let mut publishers = Vec::new();
+        
+        // 创建多个 Publisher 实例
+        for i in 0..10 {
+            if i % 2 == 0 {
+                publishers.push(Publisher {
+                    raw: ptr::null_mut(),
+                });
+            } else {
+                let mut mock_publisher = std::mem::MaybeUninit::<DDS_Publisher>::uninit();
+                publishers.push(Publisher {
+                    raw: mock_publisher.as_mut_ptr(),
+                });
+            }
+        }
+        
+        // 验证偶数索引的 Publisher 有空指针
+        for (i, publisher) in publishers.iter().enumerate() {
+            if i % 2 == 0 {
+                assert!(publisher.raw.is_null());
+            } else {
+                assert!(!publisher.raw.is_null());
+            }
+        }
+    }
+
+    #[test]
+    fn test_publisher_struct_size() {
+        // 验证 Publisher 结构体的大小符合预期
+        assert_eq!(std::mem::size_of::<Publisher>(), std::mem::size_of::<*mut DDS_Publisher>());
+    }
+
+    #[test]
+    fn test_publisher_default_qos() {
+        // 测试默认 QoS 方法不会崩溃
+        let _qos = Publisher::default_qos();
+        // 这个测试主要验证方法调用不会导致编译错误或运行时崩溃
+    }
+}

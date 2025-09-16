@@ -60,6 +60,7 @@ fn main() {
 初始化 ZRDDS 系统，返回域参与者工厂实例。
 
 **参数:**
+
 - `xml`: XML 配置文件路径
 - `profile`: 要使用的 QoS 配置文件名称
 
@@ -70,6 +71,7 @@ fn main() {
 向指定主题写入字节数据的便捷函数。
 
 **参数:**
+
 - `domain_id`: 域 ID
 - `topic_name`: 主题名称
 - `data`: 要写入的字节数据
@@ -83,6 +85,7 @@ fn main() {
 域参与者工厂，负责创建和管理域参与者。
 
 **方法:**
+
 - `create_domain_participant(domain_id: u32, participant_name: &str) -> DomainParticipant`
   - 创建域参与者实例
   - `domain_id`: 域 ID
@@ -93,6 +96,7 @@ fn main() {
 域参与者，DDS 通信的核心实体。
 
 **方法:**
+
 - `publish(topic_name: &str, type_support: *mut DDS_TypeSupport, qos_name: &str) -> DataWriter`
   - 创建数据写者用于发布数据
   - `topic_name`: 主题名称
@@ -118,6 +122,7 @@ cargo run --example basic_usage
 ## 构建
 
 项目要求:
+
 - Rust 2024 edition 或更高版本
 - `libs` 目录中的 ZRDDS C 库文件
 - `include` 目录中的头文件
@@ -154,4 +159,4 @@ cargo test
 
 ## 许可证
 
-本项目采用 MIT 许可证。详见 LICENSE 文件。
+应甲方要求，本仓库为私有仓库，不对外公开。

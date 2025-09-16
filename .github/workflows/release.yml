@@ -1,0 +1,27 @@
+name: Release Crate
+
+on:
+  push:
+    tags:
+      - "v*"   # 例如 v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Package crate
+        run: cargo package --allow-dirty
+
+      - name: Upload crate to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/package/*.crate

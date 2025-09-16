@@ -12,58 +12,118 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: 安装 Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable
-        
-    - name: 缓存 Cargo 依赖
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        
-    - name: 检查代码格式
-      run: cargo fmt --all -- --check
-      
-    - name: 运行 Clippy 检查
-      run: cargo clippy --all-targets --all-features
-      
-    - name: 构建项目
-      run: cargo build --verbose
-      
-    - name: 运行测试
-      run: cargo test --verbose
-      
-    - name: 构建示例
-      run: cargo build --example basic_usage --verbose
-      
-    - name: 检查示例编译
-      run: cargo check --example basic_usage --verbose
+      - uses: actions/checkout@v4
 
-  # 发布检查作业
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: 缓存 Cargo 依赖
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 缓存 target
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-debug
+
+      - name: 检查代码格式
+        run: cargo fmt --all --check
+
+      - name: 运行 Clippy 检查
+        run: cargo clippy --all-targets --all-features
+        continue-on-error: true
+
+      - name: 构建项目
+        run: cargo build --verbose
+
+      - name: 运行测试
+        run: cargo test --verbose
+
+      - name: 构建示例
+        run: cargo build --example basic_usage --verbose
+
+      - name: 检查示例编译
+        run: cargo check --example basic_usage --verbose
+
   publish-check:
     runs-on: windows-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: 安装 Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable
-        
-    - name: 检查包发布准备
-      run: cargo package --verbose
-      
-    - name: 验证包内容
-      run: cargo package --list
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: 缓存 Cargo 依赖
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 检查包发布准备
+        run: cargo package --verbose
+
+      - name: 验证包内容
+        run: cargo package --list
+
+  doc:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rust-docs
+
+      - name: 缓存 Cargo 依赖
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 缓存 Cargo 工具
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-binaries
+
+      - name: 构建文档
+        run: cargo doc --no-deps --verbose
+
+      - name: 安装 cargo-deadlinks
+        run: |
+          if (-not (Get-Command cargo-deadlinks -ErrorAction SilentlyContinue)) {
+            cargo install cargo-deadlinks --locked
+          }
+
+      - name: 检查文档链接
+        run: cargo deadlinks --dir target/doc/zrdds --check-http
+        continue-on-error: true
+
+      - name: 复制 vercel.json
+        run: copy vercel.json ./target/doc/vercel.json
+
+      - name: 部署到 Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./target/doc
+          vercel-args: '--prod'

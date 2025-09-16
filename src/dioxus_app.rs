@@ -524,10 +524,10 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             "设置DDS域号"
                         }
                         
-                        p {
-                            "style": "color: #666; margin-bottom: 20px; font-size: 16px;",
-                            "请输入1-150之间的域号"
-                        }
+                        // p {
+                        //     "style": "color: #666; margin-bottom: 20px; font-size: 16px;",
+                        //     "请输入1-232之间的域号"
+                        // }
                         
                         // 用户类型选择
                         div {
@@ -575,7 +575,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             "type": "number",
                             "min": "1",
                             "max": "150",
-                            "placeholder": "输入域号 (1-150)",
+                            "placeholder": "输入域号 (1-232)",
                             "style": "width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; margin-bottom: 20px; text-align: center;",
                             "value": "{app_state.read().domain_input}",
                             oninput: move |evt| {
@@ -592,7 +592,7 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 let input_value = binding.domain_input.trim();
                                 let current_user_type = binding.user_type;
                                 if let Ok(domain) = input_value.parse::<u32>() {
-                                    if domain >= 1 && domain <= 150 {
+                                    if domain >= 1 && domain <= 232 {
                                         drop(binding);
                                         
                                         // 重新启动应用并传递新的域号和用户类型

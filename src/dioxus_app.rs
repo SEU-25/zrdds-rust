@@ -46,6 +46,9 @@ pub struct DioxusAppState {
     pub current_color: egui::Color32,
     pub draw_mode: DrawMode,
     pub stroke_width: f32,
+    pub is_dashed: bool,        // 虚线模式开关
+    pub dash_length: f32,       // 虚线长度
+    pub gap_length: f32,        // 虚线间隔长度
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub chat_input: String,
@@ -76,6 +79,9 @@ impl Default for DioxusAppState {
             current_color: egui::Color32::from_rgb(255, 0, 0),
             draw_mode: DrawMode::Mouse,
             stroke_width: 2.0,
+            is_dashed: false,       // 默认实线模式
+            dash_length: 5.0,       // 默认虚线长度
+            gap_length: 3.0,        // 默认虚线间隔
             canvas_width: 1000,
             canvas_height: 600,
             chat_input: String::new(),
@@ -381,6 +387,9 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                             end_x: stroke.end_x,
                             end_y: stroke.end_y,
                             stroke_width: stroke.stroke_width,
+                            is_dashed: stroke.is_dashed,
+                            dash_length: stroke.dash_length,
+                            gap_length: stroke.gap_length,
                             timestamp: stroke.timestamp,
                         });
                     }
@@ -769,10 +778,7 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                 // 工具栏
                 div {
-                    "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;
-                     margin-right:20px;                    
-                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                     display:flex",
+                    "style": "background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; margin-right:20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display:flex",
 
                     // h3 {
                     //     "style": "margin: 0 0 15px 0; color: #333;",
@@ -793,41 +799,80 @@ fn CentralPanel(props: CentralPanelProps) -> Element {
 
                                 label { 
                                     "style": "font-weight: 500; color: #555; display: block; margin-bottom: 8px;",
-                                    "画笔颜色:" }
+                                    "画笔设置:" }
                                 // HoverCardUse {  }
 
-                                input {
-                                    r#type: "color",
-                                    value: cur_hex,
-                                    oninput: {
-                                        let color_writer_clone = color_writer.clone();
-                                        move |evt: FormEvent| {
-                                            let s = evt.value();
-                                            log::info!("color input -> {}", &s);
-                                            if let Ok(c) = parse_color(&s) {
-                                                // 更新当前用户的颜色
-                                                let username = get_username();
-                                                let mut state = app_state.write();
-                                                state.current_color = c;
-                                                // 同时更新用户颜色映射，确保本地鼠标指针颜色立即更新
-                                                state.user_colors.insert(username, c);
-                                                drop(state);
-                                                // 发送颜色更新的DDS消息
-                                                send_user_color(c, color_writer_clone.clone());
-                                            } else {
-                                                log::warn!("bad color: {}", s);
+                                div {
+                                    "style": "display: flex; align-items: center; gap: 15px; margin-bottom: 8px;",
+                                    input {
+                                        r#type: "color",
+                                        value: cur_hex,
+                                        oninput: {
+                                            let color_writer_clone = color_writer.clone();
+                                            move |evt: FormEvent| {
+                                                let s = evt.value();
+                                                log::info!("color input -> {}", &s);
+                                                if let Ok(c) = parse_color(&s) {
+                                                    // 更新当前用户的颜色
+                                                    let username = get_username();
+                                                    let mut state = app_state.write();
+                                                    state.current_color = c;
+                                                    // 同时更新用户颜色映射，确保本地鼠标指针颜色立即更新
+                                                    state.user_colors.insert(username, c);
+                                                    drop(state);
+                                                    // 发送颜色更新的DDS消息
+                                                    send_user_color(c, color_writer_clone.clone());
+                                                } else {
+                                                    log::warn!("bad color: {}", s);
+                                                }
                                             }
                                         }
                                     }
+                                    
+                                    // 笔迹大小控件
+                                    div {
+                                        "style": "display: flex; flex-direction: column; align-items: center; gap: 4px;",
+                                        input {
+                                            r#type: "range",
+                                            min: "1",
+                                            max: "13.5",
+                                            step: "0.5",
+                                            value: "{app_state.read().stroke_width}",
+                                            "style": "width: 80px;",
+                                            oninput: move |evt: FormEvent| {
+                                                let value = evt.value().parse::<f32>().unwrap_or(2.0);
+                                                app_state.write().stroke_width = value;
+                                            }
+                                        }
+                                        span {
+                                            "style": "color: #666; font-size: 12px; white-space: nowrap;",
+                                            "大小: {app_state.read().stroke_width:.1}"
+                                        }
+                                    }
+                                    
+                                    // 虚线模式开关
+                                    div {
+                                        "style": "display: flex; align-items: center; gap: 8px;",
+                                        input {
+                                            r#type: "checkbox",
+                                            checked: app_state.read().is_dashed,
+                                            onchange: move |evt: FormEvent| {
+                                                app_state.write().is_dashed = evt.checked();
+                                            }
+                                        }
+                                        span {
+                                            "style": "color: #666; font-size: 14px;",
+                                            "虚线"
+                                        }
+                                    }
                                 }
-
-                                // 这里把已经 format! 好的字符串作为文本
-                                span { "{rgb_str}" }
+                                
+                                // span { 
+                                // "style":"margin-bottom: 2px;",
+                                // "{rgb_str}" }
                             }
                         }
                     }
-
-                    // 模式切换按钮
                     div {
                         "style": "align-items:center; gap:10px;margin:20px;margin-bottom:20px;",
                         label {
@@ -1092,7 +1137,12 @@ fn Canvas(props: CanvasProps) -> Element {
                         y2: "{stroke.end_y}",
                         stroke: format!("#{:02x}{:02x}{:02x}", stroke.color.r(), stroke.color.g(), stroke.color.b()),
                         stroke_width: "{stroke.stroke_width}",
-                        stroke_linecap: "round"
+                        stroke_linecap: "round",
+                        stroke_dasharray: if stroke.is_dashed {
+                            format!("{} {}", stroke.dash_length, stroke.gap_length)
+                        } else {
+                            "none".to_string()
+                        }
                     }
                 }
 
@@ -1105,7 +1155,12 @@ fn Canvas(props: CanvasProps) -> Element {
                         y2: "{stroke.end_y}",
                         stroke: format!("#{:02x}{:02x}{:02x}", stroke.color.r(), stroke.color.g(), stroke.color.b()),
                         stroke_width: "{stroke.stroke_width}",
-                        stroke_linecap: "round"
+                        stroke_linecap: "round",
+                        stroke_dasharray: if stroke.is_dashed {
+                            format!("{} {}", stroke.dash_length, stroke.gap_length)
+                        } else {
+                            "none".to_string()
+                        }
                     }
                 }
 
@@ -1824,6 +1879,9 @@ fn handle_mouse_move(
                     end_x: canvas_x,
                     end_y: canvas_y,
                     stroke_width: state.stroke_width,
+                    is_dashed: state.is_dashed,
+                    dash_length: state.stroke_width * 3.0,  // 虚线长度与笔迹宽度成比例
+                    gap_length: state.stroke_width * 2.5,   // 间隔长度与笔迹宽度成比例
                     timestamp: get_current_timestamp_millis(),
                 };
 
@@ -1992,6 +2050,9 @@ fn send_draw_stroke(stroke: &DrawStroke, draw_writer: Arc<Mutex<Writer>>) {
         end_x: stroke.end_x,
         end_y: stroke.end_y,
         stroke_width: stroke.stroke_width,
+        is_dashed: stroke.is_dashed,
+        dash_length: stroke.dash_length,
+        gap_length: stroke.gap_length,
         timestamp: stroke.timestamp,
     };
 
@@ -2004,6 +2065,9 @@ fn send_draw_stroke(stroke: &DrawStroke, draw_writer: Arc<Mutex<Writer>>) {
         "end_x": draw_stroke.end_x,
         "end_y": draw_stroke.end_y,
         "stroke_width": draw_stroke.stroke_width,
+        "is_dashed": draw_stroke.is_dashed,
+        "dash_length": draw_stroke.dash_length,
+        "gap_length": draw_stroke.gap_length,
         "timestamp": draw_stroke.timestamp
     });
 

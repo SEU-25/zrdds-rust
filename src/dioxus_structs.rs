@@ -82,6 +82,9 @@ pub struct DrawStroke {
     pub end_x: f32,
     pub end_y: f32,
     pub stroke_width: f32,
+    pub is_dashed: bool,      // 是否为虚线模式
+    pub dash_length: f32,     // 虚线长度
+    pub gap_length: f32,      // 虚线间隔长度
     pub timestamp: u64, // 笔迹创建时间戳（毫秒）
 }
 

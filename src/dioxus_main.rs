@@ -2,8 +2,8 @@ use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
 use std::collections::HashMap;
 use std::pin::Pin;
-use std::ptr;
 use std::sync::{Arc, Mutex};
+use std::{ffi::CString, mem, ptr};
 use zrdds::bindings::*;
 use zrdds::core::dp_listener::DPListener;
 use zrdds::core::publisher_listener::PublisherListener;
@@ -88,504 +88,566 @@ fn start_app(domain_id: u32, user_type: u32) {
         CLEAR_OWN_STROKES_REQUEST = Some(clear_own_strokes_request.clone());
     }
 
-    // DDS 初始化
-    let factory = DPFactory::instance().unwrap();
+    unsafe {
+        // DDS 初始化
+        let factory = DPFactory::instance().unwrap();
 
-    let dp_qos = factory.default_qos();
+        let dp_qos = factory.default_qos();
 
-    let participant = factory
-        .create_dp(
-            &factory,
-            domain_id,
-            &dp_qos,
-            &DPListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
-    let type_name = type_support_get_name();
-    type_support_register_type(&participant, type_name.as_str());
+        let participant = factory
+            .create_dp(
+                &factory,
+                domain_id,
+                &dp_qos,
+                &DPListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        let type_name = type_support_get_name();
+        type_support_register_type(&participant, type_name.as_str());
 
-    let topic_name = String::from("mouse_topic");
-    let topic_qos = TopicQos::default_qos();
-    let topic = participant
-        .create_topic(
-            &participant,
-            topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let topic_name = String::from("mouse_topic");
+        let topic_qos = TopicQos::default_qos();
+        let topic = participant
+            .create_topic(
+                &participant,
+                topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // C风格方法
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建图片topic
-    let image_topic_name = String::from("image_topic");
-    let image_topic = participant
-        .create_topic(
-            &participant,
-            image_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建图片topic
+        let image_topic_name = String::from("image_topic");
+        let image_topic = participant
+            .create_topic(
+                &participant,
+                image_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     image_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建画笔topic
-    let draw_topic_name = String::from("draw_topic");
-    let draw_topic = participant
-        .create_topic(
-            &participant,
-            draw_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建画笔topic
+        let draw_topic_name = String::from("draw_topic");
+        let draw_topic = participant
+            .create_topic(
+                &participant,
+                draw_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     draw_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建擦除topic
-    let erase_topic_name = String::from("erase_topic");
-    let erase_topic = participant
-        .create_topic(
-            &participant,
-            erase_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建擦除topic
+        let erase_topic_name = String::from("erase_topic");
+        let erase_topic = participant
+            .create_topic(
+                &participant,
+                erase_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     erase_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建图片删除topic
-    let image_delete_topic_name = String::from("image_delete_topic");
-    let image_delete_topic = participant
-        .create_topic(
-            &participant,
-            image_delete_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建图片删除topic
+        let image_delete_topic_name = String::from("image_delete_topic");
+        let image_delete_topic = participant
+            .create_topic(
+                &participant,
+                image_delete_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     image_delete_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建聊天topic
-    let chat_topic_name = String::from("chat_topic");
-    let chat_topic = participant
-        .create_topic(
-            &participant,
-            chat_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建聊天topic
+        let chat_topic_name = String::from("chat_topic");
+        let chat_topic = participant
+            .create_topic(
+                &participant,
+                chat_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_DomainParticipant_create_topic(
+        //     participant,
+        //     chat_topic_name.as_ptr(),
+        //     type_name,
+        //     topic_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // );
 
-    // 创建视频topic
-    let video_topic_name = String::from("video_topic");
-    let video_topic = participant
-        .create_topic(
-            &participant,
-            video_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建视频topic
+        let video_topic_name = String::from("video_topic");
+        let video_topic = participant
+            .create_topic(
+                &participant,
+                video_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建视频删除topic
-    let video_delete_topic_name = String::from("video_delete_topic");
-    let video_delete_topic = participant
-        .create_topic(
-            &participant,
-            video_delete_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建视频删除topic
+        let video_delete_topic_name = String::from("video_delete_topic");
+        let video_delete_topic = participant
+            .create_topic(
+                &participant,
+                video_delete_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建弹幕topic
-    let danmaku_topic_name = String::from("danmaku_topic");
-    let danmaku_topic = participant
-        .create_topic(
-            &participant,
-            danmaku_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建弹幕topic
+        let danmaku_topic_name = String::from("danmaku_topic");
+        let danmaku_topic = participant
+            .create_topic(
+                &participant,
+                danmaku_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建用户颜色topic
-    let user_color_topic_name = String::from("user_color_topic");
-    let user_color_topic = participant
-        .create_topic(
-            &participant,
-            user_color_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建用户颜色topic
+        let user_color_topic_name = String::from("user_color_topic");
+        let user_color_topic = participant
+            .create_topic(
+                &participant,
+                user_color_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建图片队列topic
-    let image_queue_topic_name = String::from("image_queue_topic");
-    let image_queue_topic = participant
-        .create_topic(
-            &participant,
-            image_queue_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建图片队列topic
+        let image_queue_topic_name = String::from("image_queue_topic");
+        let image_queue_topic = participant
+            .create_topic(
+                &participant,
+                image_queue_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建图片队列删除topic
-    let image_queue_delete_topic_name = String::from("image_queue_delete_topic");
-    let image_queue_delete_topic = participant
-        .create_topic(
-            &participant,
-            image_queue_delete_topic_name.as_str(),
-            type_name.as_str(),
-            &topic_qos,
-            &TopicListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建图片队列删除topic
+        let image_queue_delete_topic_name = String::from("image_queue_delete_topic");
+        let image_queue_delete_topic = participant
+            .create_topic(
+                &participant,
+                image_queue_delete_topic_name.as_str(),
+                type_name.as_str(),
+                &topic_qos,
+                &TopicListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 创建publisher
-    let publisher_qos = PublisherQos::default_qos();
-    let publisher = participant
-        .create_publisher(
-            &participant,
-            &publisher_qos,
-            &PublisherListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // 创建publisher
+        let publisher_qos = PublisherQos::default_qos();
+        let publisher = participant
+            .create_publisher(
+                &participant,
+                &publisher_qos,
+                &PublisherListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // datawriter qos的可靠性为可靠、持久化
-    let mut writer_qos = WriterQos::new();
-    let mut writer_qos_default = WriterQos::new();
+        // datawriter qos的可靠性为可靠、持久化
+        let mut writer_qos = WriterQos::new();
 
-    publisher.publisher_get_default_writer_qos(&mut writer_qos);
-    publisher.publisher_get_default_writer_qos(&mut writer_qos_default);
+        let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
 
-    writer_qos = writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
-        let mut inner = p.inner.unwrap();
-        inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
-        inner.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
-        inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
-        inner
-    }));
+        writer_qos =
+            writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_ALL_HISTORY_QOS;
+                inner
+            }));
 
-    let writer = publisher
-        .create_writer(
-            &topic,
-            &writer_qos_default,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        // println!("设置数据写者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
+        let writer = publisher
+            .create_writer(
+                &topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let draw_writer = publisher
-        .create_writer(
-            &draw_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let draw_writer = publisher
+            .create_writer(
+                &draw_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
+        // DDS_Publisher_create_datawriter(
+        //     publisher,
+        //     draw_topic,
+        //     datawriter_qos,
+        //     ptr::null_mut(),
+        //     DDS_STATUS_MASK_NONE,
+        // ) as *mut DDS_DataWriter;
 
-    let erase_writer = publisher
-        .create_writer(
-            &erase_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let erase_writer = publisher
+            .create_writer(
+                &erase_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let image_delete_writer = publisher
-        .create_writer(
-            &image_delete_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let image_delete_writer = publisher
+            .create_writer(
+                &image_delete_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let chat_writer = publisher
-        .create_writer(
-            &chat_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let chat_writer = publisher
+            .create_writer(
+                &chat_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let video_writer = publisher
-        .create_writer(
-            &video_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let video_writer = publisher
+            .create_writer(
+                &video_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let video_delete_writer = publisher
-        .create_writer(
-            &video_delete_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let video_delete_writer = publisher
+            .create_writer(
+                &video_delete_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let danmaku_writer = publisher
-        .create_writer(
-            &danmaku_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let danmaku_writer = publisher
+            .create_writer(
+                &danmaku_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let user_color_writer = publisher
-        .create_writer(
-            &user_color_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let user_color_writer = publisher
+            .create_writer(
+                &user_color_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let image_queue_writer = publisher
-        .create_writer(
-            &image_queue_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let image_queue_writer = publisher
+            .create_writer(
+                &image_queue_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let image_queue_delete_writer = publisher
-        .create_writer(
-            &image_queue_delete_topic,
-            &writer_qos,
-            &mut WriterListener::none(),
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let image_queue_delete_writer = publisher
+            .create_writer(
+                &image_queue_delete_topic,
+                &writer_qos,
+                &mut WriterListener::none(),
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    // 包装在Arc<Mutex<>>中
-    let writer = Arc::new(Mutex::new(writer));
-    let draw_writer = Arc::new(Mutex::new(draw_writer));
-    let erase_writer = Arc::new(Mutex::new(erase_writer));
-    let image_delete_writer = Arc::new(Mutex::new(image_delete_writer));
-    let chat_writer = Arc::new(Mutex::new(chat_writer));
-    let video_writer = Arc::new(Mutex::new(video_writer));
-    let video_delete_writer = Arc::new(Mutex::new(video_delete_writer));
-    let danmaku_writer = Arc::new(Mutex::new(danmaku_writer));
-    let user_color_writer = Arc::new(Mutex::new(user_color_writer));
-    let image_queue_writer = Arc::new(Mutex::new(image_queue_writer));
-    let image_queue_delete_writer = Arc::new(Mutex::new(image_queue_delete_writer));
+        // 包装在Arc<Mutex<>>中
+        let writer = Arc::new(Mutex::new(writer));
+        let draw_writer = Arc::new(Mutex::new(draw_writer));
+        let erase_writer = Arc::new(Mutex::new(erase_writer));
+        let image_delete_writer = Arc::new(Mutex::new(image_delete_writer));
+        let chat_writer = Arc::new(Mutex::new(chat_writer));
+        let video_writer = Arc::new(Mutex::new(video_writer));
+        let video_delete_writer = Arc::new(Mutex::new(video_delete_writer));
+        let danmaku_writer = Arc::new(Mutex::new(danmaku_writer));
+        let user_color_writer = Arc::new(Mutex::new(user_color_writer));
+        let image_queue_writer = Arc::new(Mutex::new(image_queue_writer));
+        let image_queue_delete_writer = Arc::new(Mutex::new(image_queue_delete_writer));
 
-    // 创建subscriber
-    let subscriber_qos = SubscriberQos::default_qos();
+        // 创建subscriber
+        let subscriber_qos = SubscriberQos::default_qos();
 
-    let subscriber = participant
-        .create_subscriber(
-            &participant,
-            &subscriber_qos,
-            &SubscriberListener {
-                raw: ptr::null_mut(),
-            },
-            DDS_STATUS_MASK_NONE,
-        )
-        .unwrap();
+        let subscriber = participant
+            .create_subscriber(
+                &participant,
+                &subscriber_qos,
+                &SubscriberListener {
+                    raw: ptr::null_mut(),
+                },
+                DDS_STATUS_MASK_NONE,
+            )
+            .unwrap();
 
-    let mut reader_qos = ReaderQos::new();
-    let mut reader_qos_default = ReaderQos::new();
-    subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
-    subscriber.subscriber_get_default_reader_qos(&mut reader_qos_default);
-    reader_qos = reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
-        let mut inner = p.inner.unwrap();
-        inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
-        inner.durability.kind = DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
-        inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
-        inner
-    }));
+        let mut reader_qos = ReaderQos::new();
+        let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        reader_qos =
+            reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
+                let mut inner = p.inner.unwrap();
+                inner.reliability.kind = DDS_ReliabilityQosPolicyKind_DDS_RELIABLE_RELIABILITY_QOS;
+                inner.durability.kind =
+                    DDS_DurabilityQosPolicyKind_DDS_TRANSIENT_LOCAL_DURABILITY_QOS;
+                inner.history.kind = DDS_HistoryQosPolicyKind_DDS_KEEP_LAST_HISTORY_QOS;
+                inner
+            }));
 
-    // 创建各种listener和reader
-    let mut listener = ReaderListener::new();
-    listener.set_on_data_available(mouse_on_data_available);
+        //dr_qos.history.depth = 1;
 
-    let _reader = subscriber.create_reader(
-        &topic.get_description(),
-        &reader_qos_default,
-        &mut listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        // println!("设置数据读者qos成功,qos和rtn_code:{:?},{}", dw_qos, rtn_code);
 
-    let mut draw_listener = ReaderListener::new();
-    draw_listener.set_on_data_available(draw_on_data_available);
+        // 创建各种listener和reader
+        let mut listener = ReaderListener::new();
+        listener.set_on_data_available(mouse_on_data_available);
 
-    let _draw_reader = subscriber.create_reader(
-        &draw_topic.get_description(),
-        &reader_qos,
-        &mut draw_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _reader = subscriber.create_reader(
+            &topic.get_description(),
+            &reader_qos,
+            &mut listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut image_listener = ReaderListener::new();
-    image_listener.set_on_data_available(image_on_data_available);
+        let mut draw_listener = ReaderListener::new();
+        draw_listener.set_on_data_available(draw_on_data_available);
 
-    let _image_reader = subscriber.create_reader(
-        &image_topic.get_description(),
-        &reader_qos,
-        &mut image_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _draw_reader = subscriber.create_reader(
+            &draw_topic.get_description(),
+            &reader_qos,
+            &mut draw_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut erase_listener = ReaderListener::new();
-    erase_listener.set_on_data_available(erase_on_data_available);
+        let mut image_listener = ReaderListener::new();
+        image_listener.set_on_data_available(image_on_data_available);
 
-    let _erase_reader = subscriber.create_reader(
-        &erase_topic.get_description(),
-        &reader_qos,
-        &mut erase_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _image_reader = subscriber.create_reader(
+            &image_topic.get_description(),
+            &reader_qos,
+            &mut image_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut image_delete_listener = ReaderListener::new();
-    image_delete_listener.set_on_data_available(image_delete_on_data_available);
+        let mut erase_listener = ReaderListener::new();
+        erase_listener.set_on_data_available(erase_on_data_available);
 
-    let _image_delete_reader = subscriber.create_reader(
-        &image_delete_topic.get_description(),
-        &reader_qos,
-        &mut image_delete_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _erase_reader = subscriber.create_reader(
+            &erase_topic.get_description(),
+            &reader_qos,
+            &mut erase_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut chat_listener = ReaderListener::new();
-    chat_listener.set_on_data_available(chat_on_data_available);
+        let mut image_delete_listener = ReaderListener::new();
+        image_delete_listener.set_on_data_available(image_delete_on_data_available);
 
-    let _chat_reader = subscriber.create_reader(
-        &chat_topic.get_description(),
-        &reader_qos,
-        &mut chat_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _image_delete_reader = subscriber.create_reader(
+            &image_delete_topic.get_description(),
+            &reader_qos,
+            &mut image_delete_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut video_listener = ReaderListener::new();
-    video_listener.set_on_data_available(video_on_data_available);
+        let mut chat_listener = ReaderListener::new();
+        chat_listener.set_on_data_available(chat_on_data_available);
 
-    let _video_reader = subscriber.create_reader(
-        &&video_topic.get_description(),
-        &reader_qos,
-        &mut video_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _chat_reader = subscriber.create_reader(
+            &chat_topic.get_description(),
+            &reader_qos,
+            &mut chat_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut video_delete_listener = ReaderListener::new();
-    video_delete_listener.set_on_data_available(video_delete_on_data_available);
+        let mut video_listener = ReaderListener::new();
+        video_listener.set_on_data_available(video_on_data_available);
 
-    let _video_delete_reader = subscriber.create_reader(
-        &video_delete_topic.get_description(),
-        &reader_qos,
-        &mut video_delete_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _video_reader = subscriber.create_reader(
+            &&video_topic.get_description(),
+            &reader_qos,
+            &mut video_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut danmaku_listener = ReaderListener::new();
-    danmaku_listener.set_on_data_available(danmaku_on_data_available);
+        let mut video_delete_listener = ReaderListener::new();
+        video_delete_listener.set_on_data_available(video_delete_on_data_available);
 
-    let _danmaku_reader = subscriber.create_reader(
-        &danmaku_topic.get_description(),
-        &reader_qos,
-        &mut danmaku_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _video_delete_reader = subscriber.create_reader(
+            &video_delete_topic.get_description(),
+            &reader_qos,
+            &mut video_delete_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut user_color_listener = ReaderListener::new();
-    user_color_listener.set_on_data_available(user_color_on_data_available);
+        let mut danmaku_listener = ReaderListener::new();
+        danmaku_listener.set_on_data_available(danmaku_on_data_available);
 
-    let _user_color_reader = subscriber.create_reader(
-        &user_color_topic.get_description(),
-        &reader_qos,
-        &mut user_color_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _danmaku_reader = subscriber.create_reader(
+            &danmaku_topic.get_description(),
+            &reader_qos,
+            &mut danmaku_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut image_queue_listener = ReaderListener::new();
-    image_queue_listener.set_on_data_available(image_queue_on_data_available);
+        let mut user_color_listener = ReaderListener::new();
+        user_color_listener.set_on_data_available(user_color_on_data_available);
 
-    let _image_queue_reader = subscriber.create_reader(
-        &image_queue_topic.get_description(),
-        &reader_qos,
-        &mut image_queue_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _user_color_reader = subscriber.create_reader(
+            &user_color_topic.get_description(),
+            &reader_qos,
+            &mut user_color_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    let mut image_queue_delete_listener = ReaderListener::new();
-    image_queue_delete_listener.set_on_data_available(image_queue_delete_on_data_available);
+        let mut image_queue_listener = ReaderListener::new();
+        image_queue_listener.set_on_data_available(image_queue_on_data_available);
 
-    let _image_queue_delete_reader = subscriber.create_reader(
-        &image_queue_delete_topic.get_description(),
-        &reader_qos,
-        &mut image_queue_delete_listener,
-        DDS_STATUS_MASK_ALL,
-    );
+        let _image_queue_reader = subscriber.create_reader(
+            &image_queue_topic.get_description(),
+            &reader_qos,
+            &mut image_queue_listener,
+            DDS_STATUS_MASK_ALL,
+        );
 
-    // 配置窗口
-    let config = Config::new()
-        .with_window(
-            WindowBuilder::new()
-                .with_title("在线课堂")
-                .with_inner_size(dioxus_desktop::LogicalSize::new(1920, 780))
-                .with_maximized(true)
-                .with_resizable(false), //.with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
-                                        //.with_maximized(true)
-        )
-        .with_custom_head(
-            r#"
+        let mut image_queue_delete_listener = ReaderListener::new();
+        image_queue_delete_listener.set_on_data_available(image_queue_delete_on_data_available);
+
+        let _image_queue_delete_reader = subscriber.create_reader(
+            &image_queue_delete_topic.get_description(),
+            &reader_qos,
+            &mut image_queue_delete_listener,
+            DDS_STATUS_MASK_ALL,
+        );
+
+        // 配置窗口
+        let config = Config::new()
+            .with_window(
+                WindowBuilder::new()
+                    .with_title("在线课堂")
+                    .with_inner_size(dioxus_desktop::LogicalSize::new(1920, 780))
+                    .with_maximized(true)
+                    .with_resizable(false), //.with_min_inner_size(dioxus_desktop::LogicalSize::new(800, 600))
+                                            //.with_maximized(true)
+            )
+            .with_custom_head(
+                r#"
             <style>
                 body {
                     margin: 0;
@@ -827,42 +889,43 @@ fn start_app(domain_id: u32, user_type: u32) {
                 }
             </style>
         "#
-            .to_string(),
-        );
+                .to_string(),
+            );
 
-    // 设置全局props
-    unsafe {
-        DIOXUS_PROPS = Some(DioxusAppProps {
-            domain_id,
-            user_type,
-            received: received.clone(),
-            received_images: received_images.clone(),
-            received_videos: received_videos.clone(),
-            received_strokes: received_strokes.clone(),
-            received_erases: received_erases.clone(),
-            received_image_deletes: received_image_deletes.clone(),
-            received_video_deletes: received_video_deletes.clone(),
-            received_chat_messages: received_chat_messages.clone(),
-            received_danmaku_messages: received_danmaku_messages.clone(),
-            received_user_colors: received_user_colors.clone(),
-            received_image_queues: received_image_queues.clone(),
-            received_image_queue_deletes: received_image_queue_deletes.clone(),
-            writer: writer.clone(),
-            video_writer: video_writer.clone(),
-            draw_writer: draw_writer.clone(),
-            erase_writer: erase_writer.clone(),
-            image_delete_writer: image_delete_writer.clone(),
-            video_delete_writer: video_delete_writer.clone(),
-            chat_writer: chat_writer.clone(),
-            danmaku_writer: danmaku_writer.clone(),
-            color_writer: user_color_writer.clone(),
-            image_queue_writer: image_queue_writer.clone(),
-            image_queue_delete_writer: image_queue_delete_writer.clone(),
-        });
+        // 设置全局props
+        unsafe {
+            DIOXUS_PROPS = Some(DioxusAppProps {
+                domain_id,
+                user_type,
+                received: received.clone(),
+                received_images: received_images.clone(),
+                received_videos: received_videos.clone(),
+                received_strokes: received_strokes.clone(),
+                received_erases: received_erases.clone(),
+                received_image_deletes: received_image_deletes.clone(),
+                received_video_deletes: received_video_deletes.clone(),
+                received_chat_messages: received_chat_messages.clone(),
+                received_danmaku_messages: received_danmaku_messages.clone(),
+                received_user_colors: received_user_colors.clone(),
+                received_image_queues: received_image_queues.clone(),
+                received_image_queue_deletes: received_image_queue_deletes.clone(),
+                writer: writer.clone(),
+                video_writer: video_writer.clone(),
+                draw_writer: draw_writer.clone(),
+                erase_writer: erase_writer.clone(),
+                image_delete_writer: image_delete_writer.clone(),
+                video_delete_writer: video_delete_writer.clone(),
+                chat_writer: chat_writer.clone(),
+                danmaku_writer: danmaku_writer.clone(),
+                color_writer: user_color_writer.clone(),
+                image_queue_writer: image_queue_writer.clone(),
+                image_queue_delete_writer: image_queue_delete_writer.clone(),
+            });
+        }
+
+        // 启动应用
+        LaunchBuilder::new().with_cfg(config).launch(app_wrapper);
     }
-
-    // 启动应用
-    LaunchBuilder::new().with_cfg(config).launch(app_wrapper);
 }
 
 fn main() {
@@ -873,7 +936,7 @@ fn main() {
     } else {
         0
     };
-
+    
     let user_type = if args.len() > 2 {
         args[2].parse::<u32>().unwrap_or(1)
     } else {

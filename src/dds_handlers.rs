@@ -57,6 +57,9 @@ fn handle_one_draw_sample(sample: &Bytes, _info: &SampleInfo) {
                     end_x: draw_msg["end_x"].as_f64().unwrap_or(0.0) as f32,
                     end_y: draw_msg["end_y"].as_f64().unwrap_or(0.0) as f32,
                     stroke_width: draw_msg["stroke_width"].as_f64().unwrap_or(2.0) as f32,
+                    is_dashed: draw_msg["is_dashed"].as_bool().unwrap_or(false),
+                    dash_length: draw_msg["dash_length"].as_f64().unwrap_or(5.0) as f32,
+                    gap_length: draw_msg["gap_length"].as_f64().unwrap_or(3.0) as f32,
                     timestamp: draw_msg["timestamp"].as_u64().unwrap_or(0),
                 };
 

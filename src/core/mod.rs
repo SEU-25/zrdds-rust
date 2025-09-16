@@ -13,6 +13,9 @@ pub mod subscription;
 pub mod topic;
 pub mod type_support;
 
+#[cfg(test)]
+mod tests;
+
 // Re-export all public items from submodules
 pub use domain::*;
 pub use publication::*;

@@ -5,6 +5,9 @@ use serde_json::Value;
 use std::fs;
 use std::path::Path;
 
+#[cfg(test)]
+mod tests;
+
 // 从JSON值转换为Color32
 pub fn color_from_json(value: &Value) -> Color32 {
     if let Some(array) = value.as_array() {

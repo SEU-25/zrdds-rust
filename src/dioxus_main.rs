@@ -353,8 +353,10 @@ fn start_app(domain_id: u32, user_type: u32) {
 
         // datawriter qos的可靠性为可靠、持久化
         let mut writer_qos = WriterQos::new();
+        let mut writer_qos_default = WriterQos::new();
 
-        let _rtn_code = publisher.publisher_get_default_writer_qos(&mut writer_qos);
+        publisher.publisher_get_default_writer_qos(&mut writer_qos);
+        publisher.publisher_get_default_writer_qos(&mut writer_qos_default);
 
         writer_qos =
             writer_qos.get_for_now(Box::new(|p: WriterQos| -> Pin<Box<DDS_DataWriterQos>> {
@@ -370,7 +372,7 @@ fn start_app(domain_id: u32, user_type: u32) {
         let writer = publisher
             .create_writer(
                 &topic,
-                &writer_qos,
+                &writer_qos_default,
                 &mut WriterListener::none(),
                 DDS_STATUS_MASK_NONE,
             )
@@ -501,7 +503,10 @@ fn start_app(domain_id: u32, user_type: u32) {
             .unwrap();
 
         let mut reader_qos = ReaderQos::new();
-        let _rtn_code = subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        let mut reader_qos_default = ReaderQos::new();
+        
+        subscriber.subscriber_get_default_reader_qos(&mut reader_qos);
+        subscriber.subscriber_get_default_reader_qos(&mut reader_qos_default);
         reader_qos =
             reader_qos.get_for_now(Box::new(|p: ReaderQos| -> Pin<Box<DDS_DataReaderQos>> {
                 let mut inner = p.inner.unwrap();
@@ -522,7 +527,7 @@ fn start_app(domain_id: u32, user_type: u32) {
 
         let _reader = subscriber.create_reader(
             &topic.get_description(),
-            &reader_qos,
+            &reader_qos_default,
             &mut listener,
             DDS_STATUS_MASK_ALL,
         );

@@ -434,8 +434,8 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
         .unwrap_or(false);
 
     // 如果是私聊消息，检查是否应该显示该消息
-    if is_private_chat {
-        let target_user = chat_msg
+    let target_user = if is_private_chat {
+        let target = chat_msg
             .get("private_chat")
             .and_then(|v| v.as_object())
             .and_then(|obj| obj.get("target_user"))
@@ -445,10 +445,13 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
         // 只有以下情况才显示私聊消息：
         // 1. 自己发出的消息 (sender_username == current_user)
         // 2. 目标是自己的消息 (target_user == current_user)
-        if sender_username != current_user && target_user != current_user {
+        if sender_username != current_user && target != current_user {
             return;
         }
-    }
+        target.to_string()
+    } else {
+        String::new()
+    };
 
     // 其他字段
     let username = sender_username; // 使用之前获取的发送者用户名
@@ -485,6 +488,8 @@ fn handle_one_chat_sample(sample: &Bytes, _info: &SampleInfo) {
                 message: message.clone(),
                 timestamp: timestamp.clone(),
                 color,
+                is_private: is_private_chat,
+                target_user: if is_private_chat { Some(target_user) } else { None },
             });
         }
     }

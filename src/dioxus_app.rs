@@ -433,6 +433,8 @@ pub fn DioxusApp(props: DioxusAppProps) -> Element {
                                 message: message.message.clone(),
                                 timestamp: message.timestamp.clone(),
                                 color: message.color,
+                                is_private: message.is_private,
+                                target_user: message.target_user.clone(),
                             };
                             chat_messages.write().push(chat_msg);
 
@@ -1411,9 +1413,27 @@ fn ChatPanel(props: ChatPanelProps) -> Element {
                         "style": "margin-bottom: 8px; padding: 8px; background-color: white; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
                         div {
                             "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;",
-                            span {
-                                "style": "font-weight: bold; color: #007bff; font-size: 13px;",
-                                "{message.username}"
+                            div {
+                                "style": "display: flex; align-items: center; gap: 8px;",
+                                span {
+                                    "style": "font-weight: bold; color: #007bff; font-size: 13px;",
+                                    "{message.username}"
+                                }
+                                // 私聊标签
+                                if message.is_private {
+                                    span {
+                                        "style": "background-color: #ff6b6b; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;",
+                                        if let Some(ref target) = message.target_user {
+                                            if target == &get_username() {
+                                                "私聊→我"
+                                            } else {
+                                                "私聊→{target}"
+                                            }
+                                        } else {
+                                            "私聊"
+                                        }
+                                    }
+                                }
                             }
                             span {
                                 "style": "font-size: 11px; color: #666;",
@@ -1719,6 +1739,8 @@ fn send_chat_message(
         message: message.clone(),
         timestamp: get_current_timestamp(),
         color: color,
+        is_private: false,
+        target_user: None,
     };
 
     let json_message = json!({
@@ -1759,6 +1781,8 @@ fn send_chat_message_with_private(
         message: message.clone(),
         timestamp: get_current_timestamp(),
         color: color,
+        is_private: private_chat_enabled && selected_user.is_some(),
+        target_user: if private_chat_enabled { selected_user.clone() } else { None },
     };
 
     let mut json_message = json!({
@@ -2443,6 +2467,8 @@ fn send_private_message(target_id:String,message: String,
         message: message.clone(),
         timestamp: get_current_timestamp(),
         color: color,
+        is_private: true,
+        target_user: Some(target_id.clone()),
     };
 
     let json_message = json!({

@@ -132,6 +132,8 @@ pub struct ChatMessage {
     pub timestamp: String, // 时间戳
     #[serde(with = "color32_serde")]
     pub color: egui::Color32, // 用户选择的颜色
+    pub is_private: bool, // 是否为私聊消息
+    pub target_user: Option<String>, // 私聊目标用户（如果是私聊消息）
 }
 
 // 弹幕消息数据结构
